@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Transistor Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1400px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .transistor-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 25px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            min-height: 400px;
+        }
+        
+        .transistor-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .transistor-wrapper {
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid #1e3c72;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .transistor-wrapper:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .transistor-wrapper.on {
+            background: linear-gradient(180deg, #c3f0ca 0%, #a8e6cf 100%);
+            border-color: #28a745;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.5);
+        }
+        
+        .bit-label {
+            position: absolute;
+            top: -25px;
+            background: #1e3c72;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .transistor-svg {
+            width: 120px;
+            height: 180px;
+            margin: 10px 0;
+        }
+        
+        /* Transistor circuit styles */
+        .wire {
+            stroke: #333;
+            stroke-width: 3;
+            fill: none;
+        }
+        
+        .wire.powered {
+            stroke: #ffc107;
+            stroke-width: 4;
+            filter: drop-shadow(0 0 8px #ffc107);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .transistor-body {
+            fill: #6c757d;
+            stroke: #495057;
+            stroke-width: 2;
+        }
+        
+        .transistor-body.on {
+            fill: #28a745;
+            stroke: #1e7e34;
+        }
+        
+        .terminal {
+            fill: #dc3545;
+            stroke: #bd2130;
+            stroke-width: 2;
+        }
+        
+        .terminal.on {
+            fill: #ffc107;
+            stroke: #e0a800;
+        }
+        
+        .electron {
+            fill: #17a2b8;
+            animation: flow 2s linear infinite;
+        }
+        
+        @keyframes flow {
+            0% { opacity: 0; transform: translateY(0); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(80px); }
+        }
+        
+        .state-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #6c757d;
+            background: white;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .state-display.on {
+            color: white;
+            background: linear-gradient(135deg, #28a745 0%, #38ef7d 100%);
+            box-shadow: 0 0 30px rgba(40, 167, 69, 0.6);
+        }
+        
+        .state-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .state-label.on {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .power-value {
+            background: #6c757d;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .power-value.on {
+            background: #28a745;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            background: #152a52;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(30, 60, 114, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #28a745;
+        }
+        
+        .btn-secondary:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .explanation {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+        
+        .explanation h3 {
+            color: #17a2b8;
+            margin-bottom: 15px;
+        }
+        
+        .highlight {
+            background: #ffc107;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 5px solid #1e3c72;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+        
+        .binary-display {
+            background: #212529;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 2.5em;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: inset 0 0 20px rgba(0,255,0,0.2);
+            border: 3px solid #0f0;
+        }
+        
+        .circuit-info {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .circuit-info h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Binary Transistor Counter</h1>
+        <p class="subtitle">See How Transistors Store Binary Data!</p>
+        
+        <div class="circuit-info">
+            <h4>🔌 How It Works:</h4>
+            <p><strong>Transistor = Switch:</strong> A transistor is an electronic switch that can be <span class="highlight">ON (1)</span> or <span class="highlight">OFF (0)</span></p>
+            <p><strong>Power Flow:</strong> When ON, electricity flows through (shown in yellow). When OFF, no power flows.</p>
+            <p><strong>Click any transistor</strong> to toggle it ON/OFF and see the circuit change!</p>
+        </div>
+        
+        <div class="binary-display" id="binaryDisplay">00000000</div>
+        
+        <div class="transistor-container" id="transistorContainer">
+            <!-- Transistors will be added here dynamically -->
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="increment()">⬆️ Count Up (+1)</button>
+            <button class="btn" onclick="decrement()">⬇️ Count Down (-1)</button>
+            <button class="btn" onclick="reset()">🔄 Reset All OFF</button>
+            <button class="btn btn-secondary" onclick="addTransistor()">➕ Add Transistor</button>
+            <button class="btn btn-danger" onclick="removeTransistor()">➖ Remove Transistor</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Decimal Value</div>
+                <div class="stat-value" id="decimalValue">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Number of Transistors</div>
+                <div class="stat-value" id="numTransistors">8</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Transistors ON</div>
+                <div class="stat-value" id="transistorsOn">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total States</div>
+                <div class="stat-value" id="totalStates">256</div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3>💡 Understanding Transistors & Binary:</h3>
+            <p><strong>🔌 Transistor:</strong> An electronic component that acts like a switch - it can be <span class="highlight">ON (1)</span> or <span class="highlight">OFF (0)</span></p>
+            
+            <p><strong>💾 Computer Memory:</strong> Computers store all data using billions of tiny transistors! Each transistor represents one bit.</p>
+            
+            <p><strong>⚡ Binary States:</strong></p>
+            <ul style="margin-left: 30px; margin-top: 10px;">
+                <li><strong>OFF (0):</strong> No power flows → Gray transistor → Represents 0</li>
+                <li><strong>ON (1):</strong> Power flows → Green transistor with yellow wires → Represents 1</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>🧮 Position Values:</strong> Just like decimal, each transistor position has a value based on powers of 2:</p>
+            <ul style="margin-left: 30px; margin-top: 5px;">
+                <li>Bit 0 (rightmost) = 1</li>
+                <li>Bit 1 = 2</li>
+                <li>Bit 2 = 4</li>
+                <li>Bit 3 = 8, and so on...</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>📱 Real Life:</strong> Your phone, computer, and all digital devices use transistors exactly like this! Modern processors have billions of them working together.</p>
+        </div>
+        
+        <div class="info-box" id="eventLog">
+            <h3>📋 Event Log:</h3>
+            <p>Click transistors or use buttons to see the circuit in action!</p>
+        </div>
+    </div>
+
+    <script>
+        let bits = [0, 0, 0, 0, 0, 0, 0, 0]; // Start with 8 bits (1 byte)
+        
+        function createTransistor(index) {
+            const isOn = bits[index] === 1;
+            const bitValue = Math.pow(2, index);
+            
+            const unit = document.createElement('div');
+            unit.className = 'transistor-unit';
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'transistor-wrapper' + (isOn ? ' on' : '');
+            wrapper.onclick = () => toggleTransistor(index);
+            
+            wrapper.innerHTML = `
+                <div class="bit-label">Bit ${index}</div>
+                <svg class="transistor-svg" viewBox="0 0 120 180">
+                    <!-- Power supply line (top) -->
+                    <line class="wire ${isOn ? 'powered' : ''}" x1="60" y1="10" x2="60" y2="40" />
+                    <circle class="terminal ${isOn ? 'on' : ''}" cx="60" cy="10" r="5" />
+                    
+                    <!-- Transistor body -->
+                    <rect class="transistor-body ${isOn ? 'on' : ''}" x="30" y="70" width="60" height="40" rx="5" />
+                    <text x="60" y="95" text-anchor="middle" fill="white" font-size="14" font-weight="bold">
+                        ${isOn ? 'ON' : 'OFF'}
+                    </text>
+                    
+                    <!-- Gate line (left) -->
+                    <line class="wire" x1="10" y1="90" x2="30" y2="90" />
+                    <circle class="terminal" cx="10" cy="90" r="5" />
+                    
+                    <!-- Upper connection -->
+                    <line class="wire ${isOn ? 'powered' : ''}" x1="60" y1="40" x2="60" y2="70" />
+                    
+                    <!-- Lower connection -->
+                    <line class="wire ${isOn ? 'powered' : ''}" x1="60" y1="110" x2="60" y2="140" />
+                    
+                    <!-- Ground line (bottom) -->
+                    <line class="wire ${isOn ? 'powered' : ''}" x1="60" y1="140" x2="60" y2="170" />
+                    <line class="wire" x1="45" y1="170" x2="75" y2="170" stroke-width="4"/>
+                    <line class="wire" x1="50" y1="175" x2="70" y2="175" stroke-width="3"/>
+                    <line class="wire" x1="55" y1="180" x2="65" y2="180" stroke-width="2"/>
+                    
+                    <!-- Flowing electrons when ON -->
+                    ${isOn ? `
+                        <circle class="electron" cx="60" cy="30" r="4">
+                            <animate attributeName="cy" from="30" to="140" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle class="electron" cx="60" cy="30" r="4">
+                            <animate attributeName="cy" from="30" to="140" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                        </circle>
+                    ` : ''}
+                </svg>
+                
+                <div class="state-display ${isOn ? 'on' : ''}">${isOn ? '1' : '0'}</div>
+                <div class="state-label ${isOn ? 'on' : ''}">${isOn ? 'POWERED' : 'NO POWER'}</div>
+                <div class="power-value ${isOn ? 'on' : ''}">Value: ${isOn ? bitValue : 0}</div>
+            `;
+            
+            unit.appendChild(wrapper);
+            return unit;
+        }
+        
+        function render() {
+            const container = document.getElementById('transistorContainer');
+            container.innerHTML = '';
+            
+            // Render in reverse order (most significant bit first - left to right)
+            for (let i = bits.length - 1; i >= 0; i--) {
+                container.appendChild(createTransistor(i));
+            }
+            
+            updateStats();
+            updateBinaryDisplay();
+        }
+        
+        function updateBinaryDisplay() {
+            const binaryStr = bits.slice().reverse().join('');
+            document.getElementById('binaryDisplay').textContent = binaryStr;
+        }
+        
+        function updateStats() {
+            const decimal = bitsToDecimal();
+            const onCount = bits.filter(b => b === 1).length;
+            
+            document.getElementById('decimalValue').textContent = decimal.toLocaleString();
+            document.getElementById('numTransistors').textContent = bits.length;
+            document.getElementById('transistorsOn').textContent = onCount;
+            document.getElementById('totalStates').textContent = Math.pow(2, bits.length).toLocaleString();
+        }
+        
+        function bitsToDecimal() {
+            let decimal = 0;
+            for (let i = 0; i < bits.length; i++) {
+                if (bits[i] === 1) {
+                    decimal += Math.pow(2, i);
+                }
+            }
+            return decimal;
+        }
+        
+        function toggleTransistor(index) {
+            bits[index] = bits[index] === 0 ? 1 : 0;
+            const state = bits[index] === 1 ? 'ON' : 'OFF';
+            const power = bits[index] === 1 ? 'Power flowing!' : 'No power';
+            log(`🔌 Transistor ${index} switched ${state}! ${power} Value contribution: ${bits[index] * Math.pow(2, index)}`);
+            render();
+        }
+        
+        function incrementBit(index) {
+            if (bits[index] === 0) {
+                bits[index] = 1;
+                log(`⚡ Transistor ${index} turned ON`);
+            } else {
+                bits[index] = 0;
+                log(`⚡ Transistor ${index} overflowed! Turned OFF, switching transistor ${index + 1} ON`);
+                
+                if (index + 1 >= bits.length) {
+                    bits.push(0);
+                    log(`🆕 Added new transistor ${index + 1}! Can now count up to ${Math.pow(2, bits.length) - 1}`);
+                }
+                incrementBit(index + 1);
+            }
+        }
+        
+        function decrementBit(index) {
+            if (bits[index] === 1) {
+                bits[index] = 0;
+                log(`⚡ Transistor ${index} turned OFF`);
+            } else {
+                bits[index] = 1;
+                log(`⚡ Transistor ${index} underflowed! Turned ON, borrowing from transistor ${index + 1}`);
+                
+                if (index + 1 < bits.length) {
+                    decrementBit(index + 1);
+                }
+            }
+            
+            // Remove leading zeros (turn off unused transistors)
+            while (bits.length > 1 && bits[bits.length - 1] === 0) {
+                bits.pop();
+            }
+        }
+        
+        function increment() {
+            const before = bitsToDecimal();
+            log(`⬆️ Counting up: ${before} + 1 = ${before + 1}`);
+            incrementBit(0);
+            render();
+        }
+        
+        function decrement() {
+            const before = bitsToDecimal();
+            if (before > 0) {
+                log(`⬇️ Counting down: ${before} - 1 = ${before - 1}`);
+                decrementBit(0);
+            } else {
+                log('⚠️ Already at 0! All transistors are OFF.');
+            }
+            render();
+        }
+        
+        function reset() {
+            bits = bits.map(() => 0);
+            log('🔄 All transistors turned OFF! Power flow stopped.');
+            render();
+        }
+        
+        function addTransistor() {
+            bits.push(0);
+            log(`➕ Added transistor ${bits.length - 1}! Now we have ${bits.length} transistors. Can count up to ${Math.pow(2, bits.length) - 1}!`);
+            render();
+        }
+        
+        function removeTransistor() {
+            if (bits.length > 1) {
+                bits.pop();
+                log(`➖ Removed transistor ${bits.length}. Now we have ${bits.length} transistors. Maximum value is ${Math.pow(2, bits.length) - 1}`);
+                render();
+            } else {
+                log('⚠️ Cannot remove the last transistor! We need at least one.');
+            }
+        }
+        
+        function log(message) {
+            const logBox = document.getElementById('eventLog');
+            const time = new Date().toLocaleTimeString();
+            const binaryStr = bits.slice().reverse().join('');
+            const decimal = bitsToDecimal();
+            const onCount = bits.filter(b => b === 1).length;
+            
+            logBox.innerHTML = `<h3>📋 Event Log:</h3>
+                <p><strong>[${time}]</strong> ${message}</p>
+                <p style="margin-top: 10px;">
+                    <strong>Binary:</strong> ${binaryStr} | 
+                    <strong>Decimal:</strong> ${decimal} | 
+                    <strong>Transistors ON:</strong> ${onCount}/${bits.length}
+                </p>
+            ` + logBox.innerHTML.split('</h3>')[1];
+        }
+        
+        // Initialize
+        render();
+        log('🔌 Welcome! Each transistor can be ON (1) or OFF (0). Together they store binary numbers!');
+    </script>
+</body>
+</html>

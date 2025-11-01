@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Byte Representation - Letters, Numbers, Colors</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1400px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8e2de2;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        /* Byte Display */
+        .byte-container {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .bits-display {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .bit-box {
+            width: 60px;
+            height: 80px;
+            background: white;
+            border: 3px solid #8e2de2;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .bit-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(142, 45, 226, 0.3);
+        }
+        
+        .bit-box.active {
+            background: #8e2de2;
+            color: white;
+            box-shadow: 0 0 20px rgba(142, 45, 226, 0.5);
+        }
+        
+        .bit-number {
+            font-size: 0.7em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .bit-box.active .bit-number {
+            color: #fff;
+        }
+        
+        .bit-value {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        
+        .bit-position {
+            font-size: 0.6em;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .bit-box.active .bit-position {
+            color: #fff;
+        }
+        
+        /* Representations Grid */
+        .representations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .representation-card {
+            background: white;
+            border: 3px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .representation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #8e2de2;
+        }
+        
+        .representation-card h3 {
+            color: #8e2de2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rep-icon {
+            font-size: 1.5em;
+        }
+        
+        .representation-value {
+            font-size: 3em;
+            font-weight: bold;
+            color: #4a00e0;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 15px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .representation-description {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        /* Color swatch for grayscale */
+        .color-swatch {
+            width: 100%;
+            height: 100px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255,255,255,0.8);
+        }
+        
+        /* ASCII Chart */
+        .ascii-chart {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .ascii-item {
+            padding: 5px;
+            border-bottom: 1px solid #e9ecef;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+        
+        .ascii-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #8e2de2;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            background: #4a00e0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(142, 45, 226, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #28a745;
+        }
+        
+        .btn-secondary:hover {
+            background: #218838;
+        }
+        
+        /* Input section */
+        .input-section {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .input-section h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .input-field {
+            padding: 10px 15px;
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            font-size: 1.1em;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        /* Info box */
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+        
+        .info-box h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .highlight {
+            background: #8e2de2;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        /* Pixel grid */
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin: 15px 0;
+        }
+        
+        .pixel {
+            aspect-ratio: 1;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .pixel:hover {
+            transform: scale(1.1);
+        }
+        
+        .examples-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .examples-section h3 {
+            color: #8e2de2;
+            margin-bottom: 15px;
+        }
+        
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .example-btn {
+            padding: 10px 20px;
+            background: #e9ecef;
+            border: 2px solid #8e2de2;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .example-btn:hover {
+            background: #8e2de2;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 One Byte, Many Meanings!</h1>
+        <p class="subtitle">How 8 Bits (1 Byte) Can Represent Different Things</p>
+        
+        <div class="byte-container">
+            <h2 style="text-align: center; color: #8e2de2; margin-bottom: 20px;">Your Byte (8 Bits)</h2>
+            <div class="bits-display" id="bitsDisplay">
+                <!-- Bits will be added here -->
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <div style="font-size: 1.2em; color: #666; margin-bottom: 10px;">Binary Value</div>
+                <div id="binaryString" style="font-family: 'Courier New', monospace; font-size: 2em; font-weight: bold; color: #8e2de2;">00000000</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="increment()">⬆️ Add 1</button>
+            <button class="btn" onclick="decrement()">⬇️ Subtract 1</button>
+            <button class="btn" onclick="reset()">🔄 Reset</button>
+            <button class="btn btn-secondary" onclick="randomize()">🎲 Random</button>
+        </div>
+        
+        <div class="input-section">
+            <h3>⌨️ Type Something to See Its Byte Value</h3>
+            <div class="input-group">
+                <input type="text" id="charInput" class="input-field" placeholder="Type a single character..." maxlength="1" oninput="setFromChar(this.value)">
+                <input type="number" id="numberInput" class="input-field" placeholder="Enter number 0-255..." min="0" max="255" oninput="setFromNumber(this.value)">
+            </div>
+        </div>
+        
+        <div class="representations">
+            <!-- Decimal Number -->
+            <div class="representation-card">
+                <h3><span class="rep-icon">🔢</span> Decimal Number</h3>
+                <div class="representation-value" id="decimalValue">0</div>
+                <div class="representation-description">
+                    <strong>Range:</strong> 0 to 255<br>
+                    <strong>Use:</strong> Counting, ages, scores, small quantities
+                </div>
+            </div>
+            
+            <!-- ASCII Character -->
+            <div class="representation-card">
+                <h3><span class="rep-icon">📝</span> ASCII Character</h3>
+                <div class="representation-value" id="asciiValue" style="font-family: 'Courier New', monospace;">NUL</div>
+                <div class="representation-description">
+                    <strong>Range:</strong> 0-127 standard, 128-255 extended<br>
+                    <strong>Use:</strong> Letters, numbers, symbols, text
+                    <div class="ascii-chart" id="asciiChart"></div>
+                </div>
+            </div>
+            
+            <!-- Grayscale Color -->
+            <div class="representation-card">
+                <h3><span class="rep-icon">🎨</span> Grayscale Pixel</h3>
+                <div class="color-swatch" id="colorSwatch">0</div>
+                <div class="representation-description">
+                    <strong>Range:</strong> 0 (black) to 255 (white)<br>
+                    <strong>Use:</strong> Black & white images, brightness levels
+                </div>
+            </div>
+            
+            <!-- Bit Pattern Visual -->
+            <div class="representation-card">
+                <h3><span class="rep-icon">🖼️</span> 8 Pixels</h3>
+                <div class="pixel-grid" id="pixelGrid">
+                    <!-- Pixels will be added here -->
+                </div>
+                <div class="representation-description">
+                    Each bit = 1 pixel<br>
+                    <strong>0</strong> = White pixel, <strong>1</strong> = Black pixel<br>
+                    Click pixels to draw!
+                </div>
+            </div>
+        </div>
+        
+        <div class="examples-section">
+            <h3>📚 Try These Examples:</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="setExample(65)">Letter 'A' (65)</button>
+                <button class="example-btn" onclick="setExample(90)">Letter 'Z' (90)</button>
+                <button class="example-btn" onclick="setExample(48)">Digit '0' (48)</button>
+                <button class="example-btn" onclick="setExample(57)">Digit '9' (57)</button>
+                <button class="example-btn" onclick="setExample(32)">Space (32)</button>
+                <button class="example-btn" onclick="setExample(33)">! (33)</button>
+                <button class="example-btn" onclick="setExample(64)">@ (64)</button>
+                <button class="example-btn" onclick="setExample(127)">Middle Gray (127)</button>
+                <button class="example-btn" onclick="setExample(255)">White (255)</button>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h3>💡 Key Concepts:</h3>
+            <p>🔷 <strong>Same Byte, Different Meanings:</strong> The <span class="highlight">exact same 8 bits</span> can represent a number, a letter, a color, or pixels - it all depends on how we interpret it!</p>
+            <p>🔷 <strong>1 Byte = 8 Bits:</strong> With 8 bits, we can represent <span class="highlight">256 different values</span> (2^8 = 256), numbered from 0 to 255</p>
+            <p>🔷 <strong>ASCII:</strong> A standard that assigns numbers to characters. For example, 'A' = 65, 'B' = 66, 'a' = 97, 'b' = 98</p>
+            <p>🔷 <strong>Grayscale:</strong> In black & white images, each pixel's brightness is stored as a byte: 0 = pure black, 255 = pure white, values in between = shades of gray</p>
+            <p>🔷 <strong>Context Matters:</strong> The computer doesn't know if a byte represents a letter or a number - that's determined by the program using it!</p>
+        </div>
+    </div>
+
+    <script>
+        let bits = [0, 0, 0, 0, 0, 0, 0, 0];
+        
+        // ASCII descriptions for common characters
+        const asciiNames = {
+            0: 'NUL (Null)', 9: 'TAB', 10: 'LF (Line Feed)', 13: 'CR (Return)',
+            32: 'SPACE', 127: 'DEL (Delete)'
+        };
+        
+        function renderBits() {
+            const container = document.getElementById('bitsDisplay');
+            container.innerHTML = '';
+            
+            for (let i = 7; i >= 0; i--) {
+                const bitBox = document.createElement('div');
+                bitBox.className = 'bit-box' + (bits[i] === 1 ? ' active' : '');
+                bitBox.onclick = () => flipBit(i);
+                bitBox.innerHTML = `
+                    <div class="bit-number">Bit ${i}</div>
+                    <div class="bit-value">${bits[i]}</div>
+                    <div class="bit-position">${Math.pow(2, i)}</div>
+                `;
+                container.appendChild(bitBox);
+            }
+            
+            updateRepresentations();
+        }
+        
+        function updateRepresentations() {
+            const decimal = bitsToDecimal();
+            
+            // Update binary string
+            document.getElementById('binaryString').textContent = bits.slice().reverse().join('');
+            
+            // Update decimal
+            document.getElementById('decimalValue').textContent = decimal;
+            
+            // Update ASCII
+            updateASCII(decimal);
+            
+            // Update grayscale
+            updateGrayscale(decimal);
+            
+            // Update pixel grid
+            updatePixelGrid();
+        }
+        
+        function bitsToDecimal() {
+            let decimal = 0;
+            for (let i = 0; i < 8; i++) {
+                if (bits[i] === 1) {
+                    decimal += Math.pow(2, i);
+                }
+            }
+            return decimal;
+        }
+        
+        function decimalToBits(decimal) {
+            bits = [0, 0, 0, 0, 0, 0, 0, 0];
+            for (let i = 0; i < 8; i++) {
+                bits[i] = (decimal >> i) & 1;
+            }
+        }
+        
+        function flipBit(index) {
+            bits[index] = bits[index] === 1 ? 0 : 1;
+            renderBits();
+        }
+        
+        function increment() {
+            let decimal = bitsToDecimal();
+            if (decimal < 255) {
+                decimalToBits(decimal + 1);
+                renderBits();
+            }
+        }
+        
+        function decrement() {
+            let decimal = bitsToDecimal();
+            if (decimal > 0) {
+                decimalToBits(decimal - 1);
+                renderBits();
+            }
+        }
+        
+        function reset() {
+            bits = [0, 0, 0, 0, 0, 0, 0, 0];
+            renderBits();
+        }
+        
+        function randomize() {
+            const random = Math.floor(Math.random() * 256);
+            decimalToBits(random);
+            renderBits();
+        }
+        
+        function updateASCII(decimal) {
+            const asciiDiv = document.getElementById('asciiValue');
+            let displayChar;
+            
+            if (decimal < 32 || decimal === 127) {
+                // Control characters
+                displayChar = asciiNames[decimal] || `CTRL-${decimal}`;
+            } else if (decimal < 127) {
+                // Printable ASCII
+                displayChar = String.fromCharCode(decimal);
+            } else {
+                // Extended ASCII
+                displayChar = String.fromCharCode(decimal);
+            }
+            
+            asciiDiv.textContent = displayChar;
+            
+            // Update ASCII chart with nearby characters
+            const chartDiv = document.getElementById('asciiChart');
+            chartDiv.innerHTML = '';
+            
+            // Show a range of ASCII values
+            const start = Math.max(0, decimal - 5);
+            const end = Math.min(255, decimal + 5);
+            
+            for (let i = start; i <= end; i++) {
+                const item = document.createElement('div');
+                item.className = 'ascii-item';
+                let char = String.fromCharCode(i);
+                if (i < 32 || i === 127) {
+                    char = asciiNames[i] || `[${i}]`;
+                }
+                item.textContent = `${i}: ${char}`;
+                if (i === decimal) {
+                    item.style.background = '#8e2de2';
+                    item.style.color = 'white';
+                    item.style.fontWeight = 'bold';
+                }
+                chartDiv.appendChild(item);
+            }
+        }
+        
+        function updateGrayscale(decimal) {
+            const swatch = document.getElementById('colorSwatch');
+            const rgb = decimal;
+            swatch.style.backgroundColor = `rgb(${rgb}, ${rgb}, ${rgb})`;
+            
+            // Adjust text color for readability
+            const textColor = rgb > 127 ? '#000' : '#fff';
+            swatch.style.color = textColor;
+            swatch.textContent = `RGB(${rgb}, ${rgb}, ${rgb})`;
+        }
+        
+        function updatePixelGrid() {
+            const grid = document.getElementById('pixelGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 7; i >= 0; i--) {
+                const pixel = document.createElement('div');
+                pixel.className = 'pixel';
+                const isBlack = bits[i] === 1;
+                pixel.style.backgroundColor = isBlack ? '#000' : '#fff';
+                pixel.onclick = () => {
+                    flipBit(i);
+                };
+                grid.appendChild(pixel);
+            }
+        }
+        
+        function setFromChar(char) {
+            if (char.length === 1) {
+                const charCode = char.charCodeAt(0);
+                if (charCode <= 255) {
+                    decimalToBits(charCode);
+                    document.getElementById('numberInput').value = charCode;
+                    renderBits();
+                }
+            }
+        }
+        
+        function setFromNumber(value) {
+            const num = parseInt(value);
+            if (!isNaN(num) && num >= 0 && num <= 255) {
+                decimalToBits(num);
+                if (num >= 32 && num < 127) {
+                    document.getElementById('charInput').value = String.fromCharCode(num);
+                } else {
+                    document.getElementById('charInput').value = '';
+                }
+                renderBits();
+            }
+        }
+        
+        function setExample(value) {
+            decimalToBits(value);
+            document.getElementById('numberInput').value = value;
+            if (value >= 32 && value < 127) {
+                document.getElementById('charInput').value = String.fromCharCode(value);
+            } else {
+                document.getElementById('charInput').value = '';
+            }
+            renderBits();
+        }
+        
+        // Initialize
+        renderBits();
+    </script>
+</body>
+</html>

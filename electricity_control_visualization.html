@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controlling Electricity - Water Analogy | COS10004</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .main-concept {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .main-concept h2 {
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .main-concept ul {
+            margin-left: 25px;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel h3 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .switch-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 70px;
+            height: 34px;
+            background-color: #ccc;
+            border-radius: 34px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch.active {
+            background-color: #4caf50;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 28px;
+            height: 28px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(36px);
+        }
+
+        .status-display {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .status-on {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .status-off {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .slider-control {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .voltage-display {
+            text-align: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .info-card h4 {
+            margin-bottom: 12px;
+            font-size: 1.3em;
+        }
+
+        .info-card p {
+            line-height: 1.6;
+        }
+
+        .highlight-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .highlight-box strong {
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💧⚡ Controlling Electricity</h1>
+        <p class="subtitle">COS10004 - Computer Systems | Understanding Switches and Flow Control</p>
+
+        <div class="main-concept">
+            <h2>🎯 Key Concept: Electricity Can Be Controlled</h2>
+            <ul>
+                <li><strong>Water Analogy:</strong> Just like using a tap to open or close a water pipe to control water flow exactly how you want</li>
+                <li><strong>Circuit Design:</strong> We can design circuits to turn electricity ON or OFF</li>
+                <li><strong>Voltage Control:</strong> We can increase or decrease the voltage</li>
+                <li><strong>How?</strong> Using Switches to control the flow: ON (1) or OFF (0)</li>
+            </ul>
+        </div>
+
+        <div class="comparison-container">
+            <!-- Water Analogy Panel -->
+            <div class="panel">
+                <h3>💧 Water Flow Analogy</h3>
+                <canvas id="waterCanvas" width="600" height="400"></canvas>
+                <div class="controls">
+                    <div class="switch-container">
+                        <span class="switch-label">Water Tap:</span>
+                        <div class="toggle-switch" id="waterSwitch" onclick="toggleWater()">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="waterStatus" class="status-display status-off">TAP CLOSED - No Flow</div>
+                <div class="slider-control">
+                    <label style="display: block; text-align: center; margin-bottom: 10px; font-weight: 600;">Flow Rate Control</label>
+                    <input type="range" min="0" max="100" value="50" class="slider" id="waterFlowSlider" oninput="updateWaterFlow(this.value)" />
+                    <div class="voltage-display" id="waterFlowDisplay">Flow: 50%</div>
+                </div>
+            </div>
+
+            <!-- Electricity Panel -->
+            <div class="panel">
+                <h3>⚡ Electrical Flow Control</h3>
+                <canvas id="electricCanvas" width="600" height="400"></canvas>
+                <div class="controls">
+                    <div class="switch-container">
+                        <span class="switch-label">Switch:</span>
+                        <div class="toggle-switch" id="electricSwitch" onclick="toggleElectric()">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="electricStatus" class="status-display status-off">SWITCH OFF - Binary: 0</div>
+                <div class="slider-control">
+                    <label style="display: block; text-align: center; margin-bottom: 10px; font-weight: 600;">Voltage Control</label>
+                    <input type="range" min="0" max="100" value="0" class="slider" id="voltageSlider" oninput="updateVoltage(this.value)" />
+                    <div class="voltage-display" id="voltageDisplay">Voltage: 0.00V</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>🔑 The Parallel:</strong> Just as a tap controls water flow in a pipe, a switch controls electrical current in a circuit. Both can be fully OPEN (ON/1), fully CLOSED (OFF/0), or partially controlled to regulate the flow rate/voltage.
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h4>💧 Water Tap Control</h4>
+                <p><strong>Physical mechanism:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                    <li>Turn tap handle → valve opens</li>
+                    <li>Water flows through pipe</li>
+                    <li>Adjust opening → control flow rate</li>
+                    <li>Close tap → water stops</li>
+                    <li><strong>Result:</strong> Precise control over water delivery</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h4>🔌 Switch Control</h4>
+                <p><strong>Simple electrical control:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                    <li>Flip switch → circuit closes</li>
+                    <li>Electricity flows through wire</li>
+                    <li>ON = 1 (high voltage)</li>
+                    <li>OFF = 0 (no voltage)</li>
+                    <li><strong>Result:</strong> Binary control of current</li>
+                </ul>
+            </div>
+
+            <div class="info-card">
+                <h4>🎯 Why This Matters</h4>
+                <p><strong>Foundation of computing:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                    <li>ON/OFF states = binary digits (bits)</li>
+                    <li>Billions of tiny switches working together</li>
+                    <li>Control flow at nanosecond speeds</li>
+                    <li><strong>Result:</strong> Complex computations from simple switches</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let waterOn = false;
+        let electricOn = false;
+        let waterFlowRate = 50;
+        let voltagePercent = 0; // 0-100 from slider
+        let animationFrame;
+
+        // Canvas contexts
+        const waterCanvas = document.getElementById('waterCanvas');
+        const waterCtx = waterCanvas.getContext('2d');
+        const electricCanvas = document.getElementById('electricCanvas');
+        const electricCtx = electricCanvas.getContext('2d');
+
+        // Particle systems
+        let waterParticles = [];
+        let electricParticles = [];
+
+        class Particle {
+            constructor(x, y, speed, color) {
+                this.x = x;
+                this.y = y;
+                this.speed = speed;
+                this.color = color;
+                this.size = Math.random() * 3 + 2;
+            }
+
+            update() {
+                this.x += this.speed;
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Toggle functions
+        function toggleWater() {
+            waterOn = !waterOn;
+            const switchEl = document.getElementById('waterSwitch');
+            const statusEl = document.getElementById('waterStatus');
+
+            switchEl.classList.toggle('active');
+            if (waterOn) {
+                statusEl.textContent = 'TAP OPEN - Water Flowing';
+                statusEl.className = 'status-display status-on';
+            } else {
+                statusEl.textContent = 'TAP CLOSED - No Flow';
+                statusEl.className = 'status-display status-off';
+                waterParticles = [];
+            }
+        }
+
+        function toggleElectric() {
+            electricOn = !electricOn;
+            const switchEl = document.getElementById('electricSwitch');
+            const statusEl = document.getElementById('electricStatus');
+
+            switchEl.classList.toggle('active');
+            if (electricOn) {
+                statusEl.textContent = 'SWITCH ON - Binary: 1';
+                statusEl.className = 'status-display status-on';
+            } else {
+                statusEl.textContent = 'SWITCH OFF - Binary: 0';
+                statusEl.className = 'status-display status-off';
+                electricParticles = [];
+            }
+        }
+
+        function updateWaterFlow(value) {
+            waterFlowRate = parseInt(value);
+            document.getElementById('waterFlowDisplay').textContent = `Flow: ${value}%`;
+        }
+
+        function updateVoltage(value) {
+            voltagePercent = parseInt(value); // 0-100
+            const voltageValue = ((voltagePercent / 100) * 3.3).toFixed(2);
+            document.getElementById('voltageDisplay').textContent = `Voltage: ${voltageValue}V`;
+        }
+
+        // Drawing functions
+        function drawWaterSystem() {
+            waterCtx.clearRect(0, 0, waterCanvas.width, waterCanvas.height);
+
+            // Draw pipe
+            waterCtx.strokeStyle = '#666';
+            waterCtx.lineWidth = 8;
+            waterCtx.beginPath();
+            waterCtx.moveTo(50, 200);
+            waterCtx.lineTo(550, 200);
+            waterCtx.stroke();
+
+            // Draw water source (tank)
+            waterCtx.fillStyle = '#2196F3';
+            waterCtx.fillRect(20, 140, 60, 120);
+            waterCtx.fillStyle = '#1976D2';
+            waterCtx.fillRect(25, 145, 50, 60);
+
+            // Draw tap/valve
+            const tapX = 250;
+            waterCtx.fillStyle = waterOn ? '#4CAF50' : '#f44336';
+            waterCtx.beginPath();
+            waterCtx.arc(tapX, 200, 25, 0, Math.PI * 2);
+            waterCtx.fill();
+
+            // Valve indicator
+            waterCtx.strokeStyle = 'white';
+            waterCtx.lineWidth = 3;
+            waterCtx.beginPath();
+            if (waterOn) {
+                waterCtx.moveTo(tapX, 185);
+                waterCtx.lineTo(tapX, 215);
+            } else {
+                waterCtx.moveTo(tapX - 10, 200);
+                waterCtx.lineTo(tapX + 10, 200);
+            }
+            waterCtx.stroke();
+
+            // Draw outlet
+            waterCtx.fillStyle = '#666';
+            waterCtx.fillRect(530, 180, 40, 40);
+
+            // Water particles
+            if (waterOn && Math.random() < waterFlowRate / 50) {
+                waterParticles.push(
+                    new Particle(80, 200, waterFlowRate / 25, '#2196F3')
+                );
+            }
+
+            waterParticles.forEach((particle, index) => {
+                particle.update();
+                particle.draw(waterCtx);
+                if (particle.x > 530) {
+                    waterParticles.splice(index, 1);
+                }
+            });
+
+            // Labels
+            waterCtx.fillStyle = '#333';
+            waterCtx.font = 'bold 14px Arial';
+            waterCtx.fillText('Water Source', 10, 130);
+            waterCtx.fillText('Tap (Valve)', 220, 160);
+            waterCtx.fillText('Outlet', 535, 170);
+        }
+
+        function drawElectricSystem() {
+            electricCtx.clearRect(0, 0, electricCanvas.width, electricCanvas.height);
+
+            // Draw wire
+            electricCtx.strokeStyle = '#FF6B00';
+            electricCtx.lineWidth = 6;
+            electricCtx.beginPath();
+            electricCtx.moveTo(50, 200);
+            electricCtx.lineTo(550, 200);
+            electricCtx.stroke();
+
+            // Draw battery
+            electricCtx.fillStyle = '#333';
+            electricCtx.fillRect(20, 170, 60, 60);
+            electricCtx.fillStyle = '#f44336';
+            electricCtx.fillRect(30, 180, 15, 40);
+            electricCtx.fillStyle = '#333';
+            electricCtx.fillRect(50, 180, 15, 40);
+            electricCtx.fillStyle = '#fff';
+            electricCtx.font = 'bold 20px Arial';
+            electricCtx.fillText('+', 35, 205);
+            electricCtx.fillText('-', 55, 205);
+
+            // Draw switch
+            const switchX = 250;
+            electricCtx.fillStyle = electricOn ? '#4CAF50' : '#f44336';
+            electricCtx.fillRect(switchX - 20, 180, 40, 40);
+
+            // Switch state
+            electricCtx.fillStyle = 'white';
+            electricCtx.font = 'bold 24px Arial';
+            electricCtx.fillText(electricOn ? '|' : '—', switchX - 8, 210);
+
+            // intensity from 0.0 to 1.0
+            const intensity = electricOn ? voltagePercent / 100 : 0;
+
+            // Draw bulb/load
+            electricCtx.fillStyle = intensity > 0 ? '#FFEB3B' : '#666';
+            electricCtx.beginPath();
+            electricCtx.arc(530, 200, 30, 0, Math.PI * 2);
+            electricCtx.fill();
+
+            if (intensity > 0) {
+                // Glow effect size/alpha depends on intensity
+                const glowRadius = 20 + intensity * 20; // 20-40px
+                const gradient = electricCtx.createRadialGradient(
+                    530,
+                    200,
+                    10,
+                    530,
+                    200,
+                    glowRadius
+                );
+                gradient.addColorStop(
+                    0,
+                    `rgba(255, 235, 59, ${0.4 + 0.4 * intensity})`
+                );
+                gradient.addColorStop(1, 'rgba(255, 235, 59, 0)');
+                electricCtx.fillStyle = gradient;
+                electricCtx.beginPath();
+                electricCtx.arc(530, 200, glowRadius, 0, Math.PI * 2);
+                electricCtx.fill();
+            }
+
+            // Electric particles (electrons)
+            if (intensity > 0 && Math.random() < intensity * 0.6) {
+                electricParticles.push(
+                    new Particle(80, 200, 1 + intensity * 3, '#FFD700')
+                );
+            }
+
+            electricParticles.forEach((particle, index) => {
+                particle.update();
+                particle.draw(electricCtx);
+                if (particle.x > 500) {
+                    electricParticles.splice(index, 1);
+                }
+            });
+
+            // Labels
+            electricCtx.fillStyle = '#333';
+            electricCtx.font = 'bold 14px Arial';
+            electricCtx.fillText('Battery', 25, 160);
+            electricCtx.fillText('Switch', 225, 170);
+            electricCtx.fillText('Load (Bulb)', 495, 170);
+
+            // Binary labels
+            electricCtx.font = 'bold 16px Arial';
+            electricCtx.fillStyle = electricOn ? '#4CAF50' : '#f44336';
+            electricCtx.fillText(
+                electricOn ? '1 (ON)' : '0 (OFF)',
+                218,
+                245
+            );
+        }
+
+        // Animation loop
+        function animate() {
+            drawWaterSystem();
+            drawElectricSystem();
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>

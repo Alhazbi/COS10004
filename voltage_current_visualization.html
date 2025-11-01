@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voltage vs Current - Water & Electron Flow Analogy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .info-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .info-banner h2 {
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            border: none;
+            background: #e0e0e0;
+            color: #333;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .view-container {
+            display: none;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        .canvas-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 25px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-value {
+            color: #667eea;
+            font-size: 1.2em;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            border: none;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .comparison-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .comparison-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .comparison-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .comparison-card li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .comparison-card li:before {
+            content: "⚡";
+            position: absolute;
+            left: 0;
+        }
+
+        .formula-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .formula {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #856404;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .legend-icon {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+        }
+
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .analogy-section {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .analogy-section h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        @keyframes flow {
+            from { transform: translateX(0); }
+            to { transform: translateX(-20px); }
+        }
+
+        .flowing {
+            animation: flow 0.5s linear infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulsing {
+            animation: pulse 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Voltage vs Current: Understanding Electrical Flow</h1>
+        <p class="subtitle">COS10004 - Computer Systems | Interactive Water & Electron Flow Analogy</p>
+
+        <div class="info-banner">
+            <h2>🎯 Key Concept</h2>
+            <p><strong>Voltage</strong> is the electrical pressure (like water pressure) that pushes electrons through a circuit.<br>
+            <strong>Current</strong> is the flow rate of electrons (like water flow rate) through a conductor.</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('water')">💧 Water Flow Analogy</button>
+            <button class="tab" onclick="switchTab('electron')">⚡ Electron Flow</button>
+        </div>
+
+        <!-- Water Flow View -->
+        <div id="waterView" class="view-container active">
+            <div class="canvas-section">
+                <h2 style="text-align: center; color: #1976d2; margin-bottom: 20px;">💧 Water Flow Analogy</h2>
+                <canvas id="waterCanvas" width="1400" height="500"></canvas>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label>
+                            <span>💪 Water Pressure (Voltage)</span>
+                            <span class="control-value" id="waterPressure">50 PSI</span>
+                        </label>
+                        <input type="range" id="pressureSlider" min="0" max="100" value="50" 
+                               oninput="updateWaterPressure(this.value)">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>
+                            <span>🚰 Pipe Diameter (Resistance)</span>
+                            <span class="control-value" id="pipeDiameter">Medium</span>
+                        </label>
+                        <input type="range" id="diameterSlider" min="1" max="3" value="2" 
+                               oninput="updatePipeDiameter(this.value)">
+                    </div>
+                </div>
+
+                <div class="stats-display">
+                    <div class="stat-card">
+                        <div class="stat-label">Water Pressure</div>
+                        <div class="stat-value" id="pressureValue">50 PSI</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Flow Rate</div>
+                        <div class="stat-value" id="flowRate">25 L/s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pipe Resistance</div>
+                        <div class="stat-value" id="pipeResistance">Medium</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analogy-section">
+                <h3>💡 Understanding the Water Analogy</h3>
+                <p><strong>Water Tank Height = Voltage:</strong> The higher the tank, the more pressure pushing water through pipes.</p>
+                <p><strong>Water Flow = Current:</strong> The amount of water flowing per second through the pipe.</p>
+                <p><strong>Pipe Width = Resistance:</strong> Narrow pipes restrict flow (high resistance), wide pipes allow more flow (low resistance).</p>
+            </div>
+        </div>
+
+        <!-- Electron Flow View -->
+        <div id="electronView" class="view-container">
+            <div class="canvas-section">
+                <h2 style="text-align: center; color: #7b1fa2; margin-bottom: 20px;">⚡ Electron Flow Through a Circuit</h2>
+                <canvas id="electronCanvas" width="1400" height="500"></canvas>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label>
+                            <span>⚡ Voltage (Electrical Pressure)</span>
+                            <span class="control-value" id="voltageDisplay">5.0 V</span>
+                        </label>
+                        <input type="range" id="voltageSlider" min="0" max="12" step="0.5" value="5" 
+                               oninput="updateVoltage(this.value)">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>
+                            <span>🔌 Resistance (Wire thickness/material)</span>
+                            <span class="control-value" id="resistanceDisplay">10 Ω</span>
+                        </label>
+                        <input type="range" id="resistanceSlider" min="1" max="50" value="10" 
+                               oninput="updateResistance(this.value)">
+                    </div>
+                </div>
+
+                <div class="stats-display">
+                    <div class="stat-card">
+                        <div class="stat-label">Voltage (V)</div>
+                        <div class="stat-value" id="voltageValue">5.0 V</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Current (I)</div>
+                        <div class="stat-value" id="currentValue">0.5 A</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Resistance (R)</div>
+                        <div class="stat-value" id="resistanceValue">10 Ω</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="stat-label">Power (P)</div>
+                        <div class="stat-value" id="powerValue">2.5 W</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analogy-section" style="background: #f3e5f5; border-left-color: #9c27b0;">
+                <h3>⚡ Understanding Electron Flow</h3>
+                <p><strong>Voltage (V):</strong> The electrical potential difference that pushes electrons. Like pressure in water, higher voltage means stronger push.</p>
+                <p><strong>Current (I):</strong> The rate of electron flow, measured in Amperes (A). One ampere = 6.24 × 10¹⁸ electrons per second!</p>
+                <p><strong>Resistance (R):</strong> Opposition to electron flow, measured in Ohms (Ω). Thinner wires and certain materials have higher resistance.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas contexts
+        const waterCanvas = document.getElementById('waterCanvas');
+        const waterCtx = waterCanvas.getContext('2d');
+        const electronCanvas = document.getElementById('electronCanvas');
+        const electronCtx = electronCanvas.getContext('2d');
+
+        // Animation variables
+        let waterPressure = 50;
+        let pipeDiameter = 2;
+        let voltage = 5;
+        let resistance = 10;
+        let animationFrame = 0;
+
+        // Particle arrays
+        let waterDrops = [];
+        let electrons = [];
+
+        // Initialize particles
+        function initWaterDrops() {
+            waterDrops = [];
+            const particleCount = Math.floor(waterPressure / 2) + 5;
+            for (let i = 0; i < particleCount; i++) {
+                waterDrops.push({
+                    x: Math.random() * 200 + 150,
+                    y: Math.random() * 80 + 180,
+                    speed: (waterPressure / 50) * (pipeDiameter / 2),
+                    size: 3 + Math.random() * 3
+                });
+            }
+        }
+
+        function initElectrons() {
+            electrons = [];
+            const current = voltage / resistance;
+            const particleCount = Math.floor(current * 20) + 5;
+            for (let i = 0; i < particleCount; i++) {
+                electrons.push({
+                    x: Math.random() * 1000 + 100,
+                    y: 250 + (Math.random() - 0.5) * 40,
+                    speed: (voltage / 12) * (10 / resistance),
+                    size: 4 + Math.random() * 2,
+                    angle: (Math.random() - 0.5) * 0.2
+                });
+            }
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update views
+            document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+            document.getElementById(tab + 'View').classList.add('active');
+
+            // Reinitialize particles if needed
+            if (tab === 'water') {
+                initWaterDrops();
+                animateWater();
+            } else if (tab === 'electron') {
+                initElectrons();
+                animateElectron();
+            }
+        }
+
+        // Water flow animation
+        function drawWaterSystem() {
+            waterCtx.clearRect(0, 0, waterCanvas.width, waterCanvas.height);
+
+            // Draw water tank
+            const tankHeight = 100 + waterPressure * 2;
+            waterCtx.fillStyle = '#1976d2';
+            waterCtx.fillRect(100, 450 - tankHeight, 150, tankHeight);
+            
+            // Water in tank
+            waterCtx.fillStyle = 'rgba(33, 150, 243, 0.6)';
+            waterCtx.fillRect(105, 455 - tankHeight, 140, tankHeight - 5);
+
+            // Tank outline
+            waterCtx.strokeStyle = '#0d47a1';
+            waterCtx.lineWidth = 3;
+            waterCtx.strokeRect(100, 450 - tankHeight, 150, tankHeight);
+
+            // Pressure label
+            waterCtx.fillStyle = '#fff';
+            waterCtx.font = 'bold 16px Arial';
+            waterCtx.textAlign = 'center';
+            waterCtx.fillText(`${waterPressure} PSI`, 175, 430 - tankHeight);
+
+            // Draw pipe
+            const pipeWidth = pipeDiameter * 20;
+            const pipeY = 220;
+            
+            waterCtx.fillStyle = '#78909c';
+            waterCtx.fillRect(250, pipeY - pipeWidth/2, 900, pipeWidth);
+            
+            // Pipe outline
+            waterCtx.strokeStyle = '#455a64';
+            waterCtx.lineWidth = 3;
+            waterCtx.strokeRect(250, pipeY - pipeWidth/2, 900, pipeWidth);
+
+            // Draw connecting pipe from tank
+            waterCtx.fillRect(175, pipeY, 75, 5);
+
+            // Draw outlet
+            waterCtx.fillStyle = '#546e7a';
+            waterCtx.beginPath();
+            waterCtx.arc(1150, pipeY, pipeWidth/2 + 10, 0, Math.PI * 2);
+            waterCtx.fill();
+
+            // Draw water drops flowing through pipe
+            waterCtx.fillStyle = '#2196f3';
+            waterDrops.forEach(drop => {
+                waterCtx.beginPath();
+                waterCtx.arc(drop.x, drop.y, drop.size, 0, Math.PI * 2);
+                waterCtx.fill();
+
+                // Update position
+                drop.x += drop.speed * 2;
+                if (drop.x > 1150) {
+                    drop.x = 250;
+                    drop.y = pipeY + (Math.random() - 0.5) * (pipeWidth - 10);
+                }
+            });
+
+            // Flow rate indicator
+            const flowRate = waterPressure * pipeDiameter / 4;
+            waterCtx.fillStyle = '#333';
+            waterCtx.font = 'bold 20px Arial';
+            waterCtx.fillText(`Flow Rate: ${flowRate.toFixed(1)} L/s`, 700, 150);
+
+            // Arrows showing flow direction
+            waterCtx.strokeStyle = '#ff9800';
+            waterCtx.lineWidth = 3;
+            waterCtx.fillStyle = '#ff9800';
+            for (let i = 0; i < 5; i++) {
+                const arrowX = 400 + i * 150;
+                waterCtx.beginPath();
+                waterCtx.moveTo(arrowX, pipeY - 60);
+                waterCtx.lineTo(arrowX + 30, pipeY - 60);
+                waterCtx.lineTo(arrowX + 20, pipeY - 70);
+                waterCtx.moveTo(arrowX + 30, pipeY - 60);
+                waterCtx.lineTo(arrowX + 20, pipeY - 50);
+                waterCtx.stroke();
+            }
+
+            // Labels
+            waterCtx.fillStyle = '#333';
+            waterCtx.font = '18px Arial';
+            waterCtx.textAlign = 'left';
+            waterCtx.fillText('Water Tank', 90, 480);
+            waterCtx.fillText('(Voltage Source)', 70, 500);
+            
+            waterCtx.textAlign = 'center';
+            waterCtx.fillText('Pipe (Conductor)', 700, 350);
+            waterCtx.fillText(`Diameter: ${pipeDiameter === 1 ? 'Narrow' : pipeDiameter === 2 ? 'Medium' : 'Wide'}`, 700, 375);
+            
+            waterCtx.fillText('Outlet', 1150, 180);
+            waterCtx.fillText('(Load)', 1150, 200);
+        }
+
+        function animateWater() {
+            if (document.getElementById('waterView').classList.contains('active')) {
+                drawWaterSystem();
+                requestAnimationFrame(animateWater);
+            }
+        }
+
+        // Electron flow animation
+        function drawElectronSystem() {
+            electronCtx.clearRect(0, 0, electronCanvas.width, electronCanvas.height);
+
+            const current = voltage / resistance;
+
+            // Draw battery
+            electronCtx.fillStyle = '#d32f2f';
+            electronCtx.fillRect(50, 200, 80, 100);
+            
+            electronCtx.fillStyle = '#f44336';
+            electronCtx.fillRect(55, 205, 70, 90);
+
+            // Battery terminals
+            electronCtx.fillStyle = '#333';
+            electronCtx.fillRect(70, 190, 40, 10); // Positive
+            electronCtx.fillRect(70, 300, 40, 10); // Negative
+
+            // Battery labels
+            electronCtx.fillStyle = '#fff';
+            electronCtx.font = 'bold 24px Arial';
+            electronCtx.textAlign = 'center';
+            electronCtx.fillText('+', 90, 225);
+            electronCtx.fillText('−', 90, 290);
+            electronCtx.fillText(`${voltage}V`, 90, 255);
+
+            // Draw wire (conductor)
+            const wireThickness = Math.max(2, 50 / resistance);
+            electronCtx.strokeStyle = '#ff6f00';
+            electronCtx.lineWidth = wireThickness;
+            electronCtx.lineCap = 'round';
+
+            // Top wire
+            electronCtx.beginPath();
+            electronCtx.moveTo(110, 195);
+            electronCtx.lineTo(1200, 195);
+            electronCtx.stroke();
+
+            // Bottom wire
+            electronCtx.beginPath();
+            electronCtx.moveTo(110, 305);
+            electronCtx.lineTo(1200, 305);
+            electronCtx.stroke();
+
+            // Draw resistor (load)
+            electronCtx.fillStyle = '#8d6e63';
+            electronCtx.fillRect(1200, 180, 50, 140);
+            
+            electronCtx.strokeStyle = '#5d4037';
+            electronCtx.lineWidth = 3;
+            electronCtx.strokeRect(1200, 180, 50, 140);
+
+            // Resistor label
+            electronCtx.fillStyle = '#fff';
+            electronCtx.font = 'bold 14px Arial';
+            electronCtx.textAlign = 'center';
+            electronCtx.save();
+            electronCtx.translate(1225, 250);
+            electronCtx.rotate(-Math.PI / 2);
+            electronCtx.fillText(`${resistance}Ω`, 0, 0);
+            electronCtx.restore();
+
+            // Draw electrons
+            const gradient = electronCtx.createRadialGradient(0, 0, 0, 0, 0, 8);
+            gradient.addColorStop(0, '#ffeb3b');
+            gradient.addColorStop(0.5, '#ffc107');
+            gradient.addColorStop(1, '#ff9800');
+
+            electrons.forEach(electron => {
+                electronCtx.save();
+                electronCtx.translate(electron.x, electron.y);
+                electronCtx.fillStyle = gradient;
+                electronCtx.beginPath();
+                electronCtx.arc(0, 0, electron.size, 0, Math.PI * 2);
+                electronCtx.fill();
+
+                // Glow effect
+                electronCtx.shadowBlur = 10;
+                electronCtx.shadowColor = '#ffeb3b';
+                electronCtx.fill();
+                electronCtx.restore();
+
+                // Update position
+                if (electron.y < 250) {
+                    // Top wire
+                    electron.x += electron.speed * 3;
+                    if (electron.x > 1200) {
+                        electron.x = 1200;
+                        electron.y = 305;
+                    }
+                } else {
+                    // Bottom wire
+                    electron.x -= electron.speed * 3;
+                    if (electron.x < 110) {
+                        electron.x = 110;
+                        electron.y = 195;
+                    }
+                }
+            });
+
+            // Current flow arrows
+            electronCtx.strokeStyle = '#4caf50';
+            electronCtx.fillStyle = '#4caf50';
+            electronCtx.lineWidth = 3;
+            for (let i = 0; i < 8; i++) {
+                const arrowX = 250 + i * 120;
+                // Top arrows (positive to negative)
+                electronCtx.beginPath();
+                electronCtx.moveTo(arrowX, 170);
+                electronCtx.lineTo(arrowX + 40, 170);
+                electronCtx.lineTo(arrowX + 30, 160);
+                electronCtx.moveTo(arrowX + 40, 170);
+                electronCtx.lineTo(arrowX + 30, 180);
+                electronCtx.stroke();
+            }
+
+            // Labels
+            electronCtx.fillStyle = '#333';
+            electronCtx.font = '18px Arial';
+            electronCtx.textAlign = 'center';
+            electronCtx.fillText('Battery', 90, 350);
+            electronCtx.fillText('(Voltage Source)', 90, 370);
+            
+            electronCtx.fillText('Conductor (Wire)', 650, 140);
+            electronCtx.fillText(`Resistance: ${resistance}Ω`, 650, 160);
+            
+            electronCtx.fillText('Resistor', 1225, 350);
+            electronCtx.fillText('(Load)', 1225, 370);
+
+            // Current display
+            electronCtx.font = 'bold 20px Arial';
+            electronCtx.fillText(`Current: ${current.toFixed(3)} A`, 650, 400);
+        }
+
+        function animateElectron() {
+            if (document.getElementById('electronView').classList.contains('active')) {
+                drawElectronSystem();
+                requestAnimationFrame(animateElectron);
+            }
+        }
+
+
+        // Update functions for water flow
+        function updateWaterPressure(value) {
+            waterPressure = parseFloat(value);
+            document.getElementById('waterPressure').textContent = `${waterPressure} PSI`;
+            document.getElementById('pressureValue').textContent = `${waterPressure} PSI`;
+            
+            const flowRate = waterPressure * pipeDiameter / 4;
+            document.getElementById('flowRate').textContent = `${flowRate.toFixed(1)} L/s`;
+            
+            initWaterDrops();
+        }
+
+        function updatePipeDiameter(value) {
+            pipeDiameter = parseFloat(value);
+            const sizes = ['Narrow', 'Medium', 'Wide'];
+            document.getElementById('pipeDiameter').textContent = sizes[pipeDiameter - 1];
+            document.getElementById('pipeResistance').textContent = sizes[pipeDiameter - 1];
+            
+            const flowRate = waterPressure * pipeDiameter / 4;
+            document.getElementById('flowRate').textContent = `${flowRate.toFixed(1)} L/s`;
+            
+            initWaterDrops();
+        }
+
+        // Update functions for electron flow
+        function updateVoltage(value) {
+            voltage = parseFloat(value);
+            const current = voltage / resistance;
+            const power = voltage * current;
+            
+            document.getElementById('voltageDisplay').textContent = `${voltage.toFixed(1)} V`;
+            document.getElementById('voltageValue').textContent = `${voltage.toFixed(1)} V`;
+            document.getElementById('currentValue').textContent = `${current.toFixed(3)} A`;
+            document.getElementById('powerValue').textContent = `${power.toFixed(2)} W`;
+            
+            initElectrons();
+        }
+
+        function updateResistance(value) {
+            resistance = parseFloat(value);
+            const current = voltage / resistance;
+            const power = voltage * current;
+            
+            document.getElementById('resistanceDisplay').textContent = `${resistance} Ω`;
+            document.getElementById('resistanceValue').textContent = `${resistance} Ω`;
+            document.getElementById('currentValue').textContent = `${current.toFixed(3)} A`;
+            document.getElementById('powerValue').textContent = `${power.toFixed(2)} W`;
+            
+            initElectrons();
+        }
+
+        // Initialize
+        initWaterDrops();
+        initElectrons();
+        animateWater();
+    </script>
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Base-2 Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #11998e;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .lock-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .bit-wheel {
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid #11998e;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .bit-wheel:hover {
+            transform: translateY(-5px);
+        }
+        
+        .bit-wheel.active {
+            background: linear-gradient(180deg, #c8f7dc 0%, #a8e6cf 100%);
+            border-color: #38ef7d;
+        }
+        
+        .position-label {
+            position: absolute;
+            top: -25px;
+            background: #11998e;
+            color: white;
+            padding: 3px 12px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .bit-value-label {
+            position: absolute;
+            bottom: -25px;
+            background: #6c757d;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        
+        .bit-display {
+            font-size: 5em;
+            font-weight: bold;
+            color: #11998e;
+            width: 100px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .bit-display:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        
+        .bit-display.on {
+            background: #38ef7d;
+            color: white;
+            box-shadow: 0 0 20px rgba(56, 239, 125, 0.5);
+        }
+        
+        .wheel-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .wheel-btn {
+            background: #11998e;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .wheel-btn:hover {
+            background: #0d7a70;
+            transform: scale(1.1);
+        }
+        
+        .wheel-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #11998e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            background: #0d7a70;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #38ef7d;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #2dd36f;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 5px solid #11998e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #11998e;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .comparison-section {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .comparison-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .comparison-item h4 {
+            color: #11998e;
+            margin-bottom: 10px;
+        }
+        
+        .explanation {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            background: #38ef7d;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .binary-string {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #11998e;
+            background: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💻 Binary Base-2 Counter</h1>
+        <p class="subtitle">Understanding Binary: Only 2 States per Position!</p>
+        
+        <div class="lock-container" id="lockContainer">
+            <!-- Bit wheels will be added here dynamically -->
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="increment()">⬆️ Count Up (+1)</button>
+            <button class="btn" onclick="decrement()">⬇️ Count Down (-1)</button>
+            <button class="btn" onclick="reset()">🔄 Reset to 0</button>
+            <button class="btn btn-secondary" onclick="addPosition()">➕ Add Bit</button>
+            <button class="btn btn-danger" onclick="removePosition()">➖ Remove Bit</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Decimal Value</div>
+                <div class="stat-value" id="decimalValue">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Number of Bits</div>
+                <div class="stat-value" id="numBits">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Combinations</div>
+                <div class="stat-value" id="totalCombinations">2</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Max Value</div>
+                <div class="stat-value" id="maxValue">1</div>
+            </div>
+        </div>
+        
+        <div class="comparison-section">
+            <h3 style="color: #2196F3; text-align: center;">📊 Binary vs Decimal Comparison</h3>
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <h4>Decimal (Base-10)</h4>
+                    <p>States per position: <strong>10</strong></p>
+                    <p>Digits: 0,1,2,3,4,5,6,7,8,9</p>
+                    <p>When full: Reset to 0, add 1 to next position</p>
+                </div>
+                <div class="comparison-item">
+                    <h4>Binary (Base-2)</h4>
+                    <p>States per position: <strong>2</strong></p>
+                    <p>Digits: 0, 1</p>
+                    <p>When full: Reset to 0, add 1 to next position</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3>💡 Key Binary Concepts:</h3>
+            <p><strong>Bit (Binary Digit):</strong> Each position can only be in <span class="highlight">2 states</span>: 0 (OFF) or 1 (ON)</p>
+            <p><strong>Position Value:</strong> Each bit position represents a power of 2 (1, 2, 4, 8, 16, 32...)</p>
+            <p><strong>Overflow:</strong> When a bit is 1 and we add 1, it <span class="highlight">resets to 0</span> and carries 1 to the next bit</p>
+            <p><strong>Combinations:</strong> With n bits, you can represent <span class="highlight">2^n</span> different values (0 to 2^n - 1)</p>
+            <p><strong>Click any bit</strong> to toggle it between 0 and 1!</p>
+        </div>
+        
+        <div class="info-box" id="eventLog">
+            <h3>📋 Event Log:</h3>
+            <p>Welcome to binary! Click the buttons or individual bits to explore.</p>
+        </div>
+    </div>
+
+    <script>
+        let bits = [0];
+        
+        function createBitWheel(index) {
+            const wheel = document.createElement('div');
+            const bitValue = Math.pow(2, index);
+            const isActive = bits[index] === 1;
+            
+            wheel.className = 'bit-wheel' + (isActive ? ' active' : '');
+            wheel.innerHTML = `
+                <div class="position-label">Bit ${index}</div>
+                <div class="wheel-controls">
+                    <button class="wheel-btn" onclick="flipBit(${index})">🔄</button>
+                </div>
+                <div class="bit-display ${isActive ? 'on' : ''}" id="bit-${index}" onclick="flipBit(${index})">
+                    ${bits[index]}
+                </div>
+                <div class="wheel-controls">
+                    <button class="wheel-btn" onclick="flipBit(${index})">🔄</button>
+                </div>
+                <div class="bit-value-label">= ${bitValue}</div>
+            `;
+            return wheel;
+        }
+        
+        function render() {
+            const container = document.getElementById('lockContainer');
+            container.innerHTML = '';
+            
+            // Render in reverse order (most significant bit first)
+            for (let i = bits.length - 1; i >= 0; i--) {
+                container.appendChild(createBitWheel(i));
+            }
+            
+            updateStats();
+        }
+        
+        function updateStats() {
+            const decimal = bitsToDecimal();
+            document.getElementById('decimalValue').textContent = decimal.toLocaleString();
+            document.getElementById('numBits').textContent = bits.length;
+            document.getElementById('totalCombinations').textContent = Math.pow(2, bits.length).toLocaleString();
+            document.getElementById('maxValue').textContent = (Math.pow(2, bits.length) - 1).toLocaleString();
+        }
+        
+        function bitsToDecimal() {
+            let decimal = 0;
+            for (let i = 0; i < bits.length; i++) {
+                if (bits[i] === 1) {
+                    decimal += Math.pow(2, i);
+                }
+            }
+            return decimal;
+        }
+        
+        function flipBit(index) {
+            bits[index] = bits[index] === 0 ? 1 : 0;
+            log(`Bit ${index} flipped to ${bits[index]} (value = ${bits[index] * Math.pow(2, index)})`);
+            render();
+        }
+        
+        function incrementBit(index) {
+            if (bits[index] === 0) {
+                bits[index] = 1;
+                log(`Bit ${index} set to 1`);
+            } else {
+                bits[index] = 0;
+                log(`⚡ Bit ${index} overflowed! Reset to 0, carrying 1 to bit ${index + 1}`);
+                
+                if (index + 1 >= bits.length) {
+                    bits.push(0);
+                    log(`🆕 Added new bit ${index + 1} automatically! Can now count up to ${Math.pow(2, bits.length) - 1}`);
+                }
+                incrementBit(index + 1);
+            }
+        }
+        
+        function decrementBit(index) {
+            if (bits[index] === 1) {
+                bits[index] = 0;
+                log(`Bit ${index} set to 0`);
+            } else {
+                bits[index] = 1;
+                log(`⚡ Bit ${index} underflowed! Set to 1, borrowing from bit ${index + 1}`);
+                
+                if (index + 1 < bits.length) {
+                    decrementBit(index + 1);
+                }
+            }
+            
+            // Remove leading zeros
+            while (bits.length > 1 && bits[bits.length - 1] === 0) {
+                bits.pop();
+            }
+        }
+        
+        function increment() {
+            const before = bitsToDecimal();
+            log(`⬆️ Counting up: ${before} + 1 = ${before + 1}`);
+            incrementBit(0);
+            render();
+        }
+        
+        function decrement() {
+            const before = bitsToDecimal();
+            if (before > 0) {
+                log(`⬇️ Counting down: ${before} - 1 = ${before - 1}`);
+                decrementBit(0);
+            } else {
+                log('⚠️ Already at 0! Cannot go lower.');
+            }
+            render();
+        }
+        
+        function reset() {
+            bits = [0];
+            log('🔄 Reset all bits to 0');
+            render();
+        }
+        
+        function addPosition() {
+            bits.push(0);
+            log(`➕ Added bit ${bits.length - 1}. Now we can count up to ${Math.pow(2, bits.length) - 1}!`);
+            render();
+        }
+        
+        function removePosition() {
+            if (bits.length > 1) {
+                const removed = bits.pop();
+                log(`➖ Removed bit ${bits.length}. Maximum value is now ${Math.pow(2, bits.length) - 1}`);
+                render();
+            } else {
+                log('⚠️ Cannot remove the last bit! We need at least one bit.');
+            }
+        }
+        
+        function log(message) {
+            const logBox = document.getElementById('eventLog');
+            const time = new Date().toLocaleTimeString();
+            const binaryStr = bits.slice().reverse().join('');
+            const decimal = bitsToDecimal();
+            logBox.innerHTML = `<h3>📋 Event Log:</h3>
+                <p><strong>[${time}]</strong> ${message}</p>
+                <p style="margin-top: 10px;">Binary: <span class="binary-string">${binaryStr}</span> = Decimal: <span class="binary-string">${decimal}</span></p>
+            ` + logBox.innerHTML.split('</h3>')[1];
+        }
+        
+        // Initialize
+        render();
+        log('Welcome to binary! Each bit has only 2 states: 0 or 1. Try counting to see patterns!');
+    </script>
+</body>
+</html>

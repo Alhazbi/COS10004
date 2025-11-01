@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decimal Base-10 Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .lock-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .digit-wheel {
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            position: relative;
+        }
+        
+        .digit-wheel:hover {
+            transform: translateY(-5px);
+        }
+        
+        .position-label {
+            position: absolute;
+            top: -25px;
+            background: #667eea;
+            color: white;
+            padding: 3px 12px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .digit-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+            width: 100px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .wheel-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .wheel-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .wheel-btn:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+        
+        .wheel-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #28a745;
+        }
+        
+        .btn-secondary:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .explanation {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            background: #ffc107;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 Decimal Base-10 Counter</h1>
+        <p class="subtitle">Understanding States, Positions, and Combinations</p>
+        
+        <div class="lock-container" id="lockContainer">
+            <!-- Digit wheels will be added here dynamically -->
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="increment()">⬆️ Count Up (+1)</button>
+            <button class="btn" onclick="decrement()">⬇️ Count Down (-1)</button>
+            <button class="btn" onclick="reset()">🔄 Reset to 0</button>
+            <button class="btn btn-secondary" onclick="addPosition()">➕ Add Position</button>
+            <button class="btn btn-danger" onclick="removePosition()">➖ Remove Position</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Current Number</div>
+                <div class="stat-value" id="currentNumber">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Number of Positions</div>
+                <div class="stat-value" id="numPositions">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Combinations</div>
+                <div class="stat-value" id="totalCombinations">10</div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3>💡 Key Concepts:</h3>
+            <p><strong>State:</strong> Each position can be in one of <span class="highlight">10 states</span> (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)</p>
+            <p><strong>Position:</strong> Each wheel is a <span class="highlight">position</span> that holds a digit</p>
+            <p><strong>Overflow:</strong> When a position reaches 9 and we add 1, it <span class="highlight">resets to 0</span> and adds 1 to the next position (carry over)</p>
+            <p><strong>Combinations:</strong> Total possible values = <span class="highlight">10 × 10 × 10...</span> (10 raised to the number of positions)</p>
+        </div>
+        
+        <div class="info-box" id="eventLog">
+            <h3>📋 Event Log:</h3>
+            <p>Start exploring! Click the buttons to see what happens.</p>
+        </div>
+    </div>
+
+    <script>
+        let digits = [0];
+        
+        function createWheel(index) {
+            const wheel = document.createElement('div');
+            wheel.className = 'digit-wheel';
+            wheel.innerHTML = `
+                <div class="position-label">Position ${index}</div>
+                <div class="wheel-controls">
+                    <button class="wheel-btn" onclick="incrementDigit(${index})">▲</button>
+                </div>
+                <div class="digit-display" id="digit-${index}">${digits[index]}</div>
+                <div class="wheel-controls">
+                    <button class="wheel-btn" onclick="decrementDigit(${index})">▼</button>
+                </div>
+            `;
+            return wheel;
+        }
+        
+        function render() {
+            const container = document.getElementById('lockContainer');
+            container.innerHTML = '';
+            
+            // Render in reverse order (most significant digit first)
+            for (let i = digits.length - 1; i >= 0; i--) {
+                container.appendChild(createWheel(i));
+            }
+            
+            updateStats();
+        }
+        
+        function updateStats() {
+            const num = parseInt(digits.slice().reverse().join('')) || 0;
+            document.getElementById('currentNumber').textContent = num.toLocaleString();
+            document.getElementById('numPositions').textContent = digits.length;
+            document.getElementById('totalCombinations').textContent = Math.pow(10, digits.length).toLocaleString();
+        }
+        
+        function incrementDigit(index) {
+            digits[index]++;
+            if (digits[index] > 9) {
+                digits[index] = 0;
+                log(`Position ${index} overflowed! Reset to 0, carrying 1 to position ${index + 1}`);
+                if (index + 1 >= digits.length) {
+                    digits.push(0);
+                    log(`Added new position ${index + 1} automatically!`);
+                }
+                incrementDigit(index + 1);
+            } else {
+                log(`Position ${index} incremented to ${digits[index]}`);
+            }
+            render();
+        }
+        
+        function decrementDigit(index) {
+            digits[index]--;
+            if (digits[index] < 0) {
+                digits[index] = 9;
+                log(`Position ${index} underflowed! Reset to 9, borrowing from position ${index + 1}`);
+                if (index + 1 < digits.length) {
+                    decrementDigit(index + 1);
+                }
+            } else {
+                log(`Position ${index} decremented to ${digits[index]}`);
+            }
+            
+            // Remove leading zeros
+            while (digits.length > 1 && digits[digits.length - 1] === 0) {
+                digits.pop();
+            }
+            
+            render();
+        }
+        
+        function increment() {
+            log('⬆️ Counting up by 1...');
+            incrementDigit(0);
+        }
+        
+        function decrement() {
+            log('⬇️ Counting down by 1...');
+            decrementDigit(0);
+        }
+        
+        function reset() {
+            digits = [0];
+            log('🔄 Reset all positions to 0');
+            render();
+        }
+        
+        function addPosition() {
+            digits.push(0);
+            log(`➕ Added position ${digits.length - 1}. Now we can count up to ${Math.pow(10, digits.length) - 1}!`);
+            render();
+        }
+        
+        function removePosition() {
+            if (digits.length > 1) {
+                const removed = digits.pop();
+                log(`➖ Removed position ${digits.length}. Maximum value is now ${Math.pow(10, digits.length) - 1}`);
+                render();
+            } else {
+                log('⚠️ Cannot remove the last position! We need at least one digit.');
+            }
+        }
+        
+        function log(message) {
+            const logBox = document.getElementById('eventLog');
+            const time = new Date().toLocaleTimeString();
+            logBox.innerHTML = `<h3>📋 Event Log:</h3><p><strong>[${time}]</strong> ${message}</p>` + logBox.innerHTML.split('</h3>')[1];
+        }
+        
+        // Initialize
+        render();
+        log('Welcome! Each position can hold 10 different states (0-9). Try counting up to see what happens when we reach 9!');
+    </script>
+</body>
+</html>
