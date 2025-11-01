@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Base Champion - Binary•Decimal•Hex Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            padding: 15px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .mode-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .game-area {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .question-container {
+            text-align: center;
+            width: 100%;
+        }
+
+        .question {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .conversion-hint {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+
+        .answer-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 1.5em;
+            text-align: center;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            text-align: center;
+            z-index: 1000;
+            min-width: 300px;
+            transition: transform 0.3s ease;
+        }
+
+        .feedback.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .feedback-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .feedback-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .feedback-points {
+            font-size: 1.2em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .achievements {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .achievement {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .achievement.unlocked {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-color: #f5576c;
+            animation: bounce 0.5s ease;
+        }
+
+        .achievement-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .achievement-name {
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .combo-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .combo-indicator.show {
+            display: block;
+            animation: pulse 0.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .start-screen p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .leaderboard {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .leaderboard h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .leaderboard-entry:hover {
+            transform: translateX(5px);
+        }
+
+        .level-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .question {
+                font-size: 1.5em;
+            }
+            
+            .answer-input {
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="game-container">
+        <div class="combo-indicator" id="comboIndicator">🔥 COMBO x<span id="comboCount">0</span></div>
+        <div class="timer" id="timer" style="display: none;">⏱️ <span id="timeLeft">60</span>s</div>
+        
+        <div class="header">
+            <h1>🎮 Number Base Champion</h1>
+            <p class="subtitle">Master Binary • Decimal • Hexadecimal Conversions</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="streak">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Best Score</div>
+                <div class="stat-value" id="bestScore">0</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%">
+                <span id="progressText">0 / 10 XP</span>
+            </div>
+        </div>
+
+        <div class="mode-selector" id="modeSelector">
+            <button class="mode-btn active" data-mode="mixed">🎲 Mixed</button>
+            <button class="mode-btn" data-mode="b2d">Binary→Dec</button>
+            <button class="mode-btn" data-mode="d2b">Dec→Binary</button>
+            <button class="mode-btn" data-mode="h2b">Hex→Binary</button>
+            <button class="mode-btn" data-mode="b2h">Binary→Hex</button>
+            <button class="mode-btn" data-mode="d2h">Dec→Hex</button>
+            <button class="mode-btn" data-mode="h2d">Hex→Dec</button>
+        </div>
+
+        <div class="game-area" id="gameArea">
+            <div class="start-screen" id="startScreen">
+                <h2>Welcome, Champion! 🏆</h2>
+                <p>
+                    Test your number conversion skills across different bases!<br>
+                    <strong>Score points</strong>, <strong>level up</strong>, and <strong>unlock achievements</strong>.<br><br>
+                    Select a mode above and click Start to begin your journey!
+                </p>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="startGame()">🚀 Start Game</button>
+                    <button class="btn btn-secondary" onclick="startTimedChallenge()">⏱️ Timed Challenge (60s)</button>
+                </div>
+            </div>
+
+            <div class="question-container" id="questionContainer" style="display: none;">
+                <div class="conversion-hint" id="conversionHint"></div>
+                <div class="question" id="question"></div>
+                <input type="text" class="answer-input" id="answerInput" placeholder="Enter your answer..." autocomplete="off">
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="checkAnswer()">✓ Submit</button>
+                    <button class="btn btn-secondary" onclick="skipQuestion()">→ Skip</button>
+                    <button class="btn btn-secondary" onclick="endGame()">✕ End Game</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="achievements">
+            <div class="achievement" id="ach-first">
+                <div class="achievement-icon">🎯</div>
+                <div class="achievement-name">First Win</div>
+            </div>
+            <div class="achievement" id="ach-streak5">
+                <div class="achievement-icon">🔥</div>
+                <div class="achievement-name">5 Streak</div>
+            </div>
+            <div class="achievement" id="ach-level5">
+                <div class="achievement-icon">⭐</div>
+                <div class="achievement-name">Level 5</div>
+            </div>
+            <div class="achievement" id="ach-score100">
+                <div class="achievement-icon">💯</div>
+                <div class="achievement-name">100 Points</div>
+            </div>
+            <div class="achievement" id="ach-speed">
+                <div class="achievement-icon">⚡</div>
+                <div class="achievement-name">Speed Demon</div>
+            </div>
+            <div class="achievement" id="ach-master">
+                <div class="achievement-icon">👑</div>
+                <div class="achievement-name">Master</div>
+            </div>
+        </div>
+
+        <div class="leaderboard" id="leaderboard" style="display: none;">
+            <h3>🏆 Recent Scores</h3>
+            <div id="leaderboardEntries"></div>
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback">
+        <div class="feedback-icon" id="feedbackIcon"></div>
+        <div class="feedback-text" id="feedbackText"></div>
+        <div class="feedback-points" id="feedbackPoints"></div>
+        <button class="btn btn-primary" onclick="nextQuestion()">Continue</button>
+    </div>
+
+    <script>
+        let gameState = {
+            score: 0,
+            level: 1,
+            streak: 0,
+            bestScore: parseInt(localStorage.getItem('bestScore')) || 0,
+            xp: 0,
+            xpToNextLevel: 10,
+            currentMode: 'mixed',
+            currentQuestion: null,
+            isPlaying: false,
+            combo: 0,
+            questionsAnswered: 0,
+            correctAnswers: 0,
+            timedMode: false,
+            timeLeft: 60,
+            timerInterval: null,
+            achievements: JSON.parse(localStorage.getItem('achievements')) || {},
+            leaderboard: JSON.parse(localStorage.getItem('leaderboard')) || []
+        };
+
+        // Update best score display
+        document.getElementById('bestScore').textContent = gameState.bestScore;
+
+        // Conversion functions
+        function decimalToBinary(dec) {
+            return (dec >>> 0).toString(2);
+        }
+
+        function binaryToDecimal(bin) {
+            return parseInt(bin, 2);
+        }
+
+        function decimalToHex(dec) {
+            return dec.toString(16).toUpperCase();
+        }
+
+        function hexToDecimal(hex) {
+            return parseInt(hex, 16);
+        }
+
+        function binaryToHex(bin) {
+            return decimalToHex(binaryToDecimal(bin));
+        }
+
+        function hexToBinary(hex) {
+            return decimalToBinary(hexToDecimal(hex));
+        }
+
+        // Question generators
+        function generateB2D() {
+            const maxBits = Math.min(4 + gameState.level, 16);
+            const decimal = Math.floor(Math.random() * Math.pow(2, maxBits));
+            const binary = decimalToBinary(decimal);
+            return {
+                question: `${binary}₂`,
+                answer: decimal.toString(),
+                hint: 'Binary → Decimal',
+                explanation: `${binary}₂ = ${decimal}₁₀`
+            };
+        }
+
+        function generateD2B() {
+            const maxValue = Math.min(Math.pow(2, 4 + gameState.level), 65535);
+            const decimal = Math.floor(Math.random() * maxValue);
+            const binary = decimalToBinary(decimal);
+            return {
+                question: `${decimal}₁₀`,
+                answer: binary,
+                hint: 'Decimal → Binary',
+                explanation: `${decimal}₁₀ = ${binary}₂`
+            };
+        }
+
+        function generateH2B() {
+            const maxDigits = Math.min(1 + Math.floor(gameState.level / 2), 4);
+            const decimal = Math.floor(Math.random() * Math.pow(16, maxDigits));
+            const hex = decimalToHex(decimal);
+            const binary = decimalToBinary(decimal);
+            return {
+                question: `${hex}₁₆`,
+                answer: binary,
+                hint: 'Hexadecimal → Binary',
+                explanation: `${hex}₁₆ = ${binary}₂`
+            };
+        }
+
+        function generateB2H() {
+            const maxBits = Math.min(4 + gameState.level, 16);
+            const decimal = Math.floor(Math.random() * Math.pow(2, maxBits));
+            const binary = decimalToBinary(decimal);
+            const hex = decimalToHex(decimal);
+            return {
+                question: `${binary}₂`,
+                answer: hex,
+                hint: 'Binary → Hexadecimal',
+                explanation: `${binary}₂ = ${hex}₁₆`
+            };
+        }
+
+        function generateD2H() {
+            const maxValue = Math.min(Math.pow(2, 4 + gameState.level), 65535);
+            const decimal = Math.floor(Math.random() * maxValue);
+            const hex = decimalToHex(decimal);
+            return {
+                question: `${decimal}₁₀`,
+                answer: hex,
+                hint: 'Decimal → Hexadecimal',
+                explanation: `${decimal}₁₀ = ${hex}₁₆`
+            };
+        }
+
+        function generateH2D() {
+            const maxDigits = Math.min(1 + Math.floor(gameState.level / 2), 4);
+            const decimal = Math.floor(Math.random() * Math.pow(16, maxDigits));
+            const hex = decimalToHex(decimal);
+            return {
+                question: `${hex}₁₆`,
+                answer: decimal.toString(),
+                hint: 'Hexadecimal → Decimal',
+                explanation: `${hex}₁₆ = ${decimal}₁₀`
+            };
+        }
+
+        const questionGenerators = {
+            'b2d': generateB2D,
+            'd2b': generateD2B,
+            'h2b': generateH2B,
+            'b2h': generateB2H,
+            'd2h': generateD2H,
+            'h2d': generateH2D
+        };
+
+        function generateQuestion() {
+            let mode = gameState.currentMode;
+            if (mode === 'mixed') {
+                const modes = ['b2d', 'd2b', 'h2b', 'b2h', 'd2h', 'h2d'];
+                mode = modes[Math.floor(Math.random() * modes.length)];
+            }
+            return questionGenerators[mode]();
+        }
+
+        // Mode selection
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                gameState.currentMode = this.dataset.mode;
+            });
+        });
+
+        function startGame() {
+            gameState.isPlaying = true;
+            gameState.timedMode = false;
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('questionContainer').style.display = 'block';
+            document.getElementById('timer').style.display = 'none';
+            nextQuestion();
+        }
+
+        function startTimedChallenge() {
+            gameState.isPlaying = true;
+            gameState.timedMode = true;
+            gameState.timeLeft = 60;
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('questionContainer').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            startTimer();
+            nextQuestion();
+        }
+
+        function startTimer() {
+            updateTimerDisplay();
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimerDisplay();
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timeLeft').textContent = gameState.timeLeft;
+            const timer = document.getElementById('timer');
+            if (gameState.timeLeft <= 10) {
+                timer.style.background = '#ff4757';
+                timer.style.animation = 'pulse 0.5s ease infinite';
+            }
+        }
+
+        function nextQuestion() {
+            gameState.currentQuestion = generateQuestion();
+            document.getElementById('question').textContent = gameState.currentQuestion.question;
+            document.getElementById('conversionHint').textContent = gameState.currentQuestion.hint;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerInput').focus();
+            document.getElementById('feedback').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        function checkAnswer() {
+            if (!gameState.isPlaying) return;
+
+            const userAnswer = document.getElementById('answerInput').value.trim().toUpperCase();
+            const correctAnswer = gameState.currentQuestion.answer.toUpperCase();
+
+            gameState.questionsAnswered++;
+
+            if (userAnswer === correctAnswer) {
+                handleCorrectAnswer();
+            } else {
+                handleWrongAnswer();
+            }
+        }
+
+        function handleCorrectAnswer() {
+            gameState.correctAnswers++;
+            gameState.streak++;
+            gameState.combo++;
+
+            // Calculate points with combo multiplier
+            const basePoints = 10;
+            const comboBonus = Math.min(gameState.combo - 1, 5) * 5;
+            const points = basePoints + comboBonus;
+
+            gameState.score += points;
+            gameState.xp += 1;
+
+            // Update combo indicator
+            if (gameState.combo > 1) {
+                document.getElementById('comboCount').textContent = gameState.combo;
+                document.getElementById('comboIndicator').classList.add('show');
+            }
+
+            // Check for level up
+            if (gameState.xp >= gameState.xpToNextLevel) {
+                levelUp();
+            }
+
+            // Check achievements
+            checkAchievements();
+
+            // Update display
+            updateStats();
+
+            // Show feedback
+            showFeedback(true, points);
+        }
+
+        function handleWrongAnswer() {
+            gameState.streak = 0;
+            gameState.combo = 0;
+            document.getElementById('comboIndicator').classList.remove('show');
+            showFeedback(false, 0);
+        }
+
+        function showFeedback(correct, points) {
+            const feedback = document.getElementById('feedback');
+            const icon = document.getElementById('feedbackIcon');
+            const text = document.getElementById('feedbackText');
+            const pointsEl = document.getElementById('feedbackPoints');
+
+            if (correct) {
+                icon.textContent = ['🎉', '✨', '🌟', '💫', '🏆'][Math.floor(Math.random() * 5)];
+                text.textContent = ['Correct!', 'Excellent!', 'Perfect!', 'Amazing!', 'Brilliant!'][Math.floor(Math.random() * 5)];
+                text.style.color = '#10b981';
+                pointsEl.textContent = `+${points} points!`;
+            } else {
+                icon.textContent = '😅';
+                text.textContent = 'Not quite right!';
+                text.style.color = '#ef4444';
+                pointsEl.textContent = `Correct answer: ${gameState.currentQuestion.explanation}`;
+            }
+
+            feedback.classList.add('show');
+            document.getElementById('overlay').classList.add('show');
+        }
+
+        function skipQuestion() {
+            gameState.combo = 0;
+            document.getElementById('comboIndicator').classList.remove('show');
+            nextQuestion();
+        }
+
+        function levelUp() {
+            gameState.level++;
+            gameState.xp = 0;
+            gameState.xpToNextLevel = gameState.level * 10;
+            
+            // Show level up animation
+            showLevelUpAnimation();
+            checkAchievements();
+        }
+
+        function showLevelUpAnimation() {
+            const feedback = document.getElementById('feedback');
+            const icon = document.getElementById('feedbackIcon');
+            const text = document.getElementById('feedbackText');
+            const pointsEl = document.getElementById('feedbackPoints');
+
+            icon.textContent = '🎊';
+            text.textContent = `Level ${gameState.level}!`;
+            text.style.color = '#667eea';
+            pointsEl.textContent = 'You\'re getting stronger!';
+
+            feedback.classList.add('show');
+            document.getElementById('overlay').classList.add('show');
+
+            setTimeout(() => {
+                feedback.classList.remove('show');
+                document.getElementById('overlay').classList.remove('show');
+            }, 2000);
+        }
+
+        function updateStats() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('streak').textContent = gameState.streak;
+            
+            // Update best score
+            if (gameState.score > gameState.bestScore) {
+                gameState.bestScore = gameState.score;
+                document.getElementById('bestScore').textContent = gameState.bestScore;
+                localStorage.setItem('bestScore', gameState.bestScore);
+            }
+
+            // Update progress bar
+            const progress = (gameState.xp / gameState.xpToNextLevel) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${gameState.xp} / ${gameState.xpToNextLevel} XP`;
+        }
+
+        function checkAchievements() {
+            const achievements = [
+                { id: 'first', condition: () => gameState.correctAnswers >= 1, name: 'First Win' },
+                { id: 'streak5', condition: () => gameState.streak >= 5, name: '5 Streak' },
+                { id: 'level5', condition: () => gameState.level >= 5, name: 'Level 5' },
+                { id: 'score100', condition: () => gameState.score >= 100, name: '100 Points' },
+                { id: 'speed', condition: () => gameState.combo >= 10, name: 'Speed Demon' },
+                { id: 'master', condition: () => gameState.level >= 10, name: 'Master' }
+            ];
+
+            achievements.forEach(ach => {
+                if (!gameState.achievements[ach.id] && ach.condition()) {
+                    unlockAchievement(ach.id, ach.name);
+                }
+            });
+        }
+
+        function unlockAchievement(id, name) {
+            gameState.achievements[id] = true;
+            localStorage.setItem('achievements', JSON.stringify(gameState.achievements));
+            
+            const achElement = document.getElementById(`ach-${id}`);
+            achElement.classList.add('unlocked');
+
+            // Show achievement notification
+            setTimeout(() => {
+                const feedback = document.getElementById('feedback');
+                const icon = document.getElementById('feedbackIcon');
+                const text = document.getElementById('feedbackText');
+                const pointsEl = document.getElementById('feedbackPoints');
+
+                icon.textContent = '🏅';
+                text.textContent = 'Achievement Unlocked!';
+                text.style.color = '#f5576c';
+                pointsEl.textContent = name;
+
+                feedback.classList.add('show');
+                document.getElementById('overlay').classList.add('show');
+
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                    document.getElementById('overlay').classList.remove('show');
+                }, 2000);
+            }, 500);
+        }
+
+        function endGame() {
+            gameState.isPlaying = false;
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+
+            // Save to leaderboard
+            const accuracy = gameState.questionsAnswered > 0 
+                ? Math.round((gameState.correctAnswers / gameState.questionsAnswered) * 100) 
+                : 0;
+            
+            gameState.leaderboard.unshift({
+                score: gameState.score,
+                level: gameState.level,
+                accuracy: accuracy,
+                date: new Date().toLocaleDateString()
+            });
+
+            // Keep only top 10
+            gameState.leaderboard = gameState.leaderboard.slice(0, 10);
+            localStorage.setItem('leaderboard', JSON.stringify(gameState.leaderboard));
+
+            // Show results
+            showResults();
+        }
+
+        function showResults() {
+            document.getElementById('questionContainer').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'block';
+            
+            const accuracy = gameState.questionsAnswered > 0 
+                ? Math.round((gameState.correctAnswers / gameState.questionsAnswered) * 100) 
+                : 0;
+
+            document.querySelector('.start-screen h2').textContent = 'Game Over! 🎮';
+            document.querySelector('.start-screen p').innerHTML = `
+                <strong>Final Score: ${gameState.score}</strong><br>
+                Level Reached: ${gameState.level}<br>
+                Questions Answered: ${gameState.questionsAnswered}<br>
+                Accuracy: ${accuracy}%<br>
+                Best Streak: ${gameState.streak}<br><br>
+                ${gameState.score === gameState.bestScore ? '🏆 New High Score! 🏆<br><br>' : ''}
+                Ready for another round?
+            `;
+
+            // Show leaderboard
+            updateLeaderboard();
+
+            // Reset game state for next game
+            gameState.score = 0;
+            gameState.level = 1;
+            gameState.streak = 0;
+            gameState.xp = 0;
+            gameState.combo = 0;
+            gameState.questionsAnswered = 0;
+            gameState.correctAnswers = 0;
+            updateStats();
+        }
+
+        function updateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard');
+            const entries = document.getElementById('leaderboardEntries');
+            
+            if (gameState.leaderboard.length > 0) {
+                leaderboard.style.display = 'block';
+                entries.innerHTML = gameState.leaderboard.map((entry, index) => `
+                    <div class="leaderboard-entry">
+                        <span>${index + 1}. Score: ${entry.score} | Level: ${entry.level}</span>
+                        <span>${entry.accuracy}% | ${entry.date}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Load saved achievements
+        Object.keys(gameState.achievements).forEach(achId => {
+            const achElement = document.getElementById(`ach-${achId}`);
+            if (achElement) {
+                achElement.classList.add('unlocked');
+            }
+        });
+
+        // Enter key to submit answer
+        document.getElementById('answerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // Show leaderboard on load if exists
+        updateLeaderboard();
+    </script>
+</body>
+</html>
