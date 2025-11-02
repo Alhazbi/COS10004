@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AND Gate: Two Valves in Series Analogy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #134E5E 0%, #71B280 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffd700;
+        }
+
+        .svg-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-label {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .toggle-button {
+            padding: 15px 35px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            min-width: 150px;
+        }
+
+        .toggle-button.off {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .toggle-button.on {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .toggle-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .explanation {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+
+        .truth-table {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        th {
+            background: rgba(255, 215, 0, 0.3);
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .active-row {
+            background: rgba(76, 175, 80, 0.4) !important;
+            font-weight: bold;
+        }
+
+        .analogy-box {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .analogy-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .analogy-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        /* Water drop animation */
+        @keyframes dropFall {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes flowDown {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(60px);
+                opacity: 0;
+            }
+        }
+
+        .water-drop {
+            animation: dropFall 1.5s linear infinite;
+        }
+
+        .water-flow {
+            animation: flowDown 2s linear infinite;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .status-on {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        .status-off {
+            background: #999;
+        }
+
+        .highlight-success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .highlight-fail {
+            color: #FF5252;
+            font-weight: bold;
+        }
+
+        .series-explanation {
+            background: rgba(255, 152, 0, 0.2);
+            border-left: 4px solid #FF9800;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚰 AND Gate: Two Valves in Series</h1>
+            <p class="subtitle">Both Valves Must Be Open for Water to Flow!</p>
+        </header>
+
+        <div class="control-panel">
+            <div class="control-group">
+                <span class="control-label">Valve A</span>
+                <button id="toggleBtnA" class="toggle-button off">
+                    VALVE A: OFF
+                </button>
+            </div>
+            <div class="control-group">
+                <span class="control-label">Valve B</span>
+                <button id="toggleBtnB" class="toggle-button off">
+                    VALVE B: OFF
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Panel: Water Pipes Analogy -->
+            <div class="panel">
+                <h2>🚰 Water Pipes System (Series)</h2>
+                <div class="svg-container">
+                    <svg id="pipesSvg" width="100%" height="600" viewBox="0 0 500 600">
+                        <!-- Definitions -->
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            
+                            <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4FC3F7;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0288D1;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Water Tank (Power Supply) -->
+                        <rect x="200" y="30" width="100" height="80" fill="url(#waterGradient)" stroke="#01579B" stroke-width="3" rx="5"/>
+                        <text x="250" y="60" text-anchor="middle" font-size="14" font-weight="bold" fill="white">WATER</text>
+                        <text x="250" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="white">TANK</text>
+                        <text x="250" y="100" text-anchor="middle" font-size="12" fill="white">(POWER)</text>
+
+                        <!-- Pipe from tank to Valve A -->
+                        <rect id="pipeToA" x="245" y="110" width="10" height="80" fill="#90CAF9" stroke="#01579B" stroke-width="2"/>
+                        
+                        <!-- Water flow animation to Valve A -->
+                        <g id="flowToA" style="opacity: 0;">
+                            <circle class="water-flow" cx="250" cy="120" r="5" fill="#4FC3F7" style="animation-delay: 0s;"/>
+                            <circle class="water-flow" cx="250" cy="140" r="5" fill="#4FC3F7" style="animation-delay: 0.4s;"/>
+                            <circle class="water-flow" cx="250" cy="160" r="5" fill="#4FC3F7" style="animation-delay: 0.8s;"/>
+                        </g>
+
+                        <!-- Valve A -->
+                        <g id="valveA" transform="translate(250, 190)">
+                            <rect x="-50" y="-30" width="100" height="60" fill="#546E7A" stroke="#263238" stroke-width="3" rx="8"/>
+                            <circle cx="0" cy="0" r="20" fill="#78909C" stroke="#263238" stroke-width="2"/>
+                            <rect id="valveHandleA" x="-5" y="-30" width="10" height="30" fill="#FF5252" stroke="#C62828" stroke-width="2" rx="3"/>
+                            <text x="0" y="5" text-anchor="middle" font-size="14" font-weight="bold" fill="white">VALVE A</text>
+                        </g>
+
+                        <!-- Control wire to Valve A -->
+                        <line x1="80" y1="190" x2="200" y2="190" stroke="#FF5252" stroke-width="4" stroke-dasharray="5,5"/>
+                        <circle id="inputA" cx="60" cy="190" r="18" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text x="60" y="175" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">INPUT A</text>
+                        <text id="inputTextA" x="60" y="198" text-anchor="middle" font-size="14" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Pipe from Valve A to Valve B -->
+                        <rect id="pipeBetween" x="245" y="220" width="10" height="80" fill="#90CAF9" stroke="#01579B" stroke-width="2"/>
+                        
+                        <!-- Water flow animation between valves -->
+                        <g id="flowBetween" style="opacity: 0;">
+                            <circle class="water-flow" cx="250" cy="230" r="5" fill="#4FC3F7" style="animation-delay: 0s;"/>
+                            <circle class="water-flow" cx="250" cy="250" r="5" fill="#4FC3F7" style="animation-delay: 0.4s;"/>
+                            <circle class="water-flow" cx="250" cy="270" r="5" fill="#4FC3F7" style="animation-delay: 0.8s;"/>
+                        </g>
+
+                        <!-- Valve B -->
+                        <g id="valveB" transform="translate(250, 300)">
+                            <rect x="-50" y="-30" width="100" height="60" fill="#546E7A" stroke="#263238" stroke-width="3" rx="8"/>
+                            <circle cx="0" cy="0" r="20" fill="#78909C" stroke="#263238" stroke-width="2"/>
+                            <rect id="valveHandleB" x="-5" y="-30" width="10" height="30" fill="#FF5252" stroke="#C62828" stroke-width="2" rx="3"/>
+                            <text x="0" y="5" text-anchor="middle" font-size="14" font-weight="bold" fill="white">VALVE B</text>
+                        </g>
+
+                        <!-- Control wire to Valve B -->
+                        <line x1="80" y1="300" x2="200" y2="300" stroke="#FF5252" stroke-width="4" stroke-dasharray="5,5"/>
+                        <circle id="inputB" cx="60" cy="300" r="18" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text x="60" y="285" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">INPUT B</text>
+                        <text id="inputTextB" x="60" y="308" text-anchor="middle" font-size="14" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Pipe from Valve B to output -->
+                        <rect id="pipeToOutput" x="245" y="330" width="10" height="100" fill="#90CAF9" stroke="#01579B" stroke-width="2"/>
+                        
+                        <!-- Water flow animation to output -->
+                        <g id="flowToOutput" style="opacity: 0;">
+                            <circle class="water-flow" cx="250" cy="340" r="5" fill="#4FC3F7" style="animation-delay: 0s;"/>
+                            <circle class="water-flow" cx="250" cy="370" r="5" fill="#4FC3F7" style="animation-delay: 0.5s;"/>
+                            <circle class="water-flow" cx="250" cy="400" r="5" fill="#4FC3F7" style="animation-delay: 1s;"/>
+                        </g>
+
+                        <!-- Output (Sprinkler/Faucet) -->
+                        <g id="outputDevice" transform="translate(250, 430)">
+                            <rect x="-40" y="0" width="80" height="40" fill="#2196F3" stroke="#0D47A1" stroke-width="3" rx="5"/>
+                            <circle cx="0" cy="20" r="15" fill="#1976D2"/>
+                            <text x="0" y="25" text-anchor="middle" font-size="12" font-weight="bold" fill="white">OUTPUT</text>
+                        </g>
+
+                        <!-- Output indicator -->
+                        <circle id="outputIndicatorPipes" cx="250" cy="500" r="22" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text id="outputTextPipes" x="250" y="508" text-anchor="middle" font-size="16" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Water drops from output (when ON) -->
+                        <g id="outputDrops" style="opacity: 0;">
+                            <circle class="water-drop" cx="240" cy="475" r="4" fill="#4FC3F7" style="animation-delay: 0s;"/>
+                            <circle class="water-drop" cx="250" cy="475" r="4" fill="#4FC3F7" style="animation-delay: 0.3s;"/>
+                            <circle class="water-drop" cx="260" cy="475" r="4" fill="#4FC3F7" style="animation-delay: 0.6s;"/>
+                        </g>
+
+                        <!-- Labels showing series connection -->
+                        <text x="270" y="250" font-size="14" font-weight="bold" fill="#FF6F00">↓ IN SERIES ↓</text>
+                        <text x="270" y="270" font-size="12" fill="#FF6F00">Must pass through BOTH</text>
+                    </svg>
+                </div>
+
+                <div class="explanation" id="pipesExplanation">
+                    <p><strong>❌ Both Valves OFF:</strong></p>
+                    <p>• First valve (A) is CLOSED - water blocked at Valve A<br>
+                    • Second valve (B) is CLOSED - water blocked at Valve B<br>
+                    • No water reaches output 🚫<br>
+                    • <strong>OUTPUT = OFF (No Water Flow)</strong></p>
+                </div>
+
+                <div class="series-explanation">
+                    <strong>⚠️ Series Connection Key Point:</strong><br>
+                    Water must pass through Valve A <strong>AND THEN</strong> through Valve B to reach the output.
+                    If <strong>ANY</strong> valve is closed, the entire flow is blocked!
+                </div>
+            </div>
+
+            <!-- Right Panel: Transistor Circuit -->
+            <div class="panel">
+                <h2>⚡ Transistor Circuit (AND Gate)</h2>
+                <div class="svg-container">
+                    <svg id="circuitSvg" width="100%" height="600" viewBox="0 0 500 600">
+                        <!-- Power Supply -->
+                        <circle cx="250" cy="50" r="25" fill="#FFC107" stroke="#F57F17" stroke-width="3"/>
+                        <text x="250" y="45" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">+5V</text>
+                        <text x="250" y="60" text-anchor="middle" font-size="10" fill="#333">POWER</text>
+
+                        <!-- Wire from power to Transistor A -->
+                        <line id="wirePowerToA" x1="250" y1="75" x2="250" y2="130" stroke="#999" stroke-width="6" stroke-linecap="round"/>
+
+                        <!-- Transistor A -->
+                        <rect id="transistorA" x="180" y="130" width="140" height="100" fill="#1565C0" stroke="#0D47A1" stroke-width="3" rx="8"/>
+                        <text x="250" y="170" text-anchor="middle" font-size="18" font-weight="bold" fill="white">TRANSISTOR A</text>
+                        <text id="transistorStateA" x="250" y="195" text-anchor="middle" font-size="14" fill="#FFD54F">BLOCKED</text>
+
+                        <!-- Control input A -->
+                        <line x1="60" y1="180" x2="180" y2="180" stroke="#FF5252" stroke-width="4" stroke-dasharray="5,5"/>
+                        <circle id="inputACircuit" cx="40" cy="180" r="18" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text x="40" y="165" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">INPUT A</text>
+                        <text id="inputTextACircuit" x="40" y="188" text-anchor="middle" font-size="14" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Wire between transistors -->
+                        <line id="wireBetweenTransistors" x1="250" y1="230" x2="250" y2="290" stroke="#999" stroke-width="6" stroke-linecap="round"/>
+
+                        <!-- Transistor B -->
+                        <rect id="transistorB" x="180" y="290" width="140" height="100" fill="#1565C0" stroke="#0D47A1" stroke-width="3" rx="8"/>
+                        <text x="250" y="330" text-anchor="middle" font-size="18" font-weight="bold" fill="white">TRANSISTOR B</text>
+                        <text id="transistorStateB" x="250" y="355" text-anchor="middle" font-size="14" fill="#FFD54F">BLOCKED</text>
+
+                        <!-- Control input B -->
+                        <line x1="60" y1="340" x2="180" y2="340" stroke="#FF5252" stroke-width="4" stroke-dasharray="5,5"/>
+                        <circle id="inputBCircuit" cx="40" cy="340" r="18" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text x="40" y="325" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">INPUT B</text>
+                        <text id="inputTextBCircuit" x="40" y="348" text-anchor="middle" font-size="14" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Wire from Transistor B to output -->
+                        <line id="wireToOutput" x1="250" y1="390" x2="250" y2="470" stroke="#999" stroke-width="6" stroke-linecap="round"/>
+
+                        <!-- Output indicator -->
+                        <circle id="outputIndicatorCircuit" cx="250" cy="500" r="22" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text x="250" y="485" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">OUTPUT</text>
+                        <text id="outputTextCircuit" x="250" y="508" text-anchor="middle" font-size="16" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Electron flow animation -->
+                        <g id="electronFlow" style="opacity: 0;">
+                            <circle class="water-flow" cx="250" cy="90" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 0s; animation-duration: 3s;"/>
+                            <circle class="water-flow" cx="250" cy="150" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 0.8s; animation-duration: 3s;"/>
+                            <circle class="water-flow" cx="250" cy="260" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 1.6s; animation-duration: 3s;"/>
+                            <circle class="water-flow" cx="250" cy="320" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 2.4s; animation-duration: 3s;"/>
+                        </g>
+
+                        <!-- Labels showing series connection -->
+                        <text x="330" y="260" font-size="14" font-weight="bold" fill="#FF6F00">↓ IN SERIES ↓</text>
+                        <text x="330" y="280" font-size="12" fill="#FF6F00">Current must flow</text>
+                        <text x="330" y="295" font-size="12" fill="#FF6F00">through BOTH</text>
+                    </svg>
+                </div>
+
+                <div class="explanation" id="circuitExplanation">
+                    <p><strong>❌ Both Inputs LOW (OFF):</strong></p>
+                    <p>• Transistor A is OFF - blocks current<br>
+                    • Transistor B is OFF - blocks current<br>
+                    • No current reaches output ⚡<br>
+                    • <strong>OUTPUT = LOW (0V / OFF)</strong></p>
+                </div>
+
+                <div class="series-explanation">
+                    <strong>⚠️ Series Connection Key Point:</strong><br>
+                    Current must flow through Transistor A <strong>AND THEN</strong> through Transistor B.
+                    If <strong>EITHER</strong> transistor is OFF, the current path is broken!
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel -->
+        <div class="panel">
+            <h2>📊 Truth Table & Explanation</h2>
+            
+            <div class="analogy-box">
+                <div class="analogy-title">🚰 AND Gate = Two Valves in Series</div>
+                <div class="analogy-text">
+                    <p>Think of two security checkpoints in a hallway, one after another:</p>
+                    <ul style="margin-top: 10px; line-height: 1.8;">
+                        <li>✅ <strong>Both doors open?</strong> → You can walk through! (Output ON)</li>
+                        <li>❌ <strong>First door closed?</strong> → Blocked at checkpoint A (Output OFF)</li>
+                        <li>❌ <strong>Second door closed?</strong> → Blocked at checkpoint B (Output OFF)</li>
+                        <li>❌ <strong>Both doors closed?</strong> → Blocked at both! (Output OFF)</li>
+                    </ul>
+                    <p style="margin-top: 15px; font-weight: bold; color: #ffd700;">
+                        🔑 Key Insight: BOTH valves/transistors must be ON for anything to flow through!
+                    </p>
+                </div>
+            </div>
+
+            <div class="truth-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Input A</th>
+                            <th>Input B</th>
+                            <th>Valve A</th>
+                            <th>Valve B</th>
+                            <th>Output</th>
+                            <th>Explanation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="row0" class="active-row">
+                            <td><span class="status-indicator status-off"></span>0 (OFF)</td>
+                            <td><span class="status-indicator status-off"></span>0 (OFF)</td>
+                            <td>CLOSED</td>
+                            <td>CLOSED</td>
+                            <td><strong>0 (OFF)</strong></td>
+                            <td>Blocked at A</td>
+                        </tr>
+                        <tr id="row1">
+                            <td><span class="status-indicator status-on"></span>1 (ON)</td>
+                            <td><span class="status-indicator status-off"></span>0 (OFF)</td>
+                            <td>OPEN</td>
+                            <td>CLOSED</td>
+                            <td><strong>0 (OFF)</strong></td>
+                            <td>Blocked at B</td>
+                        </tr>
+                        <tr id="row2">
+                            <td><span class="status-indicator status-off"></span>0 (OFF)</td>
+                            <td><span class="status-indicator status-on"></span>1 (ON)</td>
+                            <td>CLOSED</td>
+                            <td>OPEN</td>
+                            <td><strong>0 (OFF)</strong></td>
+                            <td>Blocked at A</td>
+                        </tr>
+                        <tr id="row3">
+                            <td><span class="status-indicator status-on"></span>1 (ON)</td>
+                            <td><span class="status-indicator status-on"></span>1 (ON)</td>
+                            <td>OPEN</td>
+                            <td>OPEN</td>
+                            <td class="highlight-success"><strong>1 (ON)</strong></td>
+                            <td class="highlight-success">✅ Both open - Flow!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let inputStateA = false;
+        let inputStateB = false;
+
+        const toggleBtnA = document.getElementById('toggleBtnA');
+        const toggleBtnB = document.getElementById('toggleBtnB');
+
+        function updateVisualization() {
+            const output = inputStateA && inputStateB;
+
+            // Update button states
+            toggleBtnA.className = inputStateA ? 'toggle-button on' : 'toggle-button off';
+            toggleBtnA.textContent = inputStateA ? 'VALVE A: ON ✓' : 'VALVE A: OFF ✗';
+
+            toggleBtnB.className = inputStateB ? 'toggle-button on' : 'toggle-button off';
+            toggleBtnB.textContent = inputStateB ? 'VALVE B: ON ✓' : 'VALVE B: OFF ✗';
+
+            // Update pipes visualization
+            const valveHandleA = document.getElementById('valveHandleA');
+            const valveHandleB = document.getElementById('valveHandleB');
+            const pipeToA = document.getElementById('pipeToA');
+            const pipeBetween = document.getElementById('pipeBetween');
+            const pipeToOutput = document.getElementById('pipeToOutput');
+            const flowToA = document.getElementById('flowToA');
+            const flowBetween = document.getElementById('flowBetween');
+            const flowToOutput = document.getElementById('flowToOutput');
+            const outputDrops = document.getElementById('outputDrops');
+            const outputIndicatorPipes = document.getElementById('outputIndicatorPipes');
+            const outputTextPipes = document.getElementById('outputTextPipes');
+            const inputA = document.getElementById('inputA');
+            const inputTextA = document.getElementById('inputTextA');
+            const inputB = document.getElementById('inputB');
+            const inputTextB = document.getElementById('inputTextB');
+
+            // Update circuit visualization
+            const wirePowerToA = document.getElementById('wirePowerToA');
+            const wireBetweenTransistors = document.getElementById('wireBetweenTransistors');
+            const wireToOutput = document.getElementById('wireToOutput');
+            const transistorA = document.getElementById('transistorA');
+            const transistorB = document.getElementById('transistorB');
+            const transistorStateA = document.getElementById('transistorStateA');
+            const transistorStateB = document.getElementById('transistorStateB');
+            const inputACircuit = document.getElementById('inputACircuit');
+            const inputTextACircuit = document.getElementById('inputTextACircuit');
+            const inputBCircuit = document.getElementById('inputBCircuit');
+            const inputTextBCircuit = document.getElementById('inputTextBCircuit');
+            const outputIndicatorCircuit = document.getElementById('outputIndicatorCircuit');
+            const outputTextCircuit = document.getElementById('outputTextCircuit');
+            const electronFlow = document.getElementById('electronFlow');
+
+            // Update input indicators
+            inputA.setAttribute('fill', inputStateA ? '#4CAF50' : '#999');
+            inputTextA.textContent = inputStateA ? 'ON' : 'OFF';
+            inputB.setAttribute('fill', inputStateB ? '#4CAF50' : '#999');
+            inputTextB.textContent = inputStateB ? 'ON' : 'OFF';
+
+            inputACircuit.setAttribute('fill', inputStateA ? '#4CAF50' : '#999');
+            inputTextACircuit.textContent = inputStateA ? 'ON' : 'OFF';
+            inputBCircuit.setAttribute('fill', inputStateB ? '#4CAF50' : '#999');
+            inputTextBCircuit.textContent = inputStateB ? 'ON' : 'OFF';
+
+            // Update valve positions
+            valveHandleA.setAttribute('transform', inputStateA ? 'rotate(90 0 0)' : 'rotate(0 0 0)');
+            valveHandleB.setAttribute('transform', inputStateB ? 'rotate(90 0 0)' : 'rotate(0 0 0)');
+
+            // Update transistor states
+            transistorStateA.textContent = inputStateA ? 'CONDUCTING' : 'BLOCKED';
+            transistorStateA.setAttribute('fill', inputStateA ? '#4CAF50' : '#FFD54F');
+            transistorStateB.textContent = inputStateB ? 'CONDUCTING' : 'BLOCKED';
+            transistorStateB.setAttribute('fill', inputStateB ? '#4CAF50' : '#FFD54F');
+
+            // Determine pipe colors based on flow
+            pipeToA.setAttribute('fill', '#4FC3F7'); // Always has pressure from tank
+            pipeBetween.setAttribute('fill', inputStateA ? '#4FC3F7' : '#90CAF9');
+            pipeToOutput.setAttribute('fill', output ? '#4FC3F7' : '#90CAF9');
+
+            // Determine wire colors based on current flow
+            wirePowerToA.setAttribute('stroke', '#4CAF50'); // Always has voltage
+            wireBetweenTransistors.setAttribute('stroke', inputStateA ? '#4CAF50' : '#999');
+            wireToOutput.setAttribute('stroke', output ? '#4CAF50' : '#999');
+
+            // Update flow animations
+            flowToA.style.opacity = '1'; // Water always tries to enter A
+            flowBetween.style.opacity = inputStateA ? '1' : '0';
+            flowToOutput.style.opacity = output ? '1' : '0';
+            outputDrops.style.opacity = output ? '1' : '0';
+            electronFlow.style.opacity = output ? '1' : '0';
+
+            // Update output indicators
+            outputIndicatorPipes.setAttribute('fill', output ? '#4CAF50' : '#999');
+            outputTextPipes.textContent = output ? 'ON' : 'OFF';
+            outputIndicatorCircuit.setAttribute('fill', output ? '#4CAF50' : '#999');
+            outputTextCircuit.textContent = output ? 'ON' : 'OFF';
+
+            // Update explanations
+            const pipesExplanation = document.getElementById('pipesExplanation');
+            const circuitExplanation = document.getElementById('circuitExplanation');
+
+            if (!inputStateA && !inputStateB) {
+                pipesExplanation.innerHTML = `
+                    <p><strong>❌ Both Valves OFF:</strong></p>
+                    <p>• Valve A is CLOSED - water blocked at first checkpoint<br>
+                    • Valve B is CLOSED - water blocked at second checkpoint<br>
+                    • No water reaches output 🚫<br>
+                    • <strong class="highlight-fail">OUTPUT = OFF (No Flow)</strong></p>
+                `;
+                circuitExplanation.innerHTML = `
+                    <p><strong>❌ Both Inputs LOW (OFF):</strong></p>
+                    <p>• Transistor A is OFF - blocks current<br>
+                    • Transistor B is OFF - blocks current<br>
+                    • No current reaches output ⚡<br>
+                    • <strong class="highlight-fail">OUTPUT = LOW (0V / OFF)</strong></p>
+                `;
+            } else if (inputStateA && !inputStateB) {
+                pipesExplanation.innerHTML = `
+                    <p><strong>⚠️ Valve A ON, Valve B OFF:</strong></p>
+                    <p>• Valve A is OPEN - water passes first checkpoint ✓<br>
+                    • Valve B is CLOSED - water BLOCKED at second checkpoint ❌<br>
+                    • Water trapped between valves, cannot reach output 🚫<br>
+                    • <strong class="highlight-fail">OUTPUT = OFF (Blocked at B)</strong></p>
+                `;
+                circuitExplanation.innerHTML = `
+                    <p><strong>⚠️ Input A HIGH, Input B LOW:</strong></p>
+                    <p>• Transistor A is ON - allows current through ✓<br>
+                    • Transistor B is OFF - BLOCKS current ❌<br>
+                    • Current trapped between transistors ⚡<br>
+                    • <strong class="highlight-fail">OUTPUT = LOW (Blocked at B)</strong></p>
+                `;
+            } else if (!inputStateA && inputStateB) {
+                pipesExplanation.innerHTML = `
+                    <p><strong>⚠️ Valve A OFF, Valve B ON:</strong></p>
+                    <p>• Valve A is CLOSED - water BLOCKED at first checkpoint ❌<br>
+                    • Valve B is OPEN - would allow water but none arrives ✓<br>
+                    • No water reaches Valve B to pass through 🚫<br>
+                    • <strong class="highlight-fail">OUTPUT = OFF (Blocked at A)</strong></p>
+                `;
+                circuitExplanation.innerHTML = `
+                    <p><strong>⚠️ Input A LOW, Input B HIGH:</strong></p>
+                    <p>• Transistor A is OFF - BLOCKS current ❌<br>
+                    • Transistor B is ON - would conduct but no current arrives ✓<br>
+                    • No current reaches Transistor B ⚡<br>
+                    • <strong class="highlight-fail">OUTPUT = LOW (Blocked at A)</strong></p>
+                `;
+            } else {
+                pipesExplanation.innerHTML = `
+                    <p><strong>✅ Both Valves ON:</strong></p>
+                    <p>• Valve A is OPEN - water passes first checkpoint ✓<br>
+                    • Valve B is OPEN - water passes second checkpoint ✓<br>
+                    • Water flows freely through BOTH valves 💦<br>
+                    • <strong class="highlight-success">OUTPUT = ON (Full Flow!)</strong></p>
+                `;
+                circuitExplanation.innerHTML = `
+                    <p><strong>✅ Both Inputs HIGH (ON):</strong></p>
+                    <p>• Transistor A is ON - conducts current ✓<br>
+                    • Transistor B is ON - conducts current ✓<br>
+                    • Current flows through BOTH transistors ⚡<br>
+                    • <strong class="highlight-success">OUTPUT = HIGH (5V / ON!)</strong></p>
+                `;
+            }
+
+            // Update truth table highlighting
+            const rows = [
+                document.getElementById('row0'),
+                document.getElementById('row1'),
+                document.getElementById('row2'),
+                document.getElementById('row3')
+            ];
+
+            rows.forEach(row => row.classList.remove('active-row'));
+
+            if (!inputStateA && !inputStateB) rows[0].classList.add('active-row');
+            else if (inputStateA && !inputStateB) rows[1].classList.add('active-row');
+            else if (!inputStateA && inputStateB) rows[2].classList.add('active-row');
+            else rows[3].classList.add('active-row');
+        }
+
+        toggleBtnA.addEventListener('click', () => {
+            inputStateA = !inputStateA;
+            updateVisualization();
+        });
+
+        toggleBtnB.addEventListener('click', () => {
+            inputStateB = !inputStateB;
+            updateVisualization();
+        });
+
+        // Initialize
+        updateVisualization();
+    </script>
+</body>
+</html>
