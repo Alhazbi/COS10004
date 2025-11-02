@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOT Gate: Shower Valve Analogy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffd700;
+        }
+
+        .svg-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .toggle-button {
+            padding: 20px 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .toggle-button.off {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .toggle-button.on {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .toggle-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .explanation {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+
+        .truth-table {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        th {
+            background: rgba(255, 215, 0, 0.3);
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .active-row {
+            background: rgba(76, 175, 80, 0.4) !important;
+            font-weight: bold;
+        }
+
+        .analogy-mapping {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mapping-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .mapping-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .mapping-text {
+            flex: 1;
+        }
+
+        .mapping-title {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        /* Water drop animation */
+        @keyframes dropFall {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes flowRight {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        .water-drop {
+            animation: dropFall 1.5s linear infinite;
+        }
+
+        .water-flow {
+            animation: flowRight 2s linear infinite;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .status-on {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+
+        .status-off {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚿 NOT Gate: Shower Valve Analogy</h1>
+            <p class="subtitle">Understanding How Transistors Invert Signals Using Water Flow</p>
+        </header>
+
+        <div class="control-panel">
+            <button id="toggleBtn" class="toggle-button off">
+                🎮 CLICK TO TOGGLE INPUT
+            </button>
+        </div>
+
+        <div class="main-content">
+            <!-- Left Panel: Shower Analogy -->
+            <div class="panel">
+                <h2>🚿 Shower System Analogy</h2>
+                <div class="svg-container">
+                    <svg id="showerSvg" width="100%" height="500" viewBox="0 0 400 500">
+                        <!-- Definitions -->
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            
+                            <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#4FC3F7;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#0288D1;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Water Tank (Power Supply) -->
+                        <rect x="150" y="30" width="100" height="80" fill="url(#waterGradient)" stroke="#01579B" stroke-width="3" rx="5"/>
+                        <text x="200" y="60" text-anchor="middle" font-size="14" font-weight="bold" fill="white">WATER</text>
+                        <text x="200" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="white">TANK</text>
+                        <text x="200" y="100" text-anchor="middle" font-size="12" fill="white">(+5V)</text>
+
+                        <!-- Main pipe from tank -->
+                        <rect id="mainPipe" x="195" y="110" width="10" height="80" fill="#4FC3F7" stroke="#01579B" stroke-width="2"/>
+                        
+                        <!-- Junction point -->
+                        <circle cx="200" cy="190" r="8" fill="#0288D1" stroke="#01579B" stroke-width="2"/>
+
+                        <!-- Pipe to showerhead (OUTPUT) -->
+                        <rect id="outputPipe" x="200" y="185" width="120" height="10" fill="#90CAF9" stroke="#01579B" stroke-width="2"/>
+                        
+                        <!-- Showerhead -->
+                        <ellipse id="showerhead" cx="320" cy="190" rx="30" ry="15" fill="#B0BEC5" stroke="#546E7A" stroke-width="2"/>
+                        <text x="320" y="195" text-anchor="middle" font-size="12" font-weight="bold" fill="#263238">OUTPUT</text>
+                        
+                        <!-- Water drops from showerhead (when ON) -->
+                        <g id="showerDrops" style="opacity: 0;">
+                            <circle class="water-drop" cx="310" cy="210" r="4" fill="#4FC3F7" style="animation-delay: 0s;"/>
+                            <circle class="water-drop" cx="320" cy="210" r="4" fill="#4FC3F7" style="animation-delay: 0.3s;"/>
+                            <circle class="water-drop" cx="330" cy="210" r="4" fill="#4FC3F7" style="animation-delay: 0.6s;"/>
+                        </g>
+
+                        <!-- Pipe down from junction to valve -->
+                        <rect id="valvePipe" x="195" y="190" width="10" height="100" fill="#90CAF9" stroke="#01579B" stroke-width="2"/>
+                        
+                        <!-- Valve (Transistor) -->
+                        <g id="valve" transform="translate(200, 290)">
+                            <rect x="-40" y="-30" width="80" height="60" fill="#546E7A" stroke="#263238" stroke-width="3" rx="8"/>
+                            <circle cx="0" cy="0" r="20" fill="#78909C" stroke="#263238" stroke-width="2"/>
+                            <rect id="valveHandle" x="-5" y="-30" width="10" height="30" fill="#FF5252" stroke="#C62828" stroke-width="2" rx="3"/>
+                            <text x="0" y="5" text-anchor="middle" font-size="14" font-weight="bold" fill="white">VALVE</text>
+                        </g>
+
+                        <!-- Pipe from valve to drain -->
+                        <rect id="drainPipe" x="195" y="320" width="10" height="80" fill="#90CAF9" stroke="#01579B" stroke-width="2"/>
+
+                        <!-- Drain (Ground) -->
+                        <rect x="150" y="400" width="100" height="60" fill="#263238" stroke="#000" stroke-width="3" rx="5"/>
+                        <rect x="160" y="410" width="80" height="8" fill="#37474F" rx="2"/>
+                        <rect x="165" y="420" width="70" height="6" fill="#455A64" rx="2"/>
+                        <rect x="170" y="428" width="60" height="4" fill="#546E7A" rx="2"/>
+                        <text x="200" y="450" text-anchor="middle" font-size="14" font-weight="bold" fill="#B0BEC5">DRAIN</text>
+                        <text x="200" y="468" text-anchor="middle" font-size="12" fill="#90A4AE">(GROUND 0V)</text>
+
+                        <!-- Control wire to valve handle -->
+                        <line x1="50" y1="260" x2="155" y2="260" stroke="#FF5252" stroke-width="4" stroke-dasharray="5,5"/>
+                        <circle id="inputIndicator" cx="50" cy="260" r="18" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text x="50" y="245" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">INPUT</text>
+                        <text id="inputText" x="50" y="268" text-anchor="middle" font-size="14" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Water flow particles in drain (when valve open) -->
+                        <g id="drainFlow" style="opacity: 0;">
+                            <circle class="water-drop" cx="200" cy="330" r="4" fill="#4FC3F7" style="animation-delay: 0s;"/>
+                            <circle class="water-drop" cx="200" cy="350" r="4" fill="#4FC3F7" style="animation-delay: 0.4s;"/>
+                            <circle class="water-drop" cx="200" cy="370" r="4" fill="#4FC3F7" style="animation-delay: 0.8s;"/>
+                        </g>
+
+                        <!-- Water flow particles to output (when valve closed) -->
+                        <g id="outputFlow" style="opacity: 1;">
+                            <circle class="water-flow" cx="210" cy="190" r="5" fill="#4FC3F7" style="animation-delay: 0s;"/>
+                            <circle class="water-flow" cx="240" cy="190" r="5" fill="#4FC3F7" style="animation-delay: 0.5s;"/>
+                            <circle class="water-flow" cx="270" cy="190" r="5" fill="#4FC3F7" style="animation-delay: 1s;"/>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="explanation" id="showerExplanation">
+                    <p><strong>🔵 INPUT OFF (Valve Handle Up):</strong></p>
+                    <p>• Valve is CLOSED - water cannot reach drain<br>
+                    • Water pressure builds up in pipe<br>
+                    • Water flows to showerhead (OUTPUT ON) 💦<br>
+                    • <strong>OUTPUT = HIGH PRESSURE (ON)</strong></p>
+                </div>
+            </div>
+
+            <!-- Right Panel: Transistor Circuit -->
+            <div class="panel">
+                <h2>⚡ Transistor Circuit (NOT Gate)</h2>
+                <div class="svg-container">
+                    <svg id="circuitSvg" width="100%" height="500" viewBox="0 0 400 500">
+                        <!-- Power Supply -->
+                        <circle cx="200" cy="50" r="25" fill="#FFC107" stroke="#F57F17" stroke-width="3"/>
+                        <text x="200" y="45" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">+5V</text>
+                        <text x="200" y="60" text-anchor="middle" font-size="10" fill="#333">POWER</text>
+
+                        <!-- Wire from power to junction -->
+                        <line id="powerWire" x1="200" y1="75" x2="200" y2="140" stroke="#4CAF50" stroke-width="6" stroke-linecap="round"/>
+
+                        <!-- Junction -->
+                        <circle cx="200" cy="140" r="8" fill="#2196F3" stroke="#0D47A1" stroke-width="2"/>
+
+                        <!-- Output wire -->
+                        <line id="outputWire" x1="200" y1="140" x2="320" y2="140" stroke="#4CAF50" stroke-width="6" stroke-linecap="round"/>
+                        <circle id="outputIndicator" cx="340" cy="140" r="18" fill="#4CAF50" stroke="#2E7D32" stroke-width="3"/>
+                        <text x="340" y="120" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">OUTPUT</text>
+                        <text id="outputText" x="340" y="148" text-anchor="middle" font-size="14" font-weight="bold" fill="white">ON</text>
+
+                        <!-- Wire from junction to transistor -->
+                        <line id="junctionWire" x1="200" y1="140" x2="200" y2="210" stroke="#999" stroke-width="6" stroke-linecap="round"/>
+
+                        <!-- Transistor -->
+                        <rect x="130" y="210" width="140" height="100" fill="#1565C0" stroke="#0D47A1" stroke-width="3" rx="8"/>
+                        <text x="200" y="260" text-anchor="middle" font-size="16" font-weight="bold" fill="white">TRANSISTOR</text>
+                        <text id="transistorState" x="200" y="285" text-anchor="middle" font-size="14" fill="#FFD54F">BLOCKED</text>
+
+                        <!-- Control input wire -->
+                        <line x1="50" y1="260" x2="130" y2="260" stroke="#FF5252" stroke-width="4" stroke-dasharray="5,5"/>
+                        <circle id="inputIndicatorCircuit" cx="50" cy="260" r="18" fill="#999" stroke="#666" stroke-width="3"/>
+                        <text x="50" y="245" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">INPUT</text>
+                        <text id="inputTextCircuit" x="50" y="268" text-anchor="middle" font-size="14" font-weight="bold" fill="white">OFF</text>
+
+                        <!-- Wire to ground -->
+                        <line id="groundWire" x1="200" y1="310" x2="200" y2="400" stroke="#999" stroke-width="6" stroke-linecap="round"/>
+
+                        <!-- Ground symbol -->
+                        <rect x="160" y="400" width="80" height="10" fill="#546E7A" rx="2"/>
+                        <rect x="170" y="410" width="60" height="8" fill="#455A64" rx="2"/>
+                        <rect x="180" y="418" width="40" height="6" fill="#37474F" rx="2"/>
+                        <text x="200" y="445" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">GROUND</text>
+                        <text x="200" y="463" text-anchor="middle" font-size="12" fill="#666">(0V)</text>
+
+                        <!-- Electron flow animation -->
+                        <g id="electronFlowOutput" style="opacity: 1;">
+                            <circle class="water-flow" cx="210" cy="140" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 0s;"/>
+                            <circle class="water-flow" cx="240" cy="140" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 0.5s;"/>
+                            <circle class="water-flow" cx="270" cy="140" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 1s;"/>
+                        </g>
+
+                        <g id="electronFlowGround" style="opacity: 0;">
+                            <circle class="water-drop" cx="200" cy="330" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 0s;"/>
+                            <circle class="water-drop" cx="200" cy="350" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 0.4s;"/>
+                            <circle class="water-drop" cx="200" cy="370" r="5" fill="#FFD700" filter="url(#glow)" style="animation-delay: 0.8s;"/>
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="explanation" id="circuitExplanation">
+                    <p><strong>🔵 INPUT OFF (0V / LOW):</strong></p>
+                    <p>• Transistor is OFF - blocks current to ground<br>
+                    • Current cannot flow down to ground<br>
+                    • Current flows to OUTPUT instead ⚡<br>
+                    • <strong>OUTPUT = HIGH VOLTAGE (ON / 1)</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapping Section -->
+        <div class="panel">
+            <h2>🔄 Analogy Mapping</h2>
+            <div class="analogy-mapping">
+                <div class="mapping-item">
+                    <div class="mapping-icon">🏊</div>
+                    <div class="mapping-text">
+                        <div class="mapping-title">Water Tank ➜ Power Supply</div>
+                        <div>Constant source of pressure/voltage (+5V)</div>
+                    </div>
+                </div>
+                <div class="mapping-item">
+                    <div class="mapping-icon">🚰</div>
+                    <div class="mapping-text">
+                        <div class="mapping-title">Drain ➜ Ground</div>
+                        <div>Where water/current flows away (0V reference)</div>
+                    </div>
+                </div>
+                <div class="mapping-item">
+                    <div class="mapping-icon">🎚️</div>
+                    <div class="mapping-text">
+                        <div class="mapping-title">Valve ➜ Transistor</div>
+                        <div>Controls the flow path (ON = conducting, OFF = blocked)</div>
+                    </div>
+                </div>
+                <div class="mapping-item">
+                    <div class="mapping-icon">🖐️</div>
+                    <div class="mapping-text">
+                        <div class="mapping-title">Valve Handle ➜ Input Signal</div>
+                        <div>Control signal (HIGH opens valve, LOW closes valve)</div>
+                    </div>
+                </div>
+                <div class="mapping-item">
+                    <div class="mapping-icon">🚿</div>
+                    <div class="mapping-text">
+                        <div class="mapping-title">Showerhead ➜ Output</div>
+                        <div>Where you want water/current to flow</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="truth-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Input (Valve Handle)</th>
+                            <th>Valve State</th>
+                            <th>Showerhead (Output)</th>
+                            <th>Binary Output</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="row0" class="active-row">
+                            <td><span class="status-indicator status-off"></span>OFF (Up)</td>
+                            <td>CLOSED</td>
+                            <td>💦 Water Flows (ON)</td>
+                            <td><strong>1 (HIGH)</strong></td>
+                        </tr>
+                        <tr id="row1">
+                            <td><span class="status-indicator status-on"></span>ON (Down)</td>
+                            <td>OPEN</td>
+                            <td>🚫 No Water (OFF)</td>
+                            <td><strong>0 (LOW)</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let inputState = false; // false = OFF, true = ON
+
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        // Shower elements
+        const valveHandle = document.getElementById('valveHandle');
+        const showerDrops = document.getElementById('showerDrops');
+        const drainFlow = document.getElementById('drainFlow');
+        const outputFlow = document.getElementById('outputFlow');
+        const showerExplanation = document.getElementById('showerExplanation');
+        const outputPipe = document.getElementById('outputPipe');
+        const valvePipe = document.getElementById('valvePipe');
+        const drainPipe = document.getElementById('drainPipe');
+        const mainPipe = document.getElementById('mainPipe');
+
+        // Circuit elements
+        const powerWire = document.getElementById('powerWire');
+        const outputWire = document.getElementById('outputWire');
+        const junctionWire = document.getElementById('junctionWire');
+        const groundWire = document.getElementById('groundWire');
+        const outputIndicator = document.getElementById('outputIndicator');
+        const outputText = document.getElementById('outputText');
+        const transistorState = document.getElementById('transistorState');
+        const circuitExplanation = document.getElementById('circuitExplanation');
+        const electronFlowOutput = document.getElementById('electronFlowOutput');
+        const electronFlowGround = document.getElementById('electronFlowGround');
+
+        // Input indicators
+        const inputIndicator = document.getElementById('inputIndicator');
+        const inputText = document.getElementById('inputText');
+        const inputIndicatorCircuit = document.getElementById('inputIndicatorCircuit');
+        const inputTextCircuit = document.getElementById('inputTextCircuit');
+
+        // Table rows
+        const row0 = document.getElementById('row0');
+        const row1 = document.getElementById('row1');
+
+        function updateVisualization() {
+            if (inputState) {
+                // INPUT ON
+                toggleBtn.className = 'toggle-button on';
+                toggleBtn.innerHTML = '🎮 INPUT: ON (Click to turn OFF)';
+
+                // Shower visualization - valve OPEN
+                valveHandle.setAttribute('transform', 'rotate(90 0 0)');
+                showerDrops.style.opacity = '0'; // No water from showerhead
+                drainFlow.style.opacity = '1'; // Water going to drain
+                outputFlow.style.opacity = '0'; // No flow to output
+                outputPipe.setAttribute('fill', '#90CAF9');
+                valvePipe.setAttribute('fill', '#4FC3F7');
+                drainPipe.setAttribute('fill', '#4FC3F7');
+                mainPipe.setAttribute('fill', '#4FC3F7');
+                
+                showerExplanation.innerHTML = `
+                    <p><strong>🔴 INPUT ON (Valve Handle Down):</strong></p>
+                    <p>• Valve is OPEN - water rushes to drain<br>
+                    • All pressure released to drain<br>
+                    • No water reaches showerhead (OUTPUT OFF) 🚫<br>
+                    • <strong>OUTPUT = NO PRESSURE (OFF)</strong></p>
+                `;
+
+                // Circuit visualization - transistor CONDUCTING
+                powerWire.setAttribute('stroke', '#4CAF50');
+                outputWire.setAttribute('stroke', '#999');
+                junctionWire.setAttribute('stroke', '#4CAF50');
+                groundWire.setAttribute('stroke', '#4CAF50');
+                outputIndicator.setAttribute('fill', '#999');
+                outputText.textContent = 'OFF';
+                outputText.setAttribute('fill', 'white');
+                transistorState.textContent = 'CONDUCTING';
+                transistorState.setAttribute('fill', '#4CAF50');
+                electronFlowOutput.style.opacity = '0';
+                electronFlowGround.style.opacity = '1';
+
+                circuitExplanation.innerHTML = `
+                    <p><strong>🔴 INPUT ON (5V / HIGH):</strong></p>
+                    <p>• Transistor is ON - conducts current<br>
+                    • Current flows through transistor to ground<br>
+                    • Output voltage drops to 0V ⚡<br>
+                    • <strong>OUTPUT = LOW VOLTAGE (OFF / 0)</strong></p>
+                `;
+
+                // Input indicators
+                inputIndicator.setAttribute('fill', '#4CAF50');
+                inputText.textContent = 'ON';
+                inputIndicatorCircuit.setAttribute('fill', '#4CAF50');
+                inputTextCircuit.textContent = 'ON';
+
+                // Truth table
+                row0.classList.remove('active-row');
+                row1.classList.add('active-row');
+
+            } else {
+                // INPUT OFF
+                toggleBtn.className = 'toggle-button off';
+                toggleBtn.innerHTML = '🎮 INPUT: OFF (Click to turn ON)';
+
+                // Shower visualization - valve CLOSED
+                valveHandle.setAttribute('transform', 'rotate(0 0 0)');
+                showerDrops.style.opacity = '1'; // Water from showerhead
+                drainFlow.style.opacity = '0'; // No water to drain
+                outputFlow.style.opacity = '1'; // Flow to output
+                outputPipe.setAttribute('fill', '#4FC3F7');
+                valvePipe.setAttribute('fill', '#90CAF9');
+                drainPipe.setAttribute('fill', '#90CAF9');
+                mainPipe.setAttribute('fill', '#4FC3F7');
+
+                showerExplanation.innerHTML = `
+                    <p><strong>🔵 INPUT OFF (Valve Handle Up):</strong></p>
+                    <p>• Valve is CLOSED - water cannot reach drain<br>
+                    • Water pressure builds up in pipe<br>
+                    • Water flows to showerhead (OUTPUT ON) 💦<br>
+                    • <strong>OUTPUT = HIGH PRESSURE (ON)</strong></p>
+                `;
+
+                // Circuit visualization - transistor BLOCKED
+                powerWire.setAttribute('stroke', '#4CAF50');
+                outputWire.setAttribute('stroke', '#4CAF50');
+                junctionWire.setAttribute('stroke', '#999');
+                groundWire.setAttribute('stroke', '#999');
+                outputIndicator.setAttribute('fill', '#4CAF50');
+                outputText.textContent = 'ON';
+                outputText.setAttribute('fill', 'white');
+                transistorState.textContent = 'BLOCKED';
+                transistorState.setAttribute('fill', '#FFD54F');
+                electronFlowOutput.style.opacity = '1';
+                electronFlowGround.style.opacity = '0';
+
+                circuitExplanation.innerHTML = `
+                    <p><strong>🔵 INPUT OFF (0V / LOW):</strong></p>
+                    <p>• Transistor is OFF - blocks current to ground<br>
+                    • Current cannot flow down to ground<br>
+                    • Current flows to OUTPUT instead ⚡<br>
+                    • <strong>OUTPUT = HIGH VOLTAGE (ON / 1)</strong></p>
+                `;
+
+                // Input indicators
+                inputIndicator.setAttribute('fill', '#999');
+                inputText.textContent = 'OFF';
+                inputIndicatorCircuit.setAttribute('fill', '#999');
+                inputTextCircuit.textContent = 'OFF';
+
+                // Truth table
+                row0.classList.add('active-row');
+                row1.classList.remove('active-row');
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            inputState = !inputState;
+            updateVisualization();
+        });
+
+        // Initialize
+        updateVisualization();
+    </script>
+</body>
+</html>
