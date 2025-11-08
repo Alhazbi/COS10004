@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Bits Visualization - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .demo-section {
+            margin-bottom: 50px;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            background: #f9f9f9;
+        }
+
+        h2 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        .canvas-container {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(to bottom, #e3f2fd 0%, #f5f5f5 100%);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            font-weight: bold;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Animation classes */
+        .data-packet {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.5s ease-in-out;
+            z-index: 100;
+        }
+
+        .control-bit {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            color: white;
+            border: 5px solid;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .control-bit.bit-0 {
+            background: #2196F3;
+            border-color: #1976D2;
+        }
+
+        .control-bit.bit-1 {
+            background: #9C27B0;
+            border-color: #7B1FA2;
+        }
+
+        .track {
+            position: absolute;
+            background: #8d6e63;
+            transition: all 0.3s;
+        }
+
+        .track.active {
+            background: #4CAF50;
+            box-shadow: 0 0 20px #4CAF50;
+        }
+
+        .track-horizontal {
+            height: 8px;
+            left: 0;
+            right: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .track-top {
+            height: 8px;
+            left: 50%;
+            right: 0;
+            top: 25%;
+        }
+
+        .track-bottom {
+            height: 8px;
+            left: 50%;
+            right: 0;
+            top: 75%;
+        }
+
+        .destination {
+            position: absolute;
+            padding: 20px 30px;
+            background: white;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .destination.active {
+            background: #4CAF50;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Traffic light specific styles */
+        .road {
+            position: absolute;
+            background: #555;
+            transition: opacity 0.3s;
+        }
+
+        .road.inactive {
+            opacity: 0.3;
+        }
+
+        .road-horizontal {
+            width: 100%;
+            height: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .road-vertical {
+            width: 60px;
+            height: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .lane-marking {
+            position: absolute;
+            background: white;
+        }
+
+        .traffic-light {
+            position: absolute;
+            width: 80px;
+            height: 180px;
+            background: #333;
+            border-radius: 10px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            z-index: 50;
+        }
+
+        .light {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            background: #444;
+            transition: all 0.3s;
+        }
+
+        .light.red {
+            background: #f44336;
+            box-shadow: 0 0 20px #f44336;
+        }
+
+        .light.green {
+            background: #4CAF50;
+            box-shadow: 0 0 20px #4CAF50;
+        }
+
+        .car {
+            position: absolute;
+            font-size: 40px;
+            transition: all 0.8s ease-in-out;
+        }
+
+        .explanation {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .explanation h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .explanation ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎛️ Control Bits Explained</h1>
+        <p class="subtitle">Interactive visualizations showing how control bits direct data flow</p>
+
+        <!-- TRAIN SWITCH DEMO -->
+        <div class="demo-section">
+            <h2>🚂 Train Switch Example</h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                The control bit acts like a train switch, routing data to different destinations
+            </p>
+
+            <div class="canvas-container" id="trainCanvas">
+                <!-- Tracks -->
+                <div class="track track-horizontal" id="trainTrackMain"></div>
+                <div class="track track-top" id="trainTrackTop"></div>
+                <div class="track track-bottom" id="trainTrackBottom"></div>
+
+                <!-- Control Bit (Switch) -->
+                <div class="control-bit bit-0" id="trainControlBit" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+                    0
+                </div>
+
+                <!-- Data Packet (Train) -->
+                <div class="data-packet" id="trainData" style="left: 5%; top: 50%; transform: translate(-50%, -50%); display: none;">
+                    🚂
+                </div>
+
+                <!-- Destinations -->
+                <div class="destination" id="trainDestA" style="right: 5%; top: 25%; transform: translateY(-50%);">
+                    🏪 Store (A)
+                </div>
+                <div class="destination" id="trainDestB" style="right: 5%; top: 75%; transform: translateY(-50%);">
+                    🏞️ Park (B)
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="toggleTrainControl()">
+                    🔄 Toggle Control Bit
+                </button>
+                <button class="btn btn-primary" onclick="sendTrain()">
+                    ▶️ Send Train
+                </button>
+                <button class="btn btn-danger" onclick="resetTrain()">
+                    🔁 Reset
+                </button>
+            </div>
+
+            <div class="status" id="trainStatus">
+                Ready! Click "Send Train" to see the control bit in action.
+            </div>
+        </div>
+
+        <!-- TRAFFIC LIGHT DEMO -->
+        <div class="demo-section">
+            <h2>🚦 Traffic Light Example</h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                Roads exist simultaneously, but the control bit (traffic light) decides which lane can move
+            </p>
+
+            <div class="canvas-container" id="trafficCanvas">
+                <!-- Roads -->
+                <div class="road road-horizontal" id="roadHorizontal"></div>
+                <div class="road road-vertical inactive" id="roadVertical"></div>
+
+                <!-- Traffic Light -->
+                <div class="traffic-light">
+                    <div class="light" id="lightTop"></div>
+                    <div class="light" id="lightBottom"></div>
+                </div>
+
+                <!-- Cars -->
+                <div class="car" id="carHorizontal" style="left: 5%; top: 50%; transform: translateY(-50%);">
+                    🚗
+                </div>
+                <div class="car" id="carVertical" style="left: 50%; top: 5%; transform: translateX(-50%);">
+                    🚙
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="toggleTrafficLight()">
+                    🚦 Switch Traffic Light
+                </button>
+                <button class="btn btn-primary" onclick="moveCar()">
+                    ▶️ Move Car
+                </button>
+                <button class="btn btn-danger" onclick="resetTraffic()">
+                    🔁 Reset
+                </button>
+            </div>
+
+            <div class="status" id="trafficStatus">
+                Control Bit = 0: Horizontal lane (🚗) has GREEN light
+            </div>
+        </div>
+
+        <!-- EXPLANATION -->
+        <div class="explanation">
+            <h3>🎯 Key Takeaway: Control Bits = Programmability</h3>
+            <ul>
+                <li><strong>Train Switch:</strong> One track splits into two destinations. The control bit decides which path the data takes.</li>
+                <li><strong>Traffic Light:</strong> Both roads exist at the same time, but the control bit decides which gets to move.</li>
+                <li><strong>In Computers:</strong> Instead of building separate circuits for every operation, one circuit + control bits = flexible, programmable hardware!</li>
+                <li><strong>Real Usage:</strong> Multiplexers, ALUs, data routers, and all digital circuits use control bits to determine behavior.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // TRAIN DEMO LOGIC
+        let trainControlBit = 0;
+        let trainAnimating = false;
+
+        function toggleTrainControl() {
+            if (trainAnimating) return;
+
+            trainControlBit = trainControlBit === 0 ? 1 : 0;
+            const controlEl = document.getElementById('trainControlBit');
+            const trackTop = document.getElementById('trainTrackTop');
+            const trackBottom = document.getElementById('trainTrackBottom');
+            const statusEl = document.getElementById('trainStatus');
+
+            controlEl.textContent = trainControlBit;
+
+            if (trainControlBit === 0) {
+                controlEl.className = 'control-bit bit-0';
+                trackTop.classList.add('active');
+                trackBottom.classList.remove('active');
+                statusEl.textContent = 'Control Bit = 0: Train will go to Store 🏪';
+            } else {
+                controlEl.className = 'control-bit bit-1';
+                trackTop.classList.remove('active');
+                trackBottom.classList.add('active');
+                statusEl.textContent = 'Control Bit = 1: Train will go to Park 🏞️';
+            }
+        }
+
+        function sendTrain() {
+            if (trainAnimating) return;
+
+            trainAnimating = true;
+            const trainEl = document.getElementById('trainData');
+            const destA = document.getElementById('trainDestA');
+            const destB = document.getElementById('trainDestB');
+            const statusEl = document.getElementById('trainStatus');
+
+            trainEl.style.display = 'flex';
+            trainEl.style.left = '5%';
+            trainEl.style.top = '50%';
+
+            statusEl.textContent = '🚂 Train is moving...';
+
+            // Move to switch
+            setTimeout(() => {
+                trainEl.style.left = '50%';
+            }, 100);
+
+            // Move to destination
+            setTimeout(() => {
+                if (trainControlBit === 0) {
+                    trainEl.style.top = '25%';
+                    trainEl.style.left = '95%';
+                    destA.classList.add('active');
+                } else {
+                    trainEl.style.top = '75%';
+                    trainEl.style.left = '95%';
+                    destB.classList.add('active');
+                }
+            }, 700);
+
+            // Show completion
+            setTimeout(() => {
+                const dest = trainControlBit === 0 ? 'Store 🏪' : 'Park 🏞️';
+                statusEl.textContent = `✅ Train arrived at ${dest}!`;
+                trainAnimating = false;
+            }, 1400);
+        }
+
+        function resetTrain() {
+            trainAnimating = false;
+            const trainEl = document.getElementById('trainData');
+            const destA = document.getElementById('trainDestA');
+            const destB = document.getElementById('trainDestB');
+            const statusEl = document.getElementById('trainStatus');
+
+            trainEl.style.display = 'none';
+            destA.classList.remove('active');
+            destB.classList.remove('active');
+
+            statusEl.textContent = 'Ready! Click "Send Train" to see the control bit in action.';
+        }
+
+        // TRAFFIC LIGHT DEMO LOGIC
+        let trafficControlBit = 0;
+        let trafficAnimating = false;
+
+        function updateTrafficLights() {
+            const lightTop = document.getElementById('lightTop');
+            const lightBottom = document.getElementById('lightBottom');
+            const roadH = document.getElementById('roadHorizontal');
+            const roadV = document.getElementById('roadVertical');
+            const statusEl = document.getElementById('trafficStatus');
+
+            if (trafficControlBit === 0) {
+                lightTop.className = 'light red';
+                lightBottom.className = 'light green';
+                roadH.classList.remove('inactive');
+                roadV.classList.add('inactive');
+                statusEl.textContent = 'Control Bit = 0: Horizontal lane (🚗) has GREEN light';
+            } else {
+                lightTop.className = 'light green';
+                lightBottom.className = 'light red';
+                roadH.classList.add('inactive');
+                roadV.classList.remove('inactive');
+                statusEl.textContent = 'Control Bit = 1: Vertical lane (🚙) has GREEN light';
+            }
+        }
+
+        function toggleTrafficLight() {
+            if (trafficAnimating) return;
+
+            trafficControlBit = trafficControlBit === 0 ? 1 : 0;
+            updateTrafficLights();
+        }
+
+        function moveCar() {
+            if (trafficAnimating) return;
+
+            const carH = document.getElementById('carHorizontal');
+            const carV = document.getElementById('carVertical');
+            const statusEl = document.getElementById('trafficStatus');
+
+            trafficAnimating = true;
+
+            if (trafficControlBit === 0) {
+                statusEl.textContent = '🚗 Horizontal car is moving...';
+                carH.style.left = '95%';
+
+                setTimeout(() => {
+                    statusEl.textContent = '✅ Horizontal car passed through! (Vertical waited at RED light)';
+                    trafficAnimating = false;
+                }, 1000);
+            } else {
+                statusEl.textContent = '🚙 Vertical car is moving...';
+                carV.style.top = '95%';
+
+                setTimeout(() => {
+                    statusEl.textContent = '✅ Vertical car passed through! (Horizontal waited at RED light)';
+                    trafficAnimating = false;
+                }, 1000);
+            }
+        }
+
+        function resetTraffic() {
+            trafficAnimating = false;
+            const carH = document.getElementById('carHorizontal');
+            const carV = document.getElementById('carVertical');
+
+            carH.style.left = '5%';
+            carV.style.top = '5%';
+
+            trafficControlBit = 0;
+            updateTrafficLights();
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            toggleTrainControl(); // Set initial state
+            updateTrafficLights(); // Set initial state
+        };
+    </script>
+</body>
+</html>
