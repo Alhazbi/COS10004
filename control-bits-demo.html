@@ -163,35 +163,79 @@
 
         .track {
             position: absolute;
-            background: #8d6e63;
+            background: #5d4037;
             transition: all 0.3s;
+            border-top: 3px solid #3e2723;
+            border-bottom: 3px solid #3e2723;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .track.active {
             background: #4CAF50;
-            box-shadow: 0 0 20px #4CAF50;
+            border-top: 3px solid #2e7d32;
+            border-bottom: 3px solid #2e7d32;
+            box-shadow: 0 0 20px #4CAF50, 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .track-horizontal {
-            height: 8px;
+            height: 16px;
             left: 0;
             right: 50%;
             top: 50%;
             transform: translateY(-50%);
+            background-image: repeating-linear-gradient(
+                90deg,
+                #5d4037,
+                #5d4037 20px,
+                #8d6e63 20px,
+                #8d6e63 25px
+            );
         }
 
         .track-top {
-            height: 8px;
+            height: 16px;
             left: 50%;
             right: 0;
             top: 25%;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #5d4037,
+                #5d4037 20px,
+                #8d6e63 20px,
+                #8d6e63 25px
+            );
         }
 
         .track-bottom {
-            height: 8px;
+            height: 16px;
             left: 50%;
             right: 0;
             top: 75%;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #5d4037,
+                #5d4037 20px,
+                #8d6e63 20px,
+                #8d6e63 25px
+            );
+        }
+
+        /* Railroad ties */
+        .track::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 0;
+            right: 0;
+            height: calc(100% + 10px);
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 30px,
+                rgba(62, 39, 35, 0.6) 30px,
+                rgba(62, 39, 35, 0.6) 35px
+            );
+            pointer-events: none;
         }
 
         .destination {
@@ -332,7 +376,7 @@
 
                 <!-- Destinations -->
                 <div class="destination" id="trainDestA" style="right: 5%; top: 25%; transform: translateY(-50%);">
-                    🏪 Store (A)
+                    🚉 Station (A)
                 </div>
                 <div class="destination" id="trainDestB" style="right: 5%; top: 75%; transform: translateY(-50%);">
                     🏞️ Park (B)
@@ -432,7 +476,7 @@
                 controlEl.className = 'control-bit bit-0';
                 trackTop.classList.add('active');
                 trackBottom.classList.remove('active');
-                statusEl.textContent = 'Control Bit = 0: Train will go to Store 🏪';
+                statusEl.textContent = 'Control Bit = 0: Train will go to Station 🚉';
             } else {
                 controlEl.className = 'control-bit bit-1';
                 trackTop.classList.remove('active');
@@ -476,7 +520,7 @@
 
             // Show completion
             setTimeout(() => {
-                const dest = trainControlBit === 0 ? 'Store 🏪' : 'Park 🏞️';
+                const dest = trainControlBit === 0 ? 'Station 🚉' : 'Park 🏞️';
                 statusEl.textContent = `✅ Train arrived at ${dest}!`;
                 trainAnimating = false;
             }, 1400);
