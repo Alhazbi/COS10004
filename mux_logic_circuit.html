@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-to-1 Multiplexer - Logic Circuit Design</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #495057;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .boolean-expr {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid #667eea;
+            margin-bottom: 15px;
+        }
+
+        .expr-line {
+            margin: 8px 0;
+            color: #333;
+        }
+
+        .highlight {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tr.active-row {
+            background: #ffe66d !important;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .circuit-container {
+            grid-column: 1 / -1;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-toggle {
+            background: #dc3545;
+            color: white;
+            min-width: 80px;
+        }
+
+        .btn-toggle.on {
+            background: #28a745;
+        }
+
+        .btn-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-animate {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+        }
+
+        .btn-animate:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 2px solid #e9ecef;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .note {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #856404;
+        }
+
+        .note strong {
+            color: #533f03;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>2-to-1 Multiplexer (MUX)</h1>
+        <p class="subtitle">Built from Basic Logic Gates</p>
+
+        <div class="content-grid">
+            <div class="section">
+                <h2>Boolean Algebra Expression</h2>
+                <div class="boolean-expr">
+                    <div class="expr-line">Y = <span class="highlight">S̄ · I₀</span> + <span class="highlight">S · I₁</span></div>
+                    <div class="expr-line" style="font-size: 0.9em; margin-top: 10px; color: #666;">
+                        (NOT S AND I₀) OR (S AND I₁)
+                    </div>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; font-size: 0.95em; line-height: 1.6;">
+                    <strong>Where:</strong><br>
+                    • <strong>S</strong> = Select input<br>
+                    • <strong>S̄</strong> = NOT S (inverted select)<br>
+                    • <strong>I₀, I₁</strong> = Data inputs<br>
+                    • <strong>Y</strong> = Output<br>
+                    • <strong>·</strong> = AND operation<br>
+                    • <strong>+</strong> = OR operation
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Truth Table</h2>
+                <table id="truthTable">
+                    <thead>
+                        <tr>
+                            <th>S</th>
+                            <th>I₀</th>
+                            <th>I₁</th>
+                            <th>Y</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+                        <tr><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                        <tr><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+                        <tr><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+                        <tr><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+                        <tr><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section circuit-container">
+                <h2>Logic Circuit Diagram</h2>
+                <canvas id="circuitCanvas" width="1200" height="500"></canvas>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label>I₀:</label>
+                        <button class="btn-toggle" id="btnI0" onclick="toggleInput('I0')">0</button>
+                    </div>
+                    <div class="control-group">
+                        <label>I₁:</label>
+                        <button class="btn-toggle" id="btnI1" onclick="toggleInput('I1')">0</button>
+                    </div>
+                    <div class="control-group">
+                        <label>S:</label>
+                        <button class="btn-toggle" id="btnS" onclick="toggleInput('S')">0</button>
+                    </div>
+                    <div class="control-group">
+                        <button class="btn-animate" onclick="startAnimation()">Animate Signal Flow</button>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #dc3545;"></div>
+                        <span>Signal = 0 (Low)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #28a745;"></div>
+                        <span>Signal = 1 (High)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffc107; height: 6px;"></div>
+                        <span>Active Signal Flow</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>How it works:</strong> When S=0, the top AND gate is enabled (via NOT gate) and outputs I₀.
+            When S=1, the bottom AND gate is enabled and outputs I₁. The OR gate passes whichever AND gate is active.
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('circuitCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let inputs = {
+            I0: 0,
+            I1: 0,
+            S: 0
+        };
+
+        let animating = false;
+        let animationProgress = 0;
+
+        // Gate positions
+        const gates = {
+            NOT: { x: 300, y: 350, width: 60, height: 60 },
+            AND1: { x: 500, y: 150, width: 80, height: 70 },  // Top AND (for I0)
+            AND2: { x: 500, y: 330, width: 80, height: 70 },  // Bottom AND (for I1)
+            OR: { x: 750, y: 240, width: 80, height: 80 }
+        };
+
+        // Input/Output positions
+        const positions = {
+            I0: { x: 50, y: 150 },
+            I1: { x: 50, y: 330 },
+            S: { x: 50, y: 420 },
+            Y: { x: 950, y: 280 }
+        };
+
+        function drawWire(x1, y1, x2, y2, color = '#333', width = 3, animated = false) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            if (animated) {
+                // Draw animated pulse
+                const progress = animationProgress % 1;
+                const pulseX = x1 + (x2 - x1) * progress;
+                const pulseY = y1 + (y2 - y1) * progress;
+
+                ctx.fillStyle = '#ffc107';
+                ctx.beginPath();
+                ctx.arc(pulseX, pulseY, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Glow effect
+                ctx.strokeStyle = '#ffc107';
+                ctx.lineWidth = 6;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function drawNOTGate(x, y, width, height, inputValue) {
+            // Triangle
+            ctx.fillStyle = '#e9ecef';
+            ctx.strokeStyle = '#495057';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + height);
+            ctx.lineTo(x + width - 10, y + height/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Inversion bubble
+            ctx.fillStyle = inputValue ? '#dc3545' : '#28a745';
+            ctx.strokeStyle = '#495057';
+            ctx.beginPath();
+            ctx.arc(x + width - 5, y + height/2, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('NOT', x + width/2 - 5, y + height + 20);
+        }
+
+        function drawANDGate(x, y, width, height, output, label) {
+            // Rectangle part
+            ctx.fillStyle = '#e9ecef';
+            ctx.strokeStyle = '#495057';
+            ctx.lineWidth = 2;
+            ctx.fillRect(x, y, width/2, height);
+            ctx.strokeRect(x, y, width/2, height);
+
+            // Arc part
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height/2, height/2, -Math.PI/2, Math.PI/2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Output indicator
+            const outputX = x + width;
+            const outputY = y + height/2;
+            ctx.fillStyle = output ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(outputX, outputY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x + width/2, y + height/2 + 5);
+        }
+
+        function drawORGate(x, y, width, height, output) {
+            ctx.fillStyle = '#e9ecef';
+            ctx.strokeStyle = '#495057';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            // Left curved part
+            ctx.moveTo(x, y);
+            ctx.quadraticCurveTo(x + width/3, y + height/2, x, y + height);
+            // Top curve
+            ctx.quadraticCurveTo(x + width/2, y - height/4, x + width, y + height/2);
+            // Bottom curve
+            ctx.quadraticCurveTo(x + width/2, y + height + height/4, x, y + height);
+            ctx.fill();
+            ctx.stroke();
+
+            // Output indicator
+            const outputX = x + width;
+            const outputY = y + height/2;
+            ctx.fillStyle = output ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(outputX, outputY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('OR', x + width/2, y + height/2 + 5);
+        }
+
+        function drawInput(x, y, label, value) {
+            ctx.fillStyle = value ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(x, y, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(value, x, y);
+
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText(label, x - 25, y);
+        }
+
+        function drawOutput(x, y, value) {
+            ctx.fillStyle = value ? '#28a745' : '#dc3545';
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+
+            // Output circle
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Value
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(value, x, y);
+
+            // Label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Y', x + 30, y);
+        }
+
+        function calculateOutputs() {
+            const notS = inputs.S === 0 ? 1 : 0;
+            const and1 = notS && inputs.I0 ? 1 : 0;  // S̄ · I0
+            const and2 = inputs.S && inputs.I1 ? 1 : 0;  // S · I1
+            const output = and1 || and2 ? 1 : 0;  // OR of both ANDs
+
+            return { notS, and1, and2, output };
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const { notS, and1, and2, output } = calculateOutputs();
+
+            // Determine wire colors
+            const colorI0 = inputs.I0 ? '#28a745' : '#dc3545';
+            const colorI1 = inputs.I1 ? '#28a745' : '#dc3545';
+            const colorS = inputs.S ? '#28a745' : '#dc3545';
+            const colorNotS = notS ? '#28a745' : '#dc3545';
+            const colorAnd1 = and1 ? '#28a745' : '#dc3545';
+            const colorAnd2 = and2 ? '#28a745' : '#dc3545';
+            const colorOutput = output ? '#28a745' : '#dc3545';
+
+            // Draw wires (back layer)
+            // I0 to AND1
+            drawWire(positions.I0.x + 15, positions.I0.y, gates.AND1.x, gates.AND1.y + 20, colorI0, 3, animating && inputs.I0);
+
+            // I1 to AND2
+            drawWire(positions.I1.x + 15, positions.I1.y, gates.AND2.x, gates.AND2.y + 20, colorI1, 3, animating && inputs.I1);
+
+            // S to NOT gate
+            drawWire(positions.S.x + 15, positions.S.y, gates.NOT.x, gates.NOT.y + 30, colorS, 3, animating);
+
+            // S to AND2 (with bend)
+            drawWire(positions.S.x + 15, positions.S.y, 200, positions.S.y, colorS);
+            drawWire(200, positions.S.y, 200, gates.AND2.y + 50, colorS);
+            drawWire(200, gates.AND2.y + 50, gates.AND2.x, gates.AND2.y + 50, colorS, 3, animating && inputs.S);
+
+            // NOT to AND1
+            const notOutX = gates.NOT.x + gates.NOT.width + 5;
+            const notOutY = gates.NOT.y + gates.NOT.height/2;
+            drawWire(notOutX, notOutY, 420, notOutY, colorNotS);
+            drawWire(420, notOutY, 420, gates.AND1.y + 50, colorNotS);
+            drawWire(420, gates.AND1.y + 50, gates.AND1.x, gates.AND1.y + 50, colorNotS, 3, animating && notS);
+
+            // AND1 to OR
+            const and1OutX = gates.AND1.x + gates.AND1.width;
+            const and1OutY = gates.AND1.y + gates.AND1.height/2;
+            drawWire(and1OutX, and1OutY, 650, and1OutY, colorAnd1);
+            drawWire(650, and1OutY, 650, gates.OR.y + 20, colorAnd1);
+            drawWire(650, gates.OR.y + 20, gates.OR.x, gates.OR.y + 20, colorAnd1, 3, animating && and1);
+
+            // AND2 to OR
+            const and2OutX = gates.AND2.x + gates.AND2.width;
+            const and2OutY = gates.AND2.y + gates.AND2.height/2;
+            drawWire(and2OutX, and2OutY, 650, and2OutY, colorAnd2);
+            drawWire(650, and2OutY, 650, gates.OR.y + 60, colorAnd2);
+            drawWire(650, gates.OR.y + 60, gates.OR.x, gates.OR.y + 60, colorAnd2, 3, animating && and2);
+
+            // OR to Output
+            const orOutX = gates.OR.x + gates.OR.width;
+            const orOutY = gates.OR.y + gates.OR.height/2;
+            drawWire(orOutX, orOutY, positions.Y.x - 20, positions.Y.y, colorOutput, 3, animating && output);
+
+            // Draw gates
+            drawNOTGate(gates.NOT.x, gates.NOT.y, gates.NOT.width, gates.NOT.height, inputs.S);
+            drawANDGate(gates.AND1.x, gates.AND1.y, gates.AND1.width, gates.AND1.height, and1, 'AND');
+            drawANDGate(gates.AND2.x, gates.AND2.y, gates.AND2.width, gates.AND2.height, and2, 'AND');
+            drawORGate(gates.OR.x, gates.OR.y, gates.OR.width, gates.OR.height, output);
+
+            // Draw inputs and output
+            drawInput(positions.I0.x, positions.I0.y, 'I₀', inputs.I0);
+            drawInput(positions.I1.x, positions.I1.y, 'I₁', inputs.I1);
+            drawInput(positions.S.x, positions.S.y, 'S', inputs.S);
+            drawOutput(positions.Y.x, positions.Y.y, output);
+        }
+
+        function toggleInput(input) {
+            inputs[input] = inputs[input] === 0 ? 1 : 0;
+
+            const btn = document.getElementById('btn' + input);
+            btn.textContent = inputs[input];
+            btn.classList.toggle('on', inputs[input] === 1);
+
+            updateTruthTable();
+            draw();
+        }
+
+        function updateTruthTable() {
+            const rows = document.querySelectorAll('#truthTable tbody tr');
+            rows.forEach(row => row.classList.remove('active-row'));
+
+            // Find matching row
+            const s = inputs.S;
+            const i0 = inputs.I0;
+            const i1 = inputs.I1;
+
+            const rowIndex = s * 4 + i0 * 2 + i1;
+            rows[rowIndex].classList.add('active-row');
+        }
+
+        function startAnimation() {
+            animating = true;
+            animationProgress = 0;
+            animate();
+        }
+
+        function animate() {
+            if (!animating) return;
+
+            animationProgress += 0.02;
+            draw();
+
+            if (animationProgress < 3) {
+                requestAnimationFrame(animate);
+            } else {
+                animating = false;
+                animationProgress = 0;
+                draw();
+            }
+        }
+
+        // Initial draw
+        updateTruthTable();
+        draw();
+    </script>
+</body>
+</html>
