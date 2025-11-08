@@ -466,11 +466,15 @@
 
             trainControlBit = trainControlBit === 0 ? 1 : 0;
             const controlEl = document.getElementById('trainControlBit');
+            const trackMain = document.getElementById('trainTrackMain');
             const trackTop = document.getElementById('trainTrackTop');
             const trackBottom = document.getElementById('trainTrackBottom');
             const statusEl = document.getElementById('trainStatus');
 
             controlEl.textContent = trainControlBit;
+
+            // Main track is always active
+            trackMain.classList.add('active');
 
             if (trainControlBit === 0) {
                 controlEl.className = 'control-bit bit-0';
@@ -494,41 +498,59 @@
             const destB = document.getElementById('trainDestB');
             const statusEl = document.getElementById('trainStatus');
 
+            // Reset position
             trainEl.style.display = 'flex';
             trainEl.style.left = '5%';
             trainEl.style.top = '50%';
 
-            statusEl.textContent = '🚂 Train is moving...';
+            statusEl.textContent = '🚂 Train is moving along the main track...';
 
-            // Move to switch
+            // Step 1: Move horizontally to the switch (follows main track)
             setTimeout(() => {
                 trainEl.style.left = '50%';
+                trainEl.style.top = '50%';
             }, 100);
 
-            // Move to destination
+            // Step 2: At the switch, start turning
+            setTimeout(() => {
+                statusEl.textContent = '🚂 Train is switching tracks...';
+            }, 800);
+
+            // Step 3: Move along the selected track
             setTimeout(() => {
                 if (trainControlBit === 0) {
+                    // Follow top track to Station
                     trainEl.style.top = '25%';
-                    trainEl.style.left = '95%';
+                    statusEl.textContent = '🚂 Train is following the top track to Station...';
+                } else {
+                    // Follow bottom track to Park
+                    trainEl.style.top = '75%';
+                    statusEl.textContent = '🚂 Train is following the bottom track to Park...';
+                }
+            }, 900);
+
+            // Step 4: Continue to destination
+            setTimeout(() => {
+                trainEl.style.left = '95%';
+                if (trainControlBit === 0) {
                     destA.classList.add('active');
                 } else {
-                    trainEl.style.top = '75%';
-                    trainEl.style.left = '95%';
                     destB.classList.add('active');
                 }
-            }, 700);
+            }, 1000);
 
             // Show completion
             setTimeout(() => {
                 const dest = trainControlBit === 0 ? 'Station 🚉' : 'Park 🏞️';
                 statusEl.textContent = `✅ Train arrived at ${dest}!`;
                 trainAnimating = false;
-            }, 1400);
+            }, 2000);
         }
 
         function resetTrain() {
             trainAnimating = false;
             const trainEl = document.getElementById('trainData');
+            const trackMain = document.getElementById('trainTrackMain');
             const destA = document.getElementById('trainDestA');
             const destB = document.getElementById('trainDestB');
             const statusEl = document.getElementById('trainStatus');
@@ -536,6 +558,9 @@
             trainEl.style.display = 'none';
             destA.classList.remove('active');
             destB.classList.remove('active');
+
+            // Keep main track active
+            trackMain.classList.add('active');
 
             statusEl.textContent = 'Ready! Click "Send Train" to see the control bit in action.';
         }
