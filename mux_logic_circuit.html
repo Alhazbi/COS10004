@@ -257,25 +257,27 @@
                             <th>S</th>
                             <th>I₀</th>
                             <th>I₁</th>
+                            <th>S̄·I₀</th>
+                            <th>S·I₁</th>
                             <th>Y</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-                        <tr><td>0</td><td>0</td><td>1</td><td>0</td></tr>
-                        <tr><td>0</td><td>1</td><td>0</td><td>1</td></tr>
-                        <tr><td>0</td><td>1</td><td>1</td><td>1</td></tr>
-                        <tr><td>1</td><td>0</td><td>0</td><td>0</td></tr>
-                        <tr><td>1</td><td>0</td><td>1</td><td>1</td></tr>
-                        <tr><td>1</td><td>1</td><td>0</td><td>0</td></tr>
-                        <tr><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+                        <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                        <tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                        <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+                        <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="section circuit-container">
                 <h2>Logic Circuit Diagram</h2>
-                <canvas id="circuitCanvas" width="1200" height="500"></canvas>
+                <canvas id="circuitCanvas" width="1200" height="550"></canvas>
 
                 <div class="controls">
                     <div class="control-group">
@@ -306,15 +308,15 @@
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background: #ffc107; height: 6px;"></div>
-                        <span>Active Signal Flow</span>
+                        <span>Animated Pulse</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="note">
-            <strong>How it works:</strong> When S=0, the top AND gate is enabled (via NOT gate) and outputs I₀.
-            When S=1, the bottom AND gate is enabled and outputs I₁. The OR gate passes whichever AND gate is active.
+            <strong>How it works:</strong> When S=0, the NOT gate outputs 1, enabling the top AND gate to pass I₀. The bottom AND gets 0 from S, blocking I₁.
+            When S=1, the NOT gate outputs 0, blocking I₀ in the top AND. The bottom AND gets 1 from S, passing I₁. The OR gate combines both paths.
         </div>
     </div>
 
@@ -331,20 +333,20 @@
         let animating = false;
         let animationProgress = 0;
 
-        // Gate positions
+        // Gate positions - reorganized for clarity
         const gates = {
-            NOT: { x: 300, y: 350, width: 60, height: 60 },
-            AND1: { x: 500, y: 150, width: 80, height: 70 },  // Top AND (for I0)
-            AND2: { x: 500, y: 330, width: 80, height: 70 },  // Bottom AND (for I1)
-            OR: { x: 750, y: 240, width: 80, height: 80 }
+            NOT: { x: 280, y: 380, width: 60, height: 60 },
+            AND1: { x: 520, y: 120, width: 80, height: 70 },  // Top AND (S̄ · I₀)
+            AND2: { x: 520, y: 360, width: 80, height: 70 },  // Bottom AND (S · I₁)
+            OR: { x: 820, y: 240, width: 80, height: 80 }
         };
 
         // Input/Output positions
         const positions = {
-            I0: { x: 50, y: 150 },
-            I1: { x: 50, y: 330 },
-            S: { x: 50, y: 420 },
-            Y: { x: 950, y: 280 }
+            I0: { x: 80, y: 140 },
+            I1: { x: 80, y: 380 },
+            S: { x: 80, y: 470 },
+            Y: { x: 1050, y: 280 }
         };
 
         function drawWire(x1, y1, x2, y2, color = '#333', width = 3, animated = false) {
@@ -362,38 +364,49 @@
                 const pulseY = y1 + (y2 - y1) * progress;
 
                 ctx.fillStyle = '#ffc107';
+                ctx.shadowColor = '#ffc107';
+                ctx.shadowBlur = 15;
                 ctx.beginPath();
                 ctx.arc(pulseX, pulseY, 8, 0, Math.PI * 2);
                 ctx.fill();
-
-                // Glow effect
-                ctx.strokeStyle = '#ffc107';
-                ctx.lineWidth = 6;
-                ctx.globalAlpha = 0.3;
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.stroke();
-                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
             }
         }
 
+        function drawConnectionDot(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
         function drawNOTGate(x, y, width, height, inputValue) {
+            // Input pin
+            ctx.fillStyle = inputValue ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(x, y + height/2, 5, 0, Math.PI * 2);
+            ctx.fill();
+
             // Triangle
             ctx.fillStyle = '#e9ecef';
             ctx.strokeStyle = '#495057';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x, y + height);
+            ctx.moveTo(x + 5, y);
+            ctx.lineTo(x + 5, y + height);
             ctx.lineTo(x + width - 10, y + height/2);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
 
             // Inversion bubble
-            ctx.fillStyle = inputValue ? '#dc3545' : '#28a745';
+            const outputValue = inputValue === 0 ? 1 : 0;
+            ctx.fillStyle = outputValue ? '#28a745' : '#dc3545';
             ctx.strokeStyle = '#495057';
+            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(x + width - 5, y + height/2, 8, 0, Math.PI * 2);
             ctx.fill();
@@ -401,27 +414,41 @@
 
             // Label
             ctx.fillStyle = '#333';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('NOT', x + width/2 - 5, y + height + 20);
+            ctx.fillText('NOT', x + width/2, y + height + 25);
         }
 
-        function drawANDGate(x, y, width, height, output, label) {
+        function drawANDGate(x, y, width, height, input1, input2, output, label) {
+            // Input pins
+            const pin1Y = y + height/3;
+            const pin2Y = y + 2*height/3;
+
+            ctx.fillStyle = input1 ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(x, pin1Y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = input2 ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(x, pin2Y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
             // Rectangle part
             ctx.fillStyle = '#e9ecef';
             ctx.strokeStyle = '#495057';
-            ctx.lineWidth = 2;
-            ctx.fillRect(x, y, width/2, height);
-            ctx.strokeRect(x, y, width/2, height);
+            ctx.lineWidth = 3;
+            ctx.fillRect(x + 5, y, width/2, height);
+            ctx.strokeRect(x + 5, y, width/2, height);
 
             // Arc part
             ctx.beginPath();
-            ctx.arc(x + width/2, y + height/2, height/2, -Math.PI/2, Math.PI/2);
+            ctx.arc(x + 5 + width/2, y + height/2, height/2, -Math.PI/2, Math.PI/2);
             ctx.fill();
             ctx.stroke();
 
-            // Output indicator
-            const outputX = x + width;
+            // Output pin
+            const outputX = x + width + 5;
             const outputY = y + height/2;
             ctx.fillStyle = output ? '#28a745' : '#dc3545';
             ctx.beginPath();
@@ -430,28 +457,43 @@
 
             // Label
             ctx.fillStyle = '#333';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(label, x + width/2, y + height/2 + 5);
+            ctx.fillText('AND', x + width/2, y + height/2 + 6);
         }
 
-        function drawORGate(x, y, width, height, output) {
+        function drawORGate(x, y, width, height, input1, input2, output) {
+            // Input pins
+            const pin1Y = y + height/3;
+            const pin2Y = y + 2*height/3;
+
+            ctx.fillStyle = input1 ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(x + 10, pin1Y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = input2 ? '#28a745' : '#dc3545';
+            ctx.beginPath();
+            ctx.arc(x + 10, pin2Y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Gate body
             ctx.fillStyle = '#e9ecef';
             ctx.strokeStyle = '#495057';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
 
             ctx.beginPath();
             // Left curved part
-            ctx.moveTo(x, y);
-            ctx.quadraticCurveTo(x + width/3, y + height/2, x, y + height);
+            ctx.moveTo(x + 15, y);
+            ctx.quadraticCurveTo(x + width/2, y + height/2, x + 15, y + height);
             // Top curve
-            ctx.quadraticCurveTo(x + width/2, y - height/4, x + width, y + height/2);
+            ctx.quadraticCurveTo(x + width/2, y - height/6, x + width, y + height/2);
             // Bottom curve
-            ctx.quadraticCurveTo(x + width/2, y + height + height/4, x, y + height);
+            ctx.quadraticCurveTo(x + width/2, y + height + height/6, x + 15, y + height);
             ctx.fill();
             ctx.stroke();
 
-            // Output indicator
+            // Output pin
             const outputX = x + width;
             const outputY = y + height/2;
             ctx.fillStyle = output ? '#28a745' : '#dc3545';
@@ -461,31 +503,31 @@
 
             // Label
             ctx.fillStyle = '#333';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('OR', x + width/2, y + height/2 + 5);
+            ctx.fillText('OR', x + width/2 + 5, y + height/2 + 6);
         }
 
         function drawInput(x, y, label, value) {
             ctx.fillStyle = value ? '#28a745' : '#dc3545';
             ctx.beginPath();
-            ctx.arc(x, y, 15, 0, Math.PI * 2);
+            ctx.arc(x, y, 18, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.strokeStyle = '#333';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
             ctx.stroke();
 
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 16px Arial';
+            ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(value, x, y);
 
             ctx.fillStyle = '#333';
-            ctx.font = 'bold 18px Arial';
+            ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'right';
-            ctx.fillText(label, x - 25, y);
+            ctx.fillText(label, x - 30, y);
         }
 
         function drawOutput(x, y, value) {
@@ -493,31 +535,35 @@
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 3;
 
-            // Output circle
             ctx.beginPath();
-            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.arc(x, y, 22, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
 
-            // Value
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 20px Arial';
+            ctx.font = 'bold 22px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(value, x, y);
 
-            // Label
             ctx.fillStyle = '#333';
-            ctx.font = 'bold 20px Arial';
+            ctx.font = 'bold 22px Arial';
             ctx.textAlign = 'left';
-            ctx.fillText('Y', x + 30, y);
+            ctx.fillText('Y', x + 35, y);
+        }
+
+        function drawLabel(x, y, text, color = '#333') {
+            ctx.fillStyle = color;
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(text, x, y);
         }
 
         function calculateOutputs() {
             const notS = inputs.S === 0 ? 1 : 0;
-            const and1 = notS && inputs.I0 ? 1 : 0;  // S̄ · I0
-            const and2 = inputs.S && inputs.I1 ? 1 : 0;  // S · I1
-            const output = and1 || and2 ? 1 : 0;  // OR of both ANDs
+            const and1 = (notS === 1 && inputs.I0 === 1) ? 1 : 0;  // S̄ · I₀
+            const and2 = (inputs.S === 1 && inputs.I1 === 1) ? 1 : 0;  // S · I₁
+            const output = (and1 === 1 || and2 === 1) ? 1 : 0;  // OR
 
             return { notS, and1, and2, output };
         }
@@ -536,54 +582,72 @@
             const colorAnd2 = and2 ? '#28a745' : '#dc3545';
             const colorOutput = output ? '#28a745' : '#dc3545';
 
-            // Draw wires (back layer)
-            // I0 to AND1
-            drawWire(positions.I0.x + 15, positions.I0.y, gates.AND1.x, gates.AND1.y + 20, colorI0, 3, animating && inputs.I0);
+            // === WIRING ===
 
-            // I1 to AND2
-            drawWire(positions.I1.x + 15, positions.I1.y, gates.AND2.x, gates.AND2.y + 20, colorI1, 3, animating && inputs.I1);
+            // I₀ to AND1 (top input)
+            const and1_in1_y = gates.AND1.y + gates.AND1.height/3;
+            drawWire(positions.I0.x + 18, positions.I0.y, gates.AND1.x, and1_in1_y, colorI0, 3, animating);
+            drawLabel(250, and1_in1_y - 15, 'I₀', '#0066cc');
 
-            // S to NOT gate
-            drawWire(positions.S.x + 15, positions.S.y, gates.NOT.x, gates.NOT.y + 30, colorS, 3, animating);
+            // I₁ to AND2 (top input)
+            const and2_in1_y = gates.AND2.y + gates.AND2.height/3;
+            drawWire(positions.I1.x + 18, positions.I1.y, gates.AND2.x, and2_in1_y, colorI1, 3, animating);
+            drawLabel(250, and2_in1_y - 15, 'I₁', '#0066cc');
 
-            // S to AND2 (with bend)
-            drawWire(positions.S.x + 15, positions.S.y, 200, positions.S.y, colorS);
-            drawWire(200, positions.S.y, 200, gates.AND2.y + 50, colorS);
-            drawWire(200, gates.AND2.y + 50, gates.AND2.x, gates.AND2.y + 50, colorS, 3, animating && inputs.S);
+            // S to NOT gate input
+            drawWire(positions.S.x + 18, positions.S.y, gates.NOT.x, gates.NOT.y + gates.NOT.height/2, colorS, 3, animating);
 
-            // NOT to AND1
-            const notOutX = gates.NOT.x + gates.NOT.width + 5;
+            // S branches to AND2 (bottom input)
+            const branchX = 180;
+            const and2_in2_y = gates.AND2.y + 2*gates.AND2.height/3;
+            drawConnectionDot(branchX, positions.S.y, colorS);
+            drawWire(branchX, positions.S.y, branchX, and2_in2_y, colorS);
+            drawWire(branchX, and2_in2_y, gates.AND2.x, and2_in2_y, colorS, 3, animating);
+            drawLabel(350, and2_in2_y + 20, 'S', '#0066cc');
+
+            // NOT output to AND1 (bottom input)
+            const notOutX = gates.NOT.x + gates.NOT.width + 3;
             const notOutY = gates.NOT.y + gates.NOT.height/2;
-            drawWire(notOutX, notOutY, 420, notOutY, colorNotS);
-            drawWire(420, notOutY, 420, gates.AND1.y + 50, colorNotS);
-            drawWire(420, gates.AND1.y + 50, gates.AND1.x, gates.AND1.y + 50, colorNotS, 3, animating && notS);
+            const and1_in2_y = gates.AND1.y + 2*gates.AND1.height/3;
 
-            // AND1 to OR
-            const and1OutX = gates.AND1.x + gates.AND1.width;
+            drawWire(notOutX, notOutY, 450, notOutY, colorNotS);
+            drawWire(450, notOutY, 450, and1_in2_y, colorNotS);
+            drawWire(450, and1_in2_y, gates.AND1.x, and1_in2_y, colorNotS, 3, animating);
+            drawLabel(450, notOutY - 15, 'S̄', '#cc00cc');
+
+            // AND1 output to OR (top input)
+            const and1OutX = gates.AND1.x + gates.AND1.width + 5;
             const and1OutY = gates.AND1.y + gates.AND1.height/2;
-            drawWire(and1OutX, and1OutY, 650, and1OutY, colorAnd1);
-            drawWire(650, and1OutY, 650, gates.OR.y + 20, colorAnd1);
-            drawWire(650, gates.OR.y + 20, gates.OR.x, gates.OR.y + 20, colorAnd1, 3, animating && and1);
+            const or_in1_y = gates.OR.y + gates.OR.height/3;
 
-            // AND2 to OR
-            const and2OutX = gates.AND2.x + gates.AND2.width;
+            drawWire(and1OutX, and1OutY, 700, and1OutY, colorAnd1);
+            drawWire(700, and1OutY, 700, or_in1_y, colorAnd1);
+            drawWire(700, or_in1_y, gates.OR.x + 10, or_in1_y, colorAnd1, 3, animating);
+            drawLabel(660, and1OutY - 15, 'S̄·I₀', '#cc00cc');
+
+            // AND2 output to OR (bottom input)
+            const and2OutX = gates.AND2.x + gates.AND2.width + 5;
             const and2OutY = gates.AND2.y + gates.AND2.height/2;
-            drawWire(and2OutX, and2OutY, 650, and2OutY, colorAnd2);
-            drawWire(650, and2OutY, 650, gates.OR.y + 60, colorAnd2);
-            drawWire(650, gates.OR.y + 60, gates.OR.x, gates.OR.y + 60, colorAnd2, 3, animating && and2);
+            const or_in2_y = gates.OR.y + 2*gates.OR.height/3;
 
-            // OR to Output
+            drawWire(and2OutX, and2OutY, 700, and2OutY, colorAnd2);
+            drawWire(700, and2OutY, 700, or_in2_y, colorAnd2);
+            drawWire(700, or_in2_y, gates.OR.x + 10, or_in2_y, colorAnd2, 3, animating);
+            drawLabel(660, and2OutY + 25, 'S·I₁', '#cc00cc');
+
+            // OR output to Y
             const orOutX = gates.OR.x + gates.OR.width;
             const orOutY = gates.OR.y + gates.OR.height/2;
-            drawWire(orOutX, orOutY, positions.Y.x - 20, positions.Y.y, colorOutput, 3, animating && output);
+            drawWire(orOutX, orOutY, positions.Y.x - 22, positions.Y.y, colorOutput, 4, animating);
+            drawLabel(935, orOutY - 15, 'Y', '#cc0000');
 
-            // Draw gates
+            // === DRAW GATES ===
             drawNOTGate(gates.NOT.x, gates.NOT.y, gates.NOT.width, gates.NOT.height, inputs.S);
-            drawANDGate(gates.AND1.x, gates.AND1.y, gates.AND1.width, gates.AND1.height, and1, 'AND');
-            drawANDGate(gates.AND2.x, gates.AND2.y, gates.AND2.width, gates.AND2.height, and2, 'AND');
-            drawORGate(gates.OR.x, gates.OR.y, gates.OR.width, gates.OR.height, output);
+            drawANDGate(gates.AND1.x, gates.AND1.y, gates.AND1.width, gates.AND1.height, inputs.I0, notS, and1, 'AND1');
+            drawANDGate(gates.AND2.x, gates.AND2.y, gates.AND2.width, gates.AND2.height, inputs.I1, inputs.S, and2, 'AND2');
+            drawORGate(gates.OR.x, gates.OR.y, gates.OR.width, gates.OR.height, and1, and2, output);
 
-            // Draw inputs and output
+            // === DRAW INPUTS/OUTPUTS ===
             drawInput(positions.I0.x, positions.I0.y, 'I₀', inputs.I0);
             drawInput(positions.I1.x, positions.I1.y, 'I₁', inputs.I1);
             drawInput(positions.S.x, positions.S.y, 'S', inputs.S);
@@ -623,10 +687,10 @@
         function animate() {
             if (!animating) return;
 
-            animationProgress += 0.02;
+            animationProgress += 0.015;
             draw();
 
-            if (animationProgress < 3) {
+            if (animationProgress < 4) {
                 requestAnimationFrame(animate);
             } else {
                 animating = false;
