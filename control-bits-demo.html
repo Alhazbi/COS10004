@@ -376,10 +376,10 @@
 
                 <!-- Destinations -->
                 <div class="destination" id="trainDestA" style="right: 5%; top: 25%; transform: translateY(-50%);">
-                    🚉 Station (A)
+                    🚉 Station A
                 </div>
                 <div class="destination" id="trainDestB" style="right: 5%; top: 75%; transform: translateY(-50%);">
-                    🏞️ Park (B)
+                    🏞️ Park B Station
                 </div>
             </div>
 
@@ -480,12 +480,12 @@
                 controlEl.className = 'control-bit bit-0';
                 trackTop.classList.add('active');
                 trackBottom.classList.remove('active');
-                statusEl.textContent = 'Control Bit = 0: Train will go to Station 🚉';
+                statusEl.textContent = 'Control Bit = 0: Train will go to Station A 🚉';
             } else {
                 controlEl.className = 'control-bit bit-1';
                 trackTop.classList.remove('active');
                 trackBottom.classList.add('active');
-                statusEl.textContent = 'Control Bit = 1: Train will go to Park 🏞️';
+                statusEl.textContent = 'Control Bit = 1: Train will go to Park B Station 🏞️';
             }
         }
 
@@ -519,13 +519,13 @@
             // Step 3: Move along the selected track
             setTimeout(() => {
                 if (trainControlBit === 0) {
-                    // Follow top track to Station
+                    // Follow top track to Station A
                     trainEl.style.top = '25%';
-                    statusEl.textContent = '🚂 Train is following the top track to Station...';
+                    statusEl.textContent = '🚂 Train is following the top track to Station A...';
                 } else {
-                    // Follow bottom track to Park
+                    // Follow bottom track to Park B Station
                     trainEl.style.top = '75%';
-                    statusEl.textContent = '🚂 Train is following the bottom track to Park...';
+                    statusEl.textContent = '🚂 Train is following the bottom track to Park B Station...';
                 }
             }, 900);
 
@@ -541,7 +541,7 @@
 
             // Show completion
             setTimeout(() => {
-                const dest = trainControlBit === 0 ? 'Station 🚉' : 'Park 🏞️';
+                const dest = trainControlBit === 0 ? 'Station A 🚉' : 'Park B Station 🏞️';
                 statusEl.textContent = `✅ Train arrived at ${dest}!`;
                 trainAnimating = false;
             }, 2000);
