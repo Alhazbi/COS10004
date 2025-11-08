@@ -355,7 +355,7 @@
         <div class="demo-section">
             <h2>🚂 Train Switch Example</h2>
             <p style="text-align: center; margin-bottom: 20px; color: #666;">
-                The control bit acts like a train switch, routing data to different destinations
+                Train departs from Station A. The control bit determines whether it goes to Station B or Station C
             </p>
 
             <div class="canvas-container" id="trainCanvas">
@@ -369,17 +369,22 @@
                     0
                 </div>
 
+                <!-- Starting Point (Station A) -->
+                <div class="destination" style="left: 5%; top: 50%; transform: translate(-50%, -50%);">
+                    🚉 Station A
+                </div>
+
                 <!-- Data Packet (Train) -->
                 <div class="data-packet" id="trainData" style="left: 5%; top: 50%; transform: translate(-50%, -50%); display: none;">
                     🚂
                 </div>
 
                 <!-- Destinations -->
-                <div class="destination" id="trainDestA" style="right: 5%; top: 25%; transform: translateY(-50%);">
-                    🚉 Station A
+                <div class="destination" id="trainDestB" style="right: 5%; top: 25%; transform: translateY(-50%);">
+                    🚉 Station B
                 </div>
-                <div class="destination" id="trainDestB" style="right: 5%; top: 75%; transform: translateY(-50%);">
-                    🏞️ Park B Station
+                <div class="destination" id="trainDestC" style="right: 5%; top: 75%; transform: translateY(-50%);">
+                    🚉 Station C
                 </div>
             </div>
 
@@ -396,7 +401,7 @@
             </div>
 
             <div class="status" id="trainStatus">
-                Ready! Click "Send Train" to see the control bit in action.
+                Ready! Train will depart from Station A. Click "Send Train" to start.
             </div>
         </div>
 
@@ -448,7 +453,7 @@
         <div class="explanation">
             <h3>🎯 Key Takeaway: Control Bits = Programmability</h3>
             <ul>
-                <li><strong>Train Switch:</strong> One track splits into two destinations. The control bit decides which path the data takes.</li>
+                <li><strong>Train Switch:</strong> Train starts from Station A. The control bit decides if it goes to Station B (bit=0) or Station C (bit=1). One input, multiple destinations!</li>
                 <li><strong>Traffic Light:</strong> Both roads exist at the same time, but the control bit decides which gets to move.</li>
                 <li><strong>In Computers:</strong> Instead of building separate circuits for every operation, one circuit + control bits = flexible, programmable hardware!</li>
                 <li><strong>Real Usage:</strong> Multiplexers, ALUs, data routers, and all digital circuits use control bits to determine behavior.</li>
@@ -480,12 +485,12 @@
                 controlEl.className = 'control-bit bit-0';
                 trackTop.classList.add('active');
                 trackBottom.classList.remove('active');
-                statusEl.textContent = 'Control Bit = 0: Train will go to Station A 🚉';
+                statusEl.textContent = 'Control Bit = 0: Train will go from Station A to Station B 🚉';
             } else {
                 controlEl.className = 'control-bit bit-1';
                 trackTop.classList.remove('active');
                 trackBottom.classList.add('active');
-                statusEl.textContent = 'Control Bit = 1: Train will go to Park B Station 🏞️';
+                statusEl.textContent = 'Control Bit = 1: Train will go from Station A to Station C 🚉';
             }
         }
 
@@ -494,16 +499,16 @@
 
             trainAnimating = true;
             const trainEl = document.getElementById('trainData');
-            const destA = document.getElementById('trainDestA');
             const destB = document.getElementById('trainDestB');
+            const destC = document.getElementById('trainDestC');
             const statusEl = document.getElementById('trainStatus');
 
-            // Reset position
+            // Reset position (starting from Station A)
             trainEl.style.display = 'flex';
             trainEl.style.left = '5%';
             trainEl.style.top = '50%';
 
-            statusEl.textContent = '🚂 Train is moving along the main track...';
+            statusEl.textContent = '🚂 Train departing from Station A...';
 
             // Step 1: Move horizontally to the switch (follows main track)
             setTimeout(() => {
@@ -519,13 +524,13 @@
             // Step 3: Move along the selected track
             setTimeout(() => {
                 if (trainControlBit === 0) {
-                    // Follow top track to Station A
+                    // Follow top track to Station B
                     trainEl.style.top = '25%';
-                    statusEl.textContent = '🚂 Train is following the top track to Station A...';
+                    statusEl.textContent = '🚂 Train is following the top track to Station B...';
                 } else {
-                    // Follow bottom track to Park B Station
+                    // Follow bottom track to Station C
                     trainEl.style.top = '75%';
-                    statusEl.textContent = '🚂 Train is following the bottom track to Park B Station...';
+                    statusEl.textContent = '🚂 Train is following the bottom track to Station C...';
                 }
             }, 900);
 
@@ -533,15 +538,15 @@
             setTimeout(() => {
                 trainEl.style.left = '95%';
                 if (trainControlBit === 0) {
-                    destA.classList.add('active');
-                } else {
                     destB.classList.add('active');
+                } else {
+                    destC.classList.add('active');
                 }
             }, 1000);
 
             // Show completion
             setTimeout(() => {
-                const dest = trainControlBit === 0 ? 'Station A 🚉' : 'Park B Station 🏞️';
+                const dest = trainControlBit === 0 ? 'Station B 🚉' : 'Station C 🚉';
                 statusEl.textContent = `✅ Train arrived at ${dest}!`;
                 trainAnimating = false;
             }, 2000);
@@ -551,18 +556,18 @@
             trainAnimating = false;
             const trainEl = document.getElementById('trainData');
             const trackMain = document.getElementById('trainTrackMain');
-            const destA = document.getElementById('trainDestA');
             const destB = document.getElementById('trainDestB');
+            const destC = document.getElementById('trainDestC');
             const statusEl = document.getElementById('trainStatus');
 
             trainEl.style.display = 'none';
-            destA.classList.remove('active');
             destB.classList.remove('active');
+            destC.classList.remove('active');
 
             // Keep main track active
             trackMain.classList.add('active');
 
-            statusEl.textContent = 'Ready! Click "Send Train" to see the control bit in action.';
+            statusEl.textContent = 'Ready! Train will depart from Station A. Click "Send Train" to start.';
         }
 
         // TRAFFIC LIGHT DEMO LOGIC
