@@ -163,35 +163,79 @@
 
         .track {
             position: absolute;
-            background: #8d6e63;
+            background: #5d4037;
             transition: all 0.3s;
+            border-top: 3px solid #3e2723;
+            border-bottom: 3px solid #3e2723;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .track.active {
             background: #4CAF50;
-            box-shadow: 0 0 20px #4CAF50;
+            border-top: 3px solid #2e7d32;
+            border-bottom: 3px solid #2e7d32;
+            box-shadow: 0 0 20px #4CAF50, 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .track-horizontal {
-            height: 8px;
+            height: 16px;
             left: 0;
             right: 50%;
             top: 50%;
             transform: translateY(-50%);
+            background-image: repeating-linear-gradient(
+                90deg,
+                #5d4037,
+                #5d4037 20px,
+                #8d6e63 20px,
+                #8d6e63 25px
+            );
         }
 
         .track-top {
-            height: 8px;
+            height: 16px;
             left: 50%;
             right: 0;
             top: 25%;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #5d4037,
+                #5d4037 20px,
+                #8d6e63 20px,
+                #8d6e63 25px
+            );
         }
 
         .track-bottom {
-            height: 8px;
+            height: 16px;
             left: 50%;
             right: 0;
             top: 75%;
+            background-image: repeating-linear-gradient(
+                90deg,
+                #5d4037,
+                #5d4037 20px,
+                #8d6e63 20px,
+                #8d6e63 25px
+            );
+        }
+
+        /* Railroad ties */
+        .track::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 0;
+            right: 0;
+            height: calc(100% + 10px);
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 30px,
+                rgba(62, 39, 35, 0.6) 30px,
+                rgba(62, 39, 35, 0.6) 35px
+            );
+            pointer-events: none;
         }
 
         .destination {
@@ -332,10 +376,10 @@
 
                 <!-- Destinations -->
                 <div class="destination" id="trainDestA" style="right: 5%; top: 25%; transform: translateY(-50%);">
-                    🏪 Store (A)
+                    🚉 Station A
                 </div>
                 <div class="destination" id="trainDestB" style="right: 5%; top: 75%; transform: translateY(-50%);">
-                    🏞️ Park (B)
+                    🏞️ Park B Station
                 </div>
             </div>
 
@@ -422,22 +466,26 @@
 
             trainControlBit = trainControlBit === 0 ? 1 : 0;
             const controlEl = document.getElementById('trainControlBit');
+            const trackMain = document.getElementById('trainTrackMain');
             const trackTop = document.getElementById('trainTrackTop');
             const trackBottom = document.getElementById('trainTrackBottom');
             const statusEl = document.getElementById('trainStatus');
 
             controlEl.textContent = trainControlBit;
 
+            // Main track is always active
+            trackMain.classList.add('active');
+
             if (trainControlBit === 0) {
                 controlEl.className = 'control-bit bit-0';
                 trackTop.classList.add('active');
                 trackBottom.classList.remove('active');
-                statusEl.textContent = 'Control Bit = 0: Train will go to Store 🏪';
+                statusEl.textContent = 'Control Bit = 0: Train will go to Station A 🚉';
             } else {
                 controlEl.className = 'control-bit bit-1';
                 trackTop.classList.remove('active');
                 trackBottom.classList.add('active');
-                statusEl.textContent = 'Control Bit = 1: Train will go to Park 🏞️';
+                statusEl.textContent = 'Control Bit = 1: Train will go to Park B Station 🏞️';
             }
         }
 
@@ -450,41 +498,59 @@
             const destB = document.getElementById('trainDestB');
             const statusEl = document.getElementById('trainStatus');
 
+            // Reset position
             trainEl.style.display = 'flex';
             trainEl.style.left = '5%';
             trainEl.style.top = '50%';
 
-            statusEl.textContent = '🚂 Train is moving...';
+            statusEl.textContent = '🚂 Train is moving along the main track...';
 
-            // Move to switch
+            // Step 1: Move horizontally to the switch (follows main track)
             setTimeout(() => {
                 trainEl.style.left = '50%';
+                trainEl.style.top = '50%';
             }, 100);
 
-            // Move to destination
+            // Step 2: At the switch, start turning
+            setTimeout(() => {
+                statusEl.textContent = '🚂 Train is switching tracks...';
+            }, 800);
+
+            // Step 3: Move along the selected track
             setTimeout(() => {
                 if (trainControlBit === 0) {
+                    // Follow top track to Station A
                     trainEl.style.top = '25%';
-                    trainEl.style.left = '95%';
+                    statusEl.textContent = '🚂 Train is following the top track to Station A...';
+                } else {
+                    // Follow bottom track to Park B Station
+                    trainEl.style.top = '75%';
+                    statusEl.textContent = '🚂 Train is following the bottom track to Park B Station...';
+                }
+            }, 900);
+
+            // Step 4: Continue to destination
+            setTimeout(() => {
+                trainEl.style.left = '95%';
+                if (trainControlBit === 0) {
                     destA.classList.add('active');
                 } else {
-                    trainEl.style.top = '75%';
-                    trainEl.style.left = '95%';
                     destB.classList.add('active');
                 }
-            }, 700);
+            }, 1000);
 
             // Show completion
             setTimeout(() => {
-                const dest = trainControlBit === 0 ? 'Store 🏪' : 'Park 🏞️';
+                const dest = trainControlBit === 0 ? 'Station A 🚉' : 'Park B Station 🏞️';
                 statusEl.textContent = `✅ Train arrived at ${dest}!`;
                 trainAnimating = false;
-            }, 1400);
+            }, 2000);
         }
 
         function resetTrain() {
             trainAnimating = false;
             const trainEl = document.getElementById('trainData');
+            const trackMain = document.getElementById('trainTrackMain');
             const destA = document.getElementById('trainDestA');
             const destB = document.getElementById('trainDestB');
             const statusEl = document.getElementById('trainStatus');
@@ -492,6 +558,9 @@
             trainEl.style.display = 'none';
             destA.classList.remove('active');
             destB.classList.remove('active');
+
+            // Keep main track active
+            trackMain.classList.add('active');
 
             statusEl.textContent = 'Ready! Click "Send Train" to see the control bit in action.';
         }
