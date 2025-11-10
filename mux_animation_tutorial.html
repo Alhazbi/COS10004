@@ -667,7 +667,9 @@
                         <line x1="120" y1="400" x2="120" y2="180" stroke="#333" stroke-width="2"/>
                         <line x1="120" y1="180" x2="150" y2="180" stroke="#333" stroke-width="2" id="wire-to-not"/>
                         <line x1="185" y1="180" x2="220" y2="180" stroke="#333" stroke-width="2" id="wire-not-out"/>
-                        <text x="205" y="170" font-size="16" fill="#764ba2" font-weight="bold">¬S</text>
+                        <!-- NOT gate output expression -->
+                        <rect x="185" y="165" width="35" height="25" fill="#FFF8DC" stroke="#764ba2" stroke-width="1" rx="5"/>
+                        <text x="202" y="180" text-anchor="middle" font-size="14" fill="#764ba2" font-weight="bold">¬S</text>
 
                         <!-- AND gate 1 (I0 & ¬S) -->
                         <g transform="translate(280, 140)">
@@ -699,14 +701,23 @@
                             <text x="35" y="5" text-anchor="middle" font-size="16" fill="#667eea" font-weight="bold">OR</text>
                         </g>
                         <line x1="350" y1="140" x2="420" y2="140" stroke="#333" stroke-width="2" id="wire-and1-to-or"/>
+                        <!-- AND gate 1 output expression -->
+                        <rect x="355" y="125" width="60" height="25" fill="#E6F3FF" stroke="#667eea" stroke-width="1" rx="5"/>
+                        <text x="385" y="140" text-anchor="middle" font-size="13" fill="#667eea" font-weight="bold">¬S · I₀</text>
                         <line x1="420" y1="140" x2="420" y2="200" stroke="#333" stroke-width="2"/>
                         <line x1="420" y1="200" x2="450" y2="200" stroke="#333" stroke-width="2"/>
                         <line x1="350" y1="300" x2="420" y2="300" stroke="#333" stroke-width="2" id="wire-and2-to-or"/>
+                        <!-- AND gate 2 output expression -->
+                        <rect x="360" y="285" width="50" height="25" fill="#E6F3FF" stroke="#667eea" stroke-width="1" rx="5"/>
+                        <text x="385" y="300" text-anchor="middle" font-size="13" fill="#667eea" font-weight="bold">S · I₁</text>
                         <line x1="420" y1="300" x2="420" y2="240" stroke="#333" stroke-width="2"/>
                         <line x1="420" y1="240" x2="450" y2="240" stroke="#333" stroke-width="2"/>
 
                         <!-- Output -->
                         <line x1="530" y1="220" x2="590" y2="220" stroke="#333" stroke-width="2" id="wire-or-to-y"/>
+                        <!-- OR gate output expression (Final MUX equation) -->
+                        <rect x="535" y="195" width="130" height="28" fill="#FFE6F0" stroke="#764ba2" stroke-width="2" rx="5"/>
+                        <text x="600" y="212" text-anchor="middle" font-size="12" fill="#764ba2" font-weight="bold">Y = (¬S·I₀)+(S·I₁)</text>
                         <g transform="translate(620, 220)">
                             <circle cx="0" cy="0" r="25" fill="#667eea" stroke="#667eea" stroke-width="2"/>
                             <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" font-size="20" fill="white" font-weight="bold" id="s6-y-val">1</text>
@@ -725,7 +736,9 @@
                     A 2-to-1 MUX is built from:<br>
                     <strong>1 NOT gate, 2 AND gates, 1 OR gate</strong><br><br>
                     The control bit turns one AND gate on and the other off.<br>
-                    The OR gate passes through whichever path is on.
+                    The OR gate passes through whichever path is on.<br><br>
+                    <strong>Watch how the Boolean expression builds up:</strong><br>
+                    NOT: <strong>¬S</strong> → AND: <strong>(¬S·I₀)</strong> and <strong>(S·I₁)</strong> → OR: <strong>Y = (¬S·I₀)+(S·I₁)</strong>
                 </div>
             </div>
 
