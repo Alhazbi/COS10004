@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive RS Flip-Flop Circuit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        canvas {
+            border-radius: 8px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-control {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .input-control:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .input-control label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .input-control .description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .toggle-btn.off {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .toggle-btn.on {
+            background: linear-gradient(135deg, #28a745 0%, #38ef7d 100%);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .toggle-btn:active {
+            transform: translateY(0);
+        }
+
+        .output-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .output-box {
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .output-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .output-value {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .output-box.high {
+            background: linear-gradient(135deg, #28a745 0%, #38ef7d 100%);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .output-box.low {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4); }
+            50% { box-shadow: 0 5px 30px rgba(40, 167, 69, 0.8); }
+        }
+
+        .truth-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .truth-table th,
+        .truth-table td {
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #667eea;
+        }
+
+        .truth-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .truth-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .truth-table tr.current-state {
+            background: #fff3cd;
+            font-weight: bold;
+            border: 2px solid #ffc107;
+        }
+
+        .truth-table tr:hover:not(.current-state) {
+            background: #e7f1ff;
+        }
+
+        .description-box {
+            background: #e7f1ff;
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .description-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .description-box ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .description-box li {
+            margin-bottom: 8px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .warning-box.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .warning-box p {
+            color: #856404;
+            margin: 0;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .state-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .state-info h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .state-info p {
+            color: #333;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .output-display {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ RS Flip-Flop Interactive Circuit</h1>
+            <p class="subtitle">Learn Digital Memory with Real-Time Circuit Simulation</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Circuit Visualization -->
+            <div class="card full-width">
+                <h2>Circuit Diagram</h2>
+                <div class="canvas-container">
+                    <canvas id="circuitCanvas" width="1000" height="400"></canvas>
+                </div>
+            </div>
+
+            <!-- Input Controls -->
+            <div class="card">
+                <h2>Input Controls</h2>
+                <div class="controls-grid">
+                    <div class="input-control">
+                        <label>S (Set Input)</label>
+                        <p class="description">Sets output Q to 1 when active</p>
+                        <button class="toggle-btn off" id="setBtnInput">0</button>
+                    </div>
+                    <div class="input-control">
+                        <label>R (Reset Input)</label>
+                        <p class="description">Resets output Q to 0 when active</p>
+                        <button class="toggle-btn off" id="resetBtnInput">0</button>
+                    </div>
+                </div>
+
+                <div class="warning-box" id="warningBox">
+                    <h4>⚠️ WARNING: Invalid State!</h4>
+                    <p>S=1 and R=1 simultaneously creates an undefined/forbidden state. Both outputs would try to be 1, violating the complementary relationship between Q and Q'.</p>
+                </div>
+
+                <button class="reset-btn" id="resetCircuit">Reset Circuit to Q=0</button>
+
+                <div class="state-info">
+                    <h4>Current State:</h4>
+                    <p id="stateDescription">Initial state: Q = 0, Q' = 1 (Reset state)</p>
+                </div>
+            </div>
+
+            <!-- Output Display -->
+            <div class="card">
+                <h2>Outputs</h2>
+                <div class="output-display">
+                    <div class="output-box low" id="outputQ">
+                        <h3>Q</h3>
+                        <div class="output-value" id="qValue">0</div>
+                    </div>
+                    <div class="output-box high" id="outputQBar">
+                        <h3>Q'</h3>
+                        <div class="output-value" id="qBarValue">1</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Truth Table -->
+            <div class="card">
+                <h2>RS Flip-Flop Truth Table</h2>
+                <table class="truth-table">
+                    <thead>
+                        <tr>
+                            <th>S</th>
+                            <th>R</th>
+                            <th>Q (next)</th>
+                            <th>Q' (next)</th>
+                            <th>State</th>
+                        </tr>
+                    </thead>
+                    <tbody id="truthTableBody">
+                        <tr data-s="0" data-r="0">
+                            <td>0</td>
+                            <td>0</td>
+                            <td>Q (prev)</td>
+                            <td>Q' (prev)</td>
+                            <td>Hold/Memory</td>
+                        </tr>
+                        <tr data-s="0" data-r="1">
+                            <td>0</td>
+                            <td>1</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>Reset</td>
+                        </tr>
+                        <tr data-s="1" data-r="0">
+                            <td>1</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>0</td>
+                            <td>Set</td>
+                        </tr>
+                        <tr data-s="1" data-r="1">
+                            <td>1</td>
+                            <td>1</td>
+                            <td>×</td>
+                            <td>×</td>
+                            <td>Invalid ⚠️</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- How It Works -->
+            <div class="card">
+                <h2>How RS Flip-Flop Works</h2>
+                <div class="description-box">
+                    <h3>Basic Principle:</h3>
+                    <p>An RS Flip-Flop is a fundamental memory circuit that stores 1 bit of information. It has two inputs (S and R) and two complementary outputs (Q and Q').</p>
+
+                    <h3 style="margin-top: 15px;">Operating Modes:</h3>
+                    <ul>
+                        <li><strong>Set (S=1, R=0):</strong> Forces Q to 1 and Q' to 0, regardless of previous state.</li>
+                        <li><strong>Reset (S=0, R=1):</strong> Forces Q to 0 and Q' to 1, regardless of previous state.</li>
+                        <li><strong>Hold/Memory (S=0, R=0):</strong> Maintains the current state - this is the memory function!</li>
+                        <li><strong>Invalid (S=1, R=1):</strong> Forbidden state that creates undefined behavior.</li>
+                    </ul>
+
+                    <h3 style="margin-top: 15px;">Key Features:</h3>
+                    <ul>
+                        <li>Stores one bit of data (0 or 1)</li>
+                        <li>Retains state even when inputs are removed (memory)</li>
+                        <li>Q and Q' are always complementary (opposite values)</li>
+                        <li>Built using cross-coupled NOR or NAND gates</li>
+                    </ul>
+
+                    <h3 style="margin-top: 15px;">Applications:</h3>
+                    <ul>
+                        <li>Building blocks for other flip-flops (D, JK, T)</li>
+                        <li>Switch debouncing circuits</li>
+                        <li>Control circuits and state machines</li>
+                        <li>Temporary data storage</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('circuitCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let circuit = {
+            S: 0,
+            R: 0,
+            Q: 0,
+            animationPhase: 0
+        };
+
+        const setBtnInput = document.getElementById('setBtnInput');
+        const resetBtnInput = document.getElementById('resetBtnInput');
+        const resetCircuit = document.getElementById('resetCircuit');
+        const warningBox = document.getElementById('warningBox');
+
+        // Event listeners
+        setBtnInput.addEventListener('click', () => {
+            circuit.S = circuit.S === 0 ? 1 : 0;
+            updateButton(setBtnInput, circuit.S);
+            updateCircuit();
+        });
+
+        resetBtnInput.addEventListener('click', () => {
+            circuit.R = circuit.R === 0 ? 1 : 0;
+            updateButton(resetBtnInput, circuit.R);
+            updateCircuit();
+        });
+
+        resetCircuit.addEventListener('click', () => {
+            circuit.S = 0;
+            circuit.R = 0;
+            circuit.Q = 0;
+            updateButton(setBtnInput, 0);
+            updateButton(resetBtnInput, 0);
+            updateDisplay();
+            updateTruthTable();
+        });
+
+        function updateButton(btn, value) {
+            btn.textContent = value;
+            btn.className = value === 1 ? 'toggle-btn on' : 'toggle-btn off';
+        }
+
+        function updateCircuit() {
+            // Check for invalid state
+            if (circuit.S === 1 && circuit.R === 1) {
+                warningBox.classList.add('show');
+                // In real circuits, this is undefined, but we'll show both outputs as 1
+                circuit.Q = 1; // Undefined behavior
+            } else {
+                warningBox.classList.remove('show');
+
+                // Apply RS flip-flop logic
+                if (circuit.S === 1 && circuit.R === 0) {
+                    circuit.Q = 1; // Set
+                } else if (circuit.S === 0 && circuit.R === 1) {
+                    circuit.Q = 0; // Reset
+                }
+                // If S=0 and R=0, Q maintains its current value (memory)
+            }
+
+            updateDisplay();
+            updateTruthTable();
+        }
+
+        function updateDisplay() {
+            const qValue = document.getElementById('qValue');
+            const qBarValue = document.getElementById('qBarValue');
+            const outputQ = document.getElementById('outputQ');
+            const outputQBar = document.getElementById('outputQBar');
+            const stateDescription = document.getElementById('stateDescription');
+
+            // Calculate Q' (complement of Q)
+            const qBar = circuit.S === 1 && circuit.R === 1 ? 1 : (circuit.Q === 0 ? 1 : 0);
+
+            qValue.textContent = circuit.Q;
+            qBarValue.textContent = qBar;
+
+            outputQ.className = circuit.Q === 1 ? 'output-box high' : 'output-box low';
+            outputQBar.className = qBar === 1 ? 'output-box high' : 'output-box low';
+
+            // Update state description
+            if (circuit.S === 1 && circuit.R === 1) {
+                stateDescription.textContent = 'Invalid State: Both S and R are active! This is forbidden.';
+            } else if (circuit.S === 1 && circuit.R === 0) {
+                stateDescription.textContent = 'Set State: S=1, R=0 → Q forced to 1 (Q\' = 0)';
+            } else if (circuit.S === 0 && circuit.R === 1) {
+                stateDescription.textContent = 'Reset State: S=0, R=1 → Q forced to 0 (Q\' = 1)';
+            } else {
+                stateDescription.textContent = `Hold State: S=0, R=0 → Q maintains value ${circuit.Q} (Memory active)`;
+            }
+        }
+
+        function updateTruthTable() {
+            const rows = document.querySelectorAll('#truthTableBody tr');
+            rows.forEach(row => {
+                const s = parseInt(row.getAttribute('data-s'));
+                const r = parseInt(row.getAttribute('data-r'));
+
+                if (s === circuit.S && r === circuit.R) {
+                    row.classList.add('current-state');
+                } else {
+                    row.classList.remove('current-state');
+                }
+            });
+        }
+
+        function drawCircuit() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            circuit.animationPhase = (circuit.animationPhase + 0.02) % 1;
+
+            // Define positions
+            const norGate1X = 400;
+            const norGate1Y = 120;
+            const norGate2X = 400;
+            const norGate2Y = 280;
+
+            const inputSX = 150;
+            const inputSY = 100;
+            const inputRX = 150;
+            const inputRY = 300;
+
+            const outputQX = 750;
+            const outputQY = 120;
+            const outputQBarX = 750;
+            const outputQBarY = 280;
+
+            const qBar = circuit.S === 1 && circuit.R === 1 ? 1 : (circuit.Q === 0 ? 1 : 0);
+
+            // Draw NOR gates
+            drawNORGate(norGate1X, norGate1Y, circuit.Q);
+            drawNORGate(norGate2X, norGate2Y, qBar);
+
+            // Draw input S
+            drawInputNode(inputSX, inputSY, circuit.S, 'S');
+            // Wire from S to NOR1
+            drawWire(inputSX + 30, inputSY, norGate1X - 80, inputSY, circuit.S);
+            drawWire(norGate1X - 80, inputSY, norGate1X - 80, norGate1Y - 20, circuit.S);
+
+            // Draw input R
+            drawInputNode(inputRX, inputRY, circuit.R, 'R');
+            // Wire from R to NOR2
+            drawWire(inputRX + 30, inputRY, norGate2X - 80, inputRY, circuit.R);
+            drawWire(norGate2X - 80, inputRY, norGate2X - 80, norGate2Y + 20, circuit.R);
+
+            // Feedback wire from NOR1 output (Q) to NOR2 input
+            const feedbackY1 = norGate1Y + 60;
+            drawWire(norGate1X + 90, norGate1Y, norGate1X + 120, norGate1Y, circuit.Q);
+            drawWire(norGate1X + 120, norGate1Y, norGate1X + 120, feedbackY1, circuit.Q);
+            drawWire(norGate1X + 120, feedbackY1, norGate2X - 60, feedbackY1, circuit.Q);
+            drawWire(norGate2X - 60, feedbackY1, norGate2X - 60, norGate2Y - 20, circuit.Q);
+
+            // Feedback wire from NOR2 output (Q') to NOR1 input
+            const feedbackY2 = norGate2Y - 60;
+            drawWire(norGate2X + 90, norGate2Y, norGate2X + 120, norGate2Y, qBar);
+            drawWire(norGate2X + 120, norGate2Y, norGate2X + 120, feedbackY2, qBar);
+            drawWire(norGate2X + 120, feedbackY2, norGate1X - 60, feedbackY2, qBar);
+            drawWire(norGate1X - 60, feedbackY2, norGate1X - 60, norGate1Y + 20, qBar);
+
+            // Output Q
+            drawWire(norGate1X + 90, norGate1Y, outputQX - 30, outputQY, circuit.Q);
+            drawOutputNode(outputQX, outputQY, circuit.Q, 'Q');
+
+            // Output Q'
+            drawWire(norGate2X + 90, norGate2Y, outputQBarX - 30, outputQBarY, qBar);
+            drawOutputNode(outputQBarX, outputQBarY, qBar, "Q'");
+
+            // Connection dots
+            drawConnectionDot(norGate1X + 120, norGate1Y, circuit.Q);
+            drawConnectionDot(norGate2X + 120, norGate2Y, qBar);
+            drawConnectionDot(norGate1X - 80, inputSY, circuit.S);
+            drawConnectionDot(norGate2X - 80, inputRY, circuit.R);
+            drawConnectionDot(norGate1X - 60, feedbackY2, qBar);
+            drawConnectionDot(norGate2X - 60, feedbackY1, circuit.Q);
+
+            // Labels
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Feedback Loop', 500, 70);
+            ctx.fillText('Feedback Loop', 500, 330);
+        }
+
+        function drawNORGate(x, y, outputValue) {
+            // Gate body
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = '#ecf0f1';
+
+            ctx.beginPath();
+            ctx.arc(x, y, 50, -Math.PI / 2, Math.PI / 2, false);
+            ctx.lineTo(x - 30, y + 50);
+            ctx.quadraticCurveTo(x - 50, y, x - 30, y - 50);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Output inverter bubble
+            ctx.beginPath();
+            ctx.arc(x + 60, y, 10, 0, Math.PI * 2);
+            ctx.fillStyle = outputValue ? '#28a745' : '#ecf0f1';
+            ctx.fill();
+            ctx.stroke();
+
+            // Input connection lines
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x - 80, y - 20);
+            ctx.lineTo(x - 30, y - 20);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x - 80, y + 20);
+            ctx.lineTo(x - 30, y + 20);
+            ctx.stroke();
+
+            // Output line (short stub)
+            ctx.beginPath();
+            ctx.moveTo(x + 70, y);
+            ctx.lineTo(x + 90, y);
+            ctx.stroke();
+
+            // NOR label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('NOR', x - 5, y);
+        }
+
+        function drawInputNode(x, y, value, label) {
+            // Node circle
+            ctx.fillStyle = value === 1 ? '#28a745' : '#6c757d';
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Value
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(value, x, y);
+
+            // Label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText(label, x - 45, y);
+
+            // Connection stub
+            ctx.strokeStyle = value === 1 ? '#28a745' : '#6c757d';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(x + 20, y);
+            ctx.lineTo(x + 30, y);
+            ctx.stroke();
+        }
+
+        function drawOutputNode(x, y, value, label) {
+            // Connection stub
+            ctx.strokeStyle = value === 1 ? '#28a745' : '#6c757d';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(x - 30, y);
+            ctx.lineTo(x - 20, y);
+            ctx.stroke();
+
+            // Node circle
+            ctx.fillStyle = value === 1 ? '#28a745' : '#6c757d';
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Value
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(value, x, y);
+
+            // Label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText(label, x + 45, y);
+        }
+
+        function drawWire(x1, y1, x2, y2, active) {
+            ctx.strokeStyle = active === 1 ? '#28a745' : '#95a5a6';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Animated signal if active
+            if (active === 1) {
+                const progress = circuit.animationPhase;
+                const signalX = x1 + (x2 - x1) * progress;
+                const signalY = y1 + (y2 - y1) * progress;
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.arc(signalX, signalY, 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(signalX, signalY, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawConnectionDot(x, y, active) {
+            ctx.fillStyle = active === 1 ? '#28a745' : '#6c757d';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Animation loop
+        function animate() {
+            drawCircuit();
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        updateDisplay();
+        updateTruthTable();
+        animate();
+    </script>
+</body>
+</html>
