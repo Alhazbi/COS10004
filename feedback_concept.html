@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - The Key to Memory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #f0f0f0;
+            margin-bottom: 30px;
+            font-size: 1.3em;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .intro-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-size: 1.15em;
+            line-height: 1.8;
+        }
+
+        .intro-box strong {
+            font-size: 1.2em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .demo-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 3px solid #ddd;
+        }
+
+        .demo-card.no-feedback {
+            border-color: #ff6b6b;
+        }
+
+        .demo-card.with-feedback {
+            border-color: #51cf66;
+        }
+
+        .card-title {
+            text-align: center;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .card-title.no-feedback {
+            color: #ff6b6b;
+        }
+
+        .card-title.with-feedback {
+            color: #51cf66;
+        }
+
+        .circuit-canvas {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 350px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .control-panel {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .control-label {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .button.set {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .button.set:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .button.reset {
+            background: #f44336;
+            color: white;
+        }
+
+        .button.reset:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+
+        .button.remove {
+            background: #ff9800;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .button.remove:hover {
+            background: #fb8c00;
+        }
+
+        .output-box {
+            text-align: center;
+            padding: 25px;
+            background: #333;
+            color: white;
+            border-radius: 10px;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .output-box.high {
+            background: #4CAF50;
+            box-shadow: 0 0 30px rgba(76, 175, 80, 0.6);
+        }
+
+        .output-box.low {
+            background: #999;
+            opacity: 0.6;
+        }
+
+        .status-text {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-size: 1.05em;
+        }
+
+        .status-text.memory {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+        }
+
+        .status-text.no-memory {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+        }
+
+        /* SVG styles for drawing circuits */
+        svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .wire {
+            stroke: #999;
+            stroke-width: 3;
+            fill: none;
+            transition: stroke 0.3s;
+        }
+
+        .wire.active {
+            stroke: #ff6b6b;
+            stroke-width: 4;
+            filter: drop-shadow(0 0 8px #ff6b6b);
+        }
+
+        .gate-box {
+            fill: white;
+            stroke: #333;
+            stroke-width: 3;
+            transition: all 0.3s;
+        }
+
+        .gate-box.active {
+            fill: #ffeb3b;
+            stroke: #ff6b6b;
+            filter: drop-shadow(0 0 10px rgba(255, 235, 59, 0.8));
+        }
+
+        .gate-text {
+            font-size: 16px;
+            font-weight: bold;
+            fill: #333;
+            text-anchor: middle;
+        }
+
+        .signal-circle {
+            fill: #999;
+            transition: all 0.3s;
+        }
+
+        .signal-circle.active {
+            fill: #ff6b6b;
+            filter: drop-shadow(0 0 6px #ff6b6b);
+        }
+
+        .feedback-path {
+            stroke: #51cf66;
+            stroke-width: 4;
+            fill: none;
+            stroke-dasharray: 8, 5;
+            transition: stroke 0.3s;
+        }
+
+        .feedback-path.active {
+            stroke: #2ecc71;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 10px #2ecc71);
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -20;
+            }
+        }
+
+        .feedback-label {
+            fill: #51cf66;
+            font-size: 18px;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+
+        .explanation-section {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 5px solid #2196f3;
+        }
+
+        .explanation-section h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .explanation-section p {
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .key-concept {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            font-size: 1.2em;
+            line-height: 1.8;
+        }
+
+        .key-concept strong {
+            font-size: 1.3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .subtitle {
+                font-size: 1.1em;
+            }
+        }
+
+        .step-indicator {
+            background: #fff;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 FEEDBACK: The Secret to Memory</h1>
+        <p class="subtitle">Discover how connecting output back to input creates memory</p>
+
+        <div class="section">
+            <div class="intro-box">
+                <strong>🤔 The Big Question:</strong>
+                We learned that combinational circuits have NO memory - the output disappears when inputs are removed. So how do we create memory?
+                <br><br>
+                <strong>💡 The Answer: FEEDBACK!</strong>
+                By connecting the OUTPUT back to the INPUT, we create a loop that can hold information.
+            </div>
+
+            <div class="key-concept">
+                <strong>🎯 What is Feedback?</strong>
+                Feedback means taking the output of a circuit and connecting it back to one of its inputs. This creates a loop where the output influences itself!
+                <br><br>
+                Think of it like talking into a microphone connected to speakers - the sound comes out and goes back in, creating a loop!
+            </div>
+
+            <div class="comparison">
+                <!-- NO FEEDBACK -->
+                <div class="demo-card no-feedback">
+                    <div class="card-title no-feedback">❌ WITHOUT FEEDBACK</div>
+                    <div class="step-indicator">
+                        <span class="step-number">1</span> Watch what happens without feedback loop
+                    </div>
+                    
+                    <div class="control-panel">
+                        <div class="control-row">
+                            <span class="control-label">Set Input = 1:</span>
+                            <button class="button set" onclick="setNoFeedback()">SET to 1</button>
+                        </div>
+                        <div class="control-row">
+                            <span class="control-label">Remove Input:</span>
+                            <button class="button reset" onclick="resetNoFeedback()">Set to 0</button>
+                        </div>
+                    </div>
+
+                    <div class="circuit-canvas">
+                        <svg id="noFeedbackSvg" viewBox="0 0 400 300">
+                            <!-- Input signal -->
+                            <circle class="signal-circle" id="nfInputDot" cx="40" cy="150" r="8"/>
+                            
+                            <!-- Wire from input to buffer -->
+                            <path class="wire" id="nfInputWire" d="M 48 150 L 120 150"/>
+                            
+                            <!-- Buffer/Gate (simple amplifier) -->
+                            <rect class="gate-box" id="nfGate" x="120" y="120" width="80" height="60" rx="5"/>
+                            <text class="gate-text" x="160" y="155">BUF</text>
+                            
+                            <!-- Wire from buffer to output -->
+                            <path class="wire" id="nfOutputWire" d="M 200 150 L 280 150"/>
+                            
+                            <!-- Output signal -->
+                            <circle class="signal-circle" id="nfOutputDot" cx="280" cy="150" r="8"/>
+                            
+                            <!-- Labels -->
+                            <text x="40" y="130" style="font-size: 14px; fill: #333; text-anchor: middle;">INPUT</text>
+                            <text x="280" y="130" style="font-size: 14px; fill: #333; text-anchor: middle;">OUTPUT</text>
+                            
+                            <!-- No feedback line -->
+                            <text x="200" y="250" style="font-size: 16px; fill: #ff6b6b; text-anchor: middle; font-weight: bold;">
+                                NO FEEDBACK LOOP
+                            </text>
+                        </svg>
+                    </div>
+
+                    <div class="output-box low" id="noFeedbackOutput">
+                        Output = 0
+                    </div>
+
+                    <div class="status-text no-memory" id="noFeedbackStatus">
+                        ⚠️ Status: No memory! Output follows input directly.
+                    </div>
+                </div>
+
+                <!-- WITH FEEDBACK -->
+                <div class="demo-card with-feedback">
+                    <div class="card-title with-feedback">✅ WITH FEEDBACK</div>
+                    <div class="step-indicator">
+                        <span class="step-number">2</span> Watch how feedback creates memory!
+                    </div>
+                    
+                    <div class="control-panel">
+                        <div class="control-row">
+                            <span class="control-label">Set Input = 1:</span>
+                            <button class="button set" onclick="setWithFeedback()">SET to 1</button>
+                        </div>
+                        <div class="control-row">
+                            <span class="control-label">Remove Input:</span>
+                            <button class="button reset" onclick="resetWithFeedback()">Set to 0</button>
+                        </div>
+                    </div>
+
+                    <div class="circuit-canvas">
+                        <svg id="feedbackSvg" viewBox="0 0 400 300">
+                            <!-- Input signal -->
+                            <circle class="signal-circle" id="fbInputDot" cx="40" cy="120" r="8"/>
+                            
+                            <!-- Wire from input to OR gate -->
+                            <path class="wire" id="fbInputWire" d="M 48 120 L 120 120"/>
+                            
+                            <!-- OR Gate -->
+                            <rect class="gate-box" id="fbGate" x="120" y="100" width="80" height="60" rx="30" ry="30"/>
+                            <text class="gate-text" x="160" y="135">OR</text>
+                            
+                            <!-- Wire from gate to output -->
+                            <path class="wire" id="fbOutputWire" d="M 200 130 L 280 130"/>
+                            
+                            <!-- Output signal -->
+                            <circle class="signal-circle" id="fbOutputDot" cx="280" cy="130" r="8"/>
+                            
+                            <!-- FEEDBACK PATH - The magic happens here! -->
+                            <path class="feedback-path" id="fbFeedbackPath" 
+                                  d="M 280 130 L 320 130 L 320 220 L 100 220 L 100 150 L 120 150"/>
+                            
+                            <!-- Feedback arrow -->
+                            <polygon class="feedback-path" id="fbArrow" points="120,150 115,145 115,155"/>
+                            
+                            <!-- Labels -->
+                            <text x="40" y="100" style="font-size: 14px; fill: #333; text-anchor: middle;">INPUT</text>
+                            <text x="280" y="110" style="font-size: 14px; fill: #333; text-anchor: middle;">OUTPUT</text>
+                            
+                            <text class="feedback-label" x="210" y="245">
+                                🔄 FEEDBACK LOOP!
+                            </text>
+                            
+                            <!-- Annotation -->
+                            <text x="320" y="175" style="font-size: 12px; fill: #51cf66; text-anchor: middle; font-weight: bold;">
+                                Output feeds
+                            </text>
+                            <text x="320" y="190" style="font-size: 12px; fill: #51cf66; text-anchor: middle; font-weight: bold;">
+                                back to input!
+                            </text>
+                        </svg>
+                    </div>
+
+                    <div class="output-box low" id="feedbackOutput">
+                        Output = 0
+                    </div>
+
+                    <div class="status-text" id="feedbackStatus">
+                        💾 Status: Ready to store data with feedback!
+                    </div>
+                </div>
+            </div>
+
+            <div class="explanation-section">
+                <h3>🎓 How Feedback Creates Memory:</h3>
+                
+                <p><strong>WITHOUT FEEDBACK (Left side):</strong></p>
+                <p>
+                    • When you SET input to 1 → Output becomes 1 ✓<br>
+                    • When you REMOVE input (set to 0) → Output immediately becomes 0 ✗<br>
+                    • <strong>NO MEMORY!</strong> The circuit forgets instantly.
+                </p>
+
+                <p style="margin-top: 20px;"><strong>WITH FEEDBACK (Right side):</strong></p>
+                <p>
+                    • When you SET input to 1 → Output becomes 1 ✓<br>
+                    • Output feeds back to the OR gate's second input → Now the gate has 1 on its feedback input! 🔄<br>
+                    • When you REMOVE input (set to 0) → The OR gate still sees 1 from the feedback!<br>
+                    • <strong>OUTPUT STAYS AT 1!</strong> The circuit remembers! 💾
+                </p>
+
+                <p style="margin-top: 20px;"><strong>Why does this work?</strong></p>
+                <p>
+                    The OR gate says: "If EITHER input is 1, output is 1"<br>
+                    Once the output is 1, it feeds back as 1<br>
+                    So even when the main input becomes 0, the feedback input is still 1<br>
+                    This creates a <strong>self-sustaining loop</strong> - the circuit holds itself at 1!
+                </p>
+            </div>
+
+            <div class="key-concept">
+                <strong>🔑 The Key Insight:</strong>
+                FEEDBACK creates a loop where the circuit can "hold itself" in a state. The output becomes an input, creating a self-reinforcing cycle. This is how ALL memory in computers works - from flip-flops to RAM to hard drives, it all starts with feedback!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let noFeedbackState = 0;
+        let feedbackState = 0;
+
+        function setNoFeedback() {
+            noFeedbackState = 1;
+            updateNoFeedback();
+            
+            setTimeout(() => {
+                alert("✓ Input set to 1\n\n→ Output is now 1 (signal flows through)\n\nNow try clicking 'Set to 0' to remove the input!");
+            }, 100);
+        }
+
+        function resetNoFeedback() {
+            noFeedbackState = 0;
+            updateNoFeedback();
+            
+            setTimeout(() => {
+                alert("⚠️ Input removed (set to 0)\n\n→ Output IMMEDIATELY drops to 0\n\n❌ NO MEMORY! The circuit forgot everything!");
+            }, 100);
+        }
+
+        function updateNoFeedback() {
+            const active = noFeedbackState === 1;
+            
+            // Update visual elements
+            document.getElementById('nfInputDot').classList.toggle('active', active);
+            document.getElementById('nfInputWire').classList.toggle('active', active);
+            document.getElementById('nfGate').classList.toggle('active', active);
+            document.getElementById('nfOutputWire').classList.toggle('active', active);
+            document.getElementById('nfOutputDot').classList.toggle('active', active);
+            
+            // Update output display
+            const output = document.getElementById('noFeedbackOutput');
+            output.textContent = `Output = ${noFeedbackState}`;
+            output.className = 'output-box ' + (active ? 'high' : 'low');
+            
+            // Update status
+            const status = document.getElementById('noFeedbackStatus');
+            if (active) {
+                status.textContent = '✓ Input is 1, so Output is 1';
+                status.className = 'status-text';
+            } else {
+                status.textContent = '⚠️ Input is 0, so Output is 0 - NO MEMORY!';
+                status.className = 'status-text no-memory';
+            }
+        }
+
+        function setWithFeedback() {
+            feedbackState = 1;
+            updateWithFeedback();
+            
+            setTimeout(() => {
+                alert("✓ Input set to 1\n\n→ Output becomes 1\n→ Output feeds back to OR gate\n\nNow the magic: Click 'Set to 0' to remove the input...");
+            }, 100);
+        }
+
+        function resetWithFeedback() {
+            const wasHigh = feedbackState === 1;
+            
+            if (wasHigh) {
+                // Don't change the state! Feedback keeps it high
+                updateWithFeedback();
+                
+                setTimeout(() => {
+                    alert("🎉 AMAZING!\n\nInput removed (set to 0)\n→ But Output STAYS at 1!\n\n✓ The feedback loop keeps the output high\n✓ The circuit REMEMBERS!\n\nThis is how memory works in computers!");
+                }, 100);
+            } else {
+                updateWithFeedback();
+                
+                setTimeout(() => {
+                    alert("Input is 0 and there's no stored value yet.\n\nTry clicking 'SET to 1' first to store a value!");
+                }, 100);
+            }
+        }
+
+        function updateWithFeedback() {
+            const active = feedbackState === 1;
+            
+            // Update visual elements
+            document.getElementById('fbInputDot').classList.toggle('active', !active && feedbackState === 0); // Only show input when we're setting it
+            document.getElementById('fbInputWire').classList.toggle('active', !active && feedbackState === 0);
+            document.getElementById('fbGate').classList.toggle('active', active);
+            document.getElementById('fbOutputWire').classList.toggle('active', active);
+            document.getElementById('fbOutputDot').classList.toggle('active', active);
+            
+            // Show feedback path when output is high
+            document.getElementById('fbFeedbackPath').classList.toggle('active', active);
+            document.getElementById('fbArrow').classList.toggle('active', active);
+            
+            // Update output display
+            const output = document.getElementById('feedbackOutput');
+            output.textContent = `Output = ${feedbackState}`;
+            output.className = 'output-box ' + (active ? 'high' : 'low');
+            
+            // Update status
+            const status = document.getElementById('feedbackStatus');
+            if (active) {
+                status.textContent = '💾 STORING: Output = 1 (held by feedback loop!)';
+                status.className = 'status-text memory';
+            } else {
+                status.textContent = '💾 Ready to store. Set input to 1 to begin!';
+                status.className = 'status-text';
+            }
+        }
+
+        // Initialize
+        updateNoFeedback();
+        updateWithFeedback();
+
+        // Show intro message
+        setTimeout(() => {
+            alert("Welcome! 🎓\n\nThis demo shows the KEY DIFFERENCE between circuits with and without feedback.\n\nTry the LEFT side first (no feedback), then compare with the RIGHT side (with feedback).\n\nYou'll see how feedback creates MEMORY!");
+        }, 500);
+    </script>
+</body>
+</html>
