@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem #2 - Too Many Inputs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .big-title {
+            font-size: 2em;
+            color: #2196F3;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .explanation-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2196F3;
+            font-size: 1.2em;
+            line-height: 2;
+        }
+
+        .circuit-box {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            border: 3px solid #0f3460;
+            position: relative;
+        }
+
+        .animation-title {
+            color: #00d4ff;
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .narration-box {
+            background: #fff9e6;
+            border-left: 5px solid #ffc107;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-size: 1.15em;
+            line-height: 1.9;
+        }
+
+        .narration-box strong {
+            color: #f57c00;
+        }
+
+        .key-point {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border: 3px solid #fdcb6e;
+            font-size: 1.2em;
+            line-height: 1.9;
+        }
+
+        .key-point h3 {
+            color: #d63031;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="big-title">⚠️ Problem #2 - Too Many Inputs!</div>
+        
+        <div class="explanation-box">
+            Think about it... we're trying to store <strong>ONE bit</strong> of information (either 0 or 1).
+            <br><br>
+            But we need to control <strong>TWO inputs</strong> (S and R) to do it!
+            <br><br>
+            That's like needing two steering wheels to drive one car! 🚗🚗
+        </div>
+
+        <div class="circuit-box">
+            <div class="animation-title">Visualizing the Inefficiency</div>
+            <svg viewBox="0 0 800 300">
+                <!-- What we want to store -->
+                <rect x="50" y="80" width="150" height="120" fill="#e3f2fd" stroke="#2196F3" stroke-width="3" rx="10"/>
+                <text x="125" y="120" style="font-size: 20px; text-anchor: middle; font-weight: bold; fill: #2196F3;">What we store:</text>
+                <text x="125" y="160" style="font-size: 48px; text-anchor: middle; font-weight: bold; fill: #2196F3;">1 BIT</text>
+                
+                <!-- Arrow -->
+                <path d="M 210 140 L 280 140" stroke="#666" stroke-width="4" marker-end="url(#arrowhead)"/>
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                        <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+                    </marker>
+                </defs>
+                
+                <!-- What we need to control -->
+                <rect x="300" y="30" width="200" height="80" fill="#ffebee" stroke="#f44336" stroke-width="3" rx="10"/>
+                <text x="400" y="60" style="font-size: 18px; text-anchor: middle; font-weight: bold; fill: #f44336;">Input S</text>
+                <text x="400" y="90" style="font-size: 32px; text-anchor: middle; font-weight: bold; fill: #f44336;">0 or 1</text>
+                
+                <rect x="300" y="130" width="200" height="80" fill="#ffebee" stroke="#f44336" stroke-width="3" rx="10"/>
+                <text x="400" y="160" style="font-size: 18px; text-anchor: middle; font-weight: bold; fill: #f44336;">Input R</text>
+                <text x="400" y="190" style="font-size: 32px; text-anchor: middle; font-weight: bold; fill: #f44336;">0 or 1</text>
+                
+                <text x="600" y="140" style="font-size: 28px; font-weight: bold; fill: #f44336;">= 2 WIRES!</text>
+            </svg>
+        </div>
+
+        <div class="narration-box">
+            <strong>The Inefficiency:</strong> We want to store just 1 bit, but we need to manage 2 inputs!
+            <br><br>
+            Plus, we need to be careful to never set both to 0 (or we get the forbidden state).
+            <br><br>
+            Wouldn't it be nice if we only needed <strong>ONE input</strong>? 🤔
+        </div>
+
+        <div class="key-point">
+            <h3>🎯 Key Problem #2</h3>
+            Using <strong>two inputs</strong> (S and R) to store <strong>one bit</strong> is wasteful and complicated. We need a simpler way!
+        </div>
+    </div>
+</body>
+</html>

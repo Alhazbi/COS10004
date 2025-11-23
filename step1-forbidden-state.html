@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Problem #1 - The Forbidden State</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .big-title {
+            font-size: 2em;
+            color: #2196F3;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .explanation-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2196F3;
+            font-size: 1.2em;
+            line-height: 2;
+        }
+
+        .control-panel {
+            background: #f5f5f5;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .control-button {
+            padding: 20px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            color: white;
+            text-transform: uppercase;
+            background: #ff9800;
+        }
+
+        .control-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .control-button:active {
+            transform: translateY(0);
+        }
+
+        .circuit-box {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+            border: 3px solid #0f3460;
+            position: relative;
+        }
+
+        .animation-title {
+            color: #00d4ff;
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .wire {
+            fill: none;
+            stroke: #555;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+
+        .wire.active {
+            stroke: #00d4ff;
+            filter: drop-shadow(0 0 10px #00d4ff);
+            animation: glow 1s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 10px #00d4ff); }
+            50% { filter: drop-shadow(0 0 20px #00d4ff); }
+        }
+
+        .gate {
+            fill: #2c3e50;
+            stroke: #3498db;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .gate.active {
+            fill: #3498db;
+            filter: drop-shadow(0 0 20px #3498db);
+        }
+
+        .gate-label {
+            font-size: 20px;
+            font-weight: bold;
+            fill: #ecf0f1;
+            text-anchor: middle;
+        }
+
+        .pin-label {
+            font-size: 18px;
+            fill: #ecf0f1;
+            font-weight: bold;
+        }
+
+        .value-label {
+            font-size: 28px;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+
+        .value-0 { fill: #e74c3c; }
+        .value-1 { fill: #2ecc71; }
+
+        .particle {
+            fill: #00ff88;
+            filter: drop-shadow(0 0 8px #00ff88);
+        }
+
+        .problem-highlight {
+            fill: #ff4444;
+            opacity: 0;
+            animation: problemPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes problemPulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.7; }
+        }
+
+        .narration-box {
+            background: #fff9e6;
+            border-left: 5px solid #ffc107;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-size: 1.15em;
+            line-height: 1.9;
+        }
+
+        .narration-box strong {
+            color: #f57c00;
+        }
+
+        .key-point {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border: 3px solid #fdcb6e;
+            font-size: 1.2em;
+            line-height: 1.9;
+        }
+
+        .key-point h3 {
+            color: #d63031;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="big-title">⚠️ Problem #1 - The Forbidden State</div>
+        
+        <div class="explanation-box">
+            But the RS flip-flop has a <strong>BIG problem</strong>!
+            <br><br>
+            What happens when <strong>both S=0 AND R=0</strong> at the same time?
+            <br><br>
+            Let's see with an animation...
+        </div>
+
+        <div class="control-panel">
+            <button class="control-button" onclick="animateForbidden()">
+                ❌ TRY FORBIDDEN STATE (S=0, R=0)
+            </button>
+        </div>
+
+        <div class="circuit-box">
+            <div class="animation-title">⚠️ The Forbidden State Animation</div>
+            <svg viewBox="0 0 800 400" id="forbidden-circuit">
+                <!-- S Input -->
+                <text x="30" y="125" class="pin-label">S</text>
+                <path d="M 60 120 L 200 120" class="wire" id="f-wire-s"/>
+                <text x="100" y="110" class="value-label value-0" id="f-val-s">0</text>
+                
+                <!-- R Input -->
+                <text x="30" y="285" class="pin-label">R</text>
+                <path d="M 60 280 L 200 280" class="wire" id="f-wire-r"/>
+                <text x="100" y="270" class="value-label value-0" id="f-val-r">0</text>
+                
+                <!-- RS Block with problem highlight -->
+                <rect x="200" y="100" width="180" height="200" class="problem-highlight" id="problem-flash"/>
+                <rect x="200" y="100" width="180" height="200" class="gate" id="f-rs-block" rx="10"/>
+                <text x="290" y="210" class="gate-label">RS Flip-Flop</text>
+                <text x="290" y="235" style="fill: #ff4444; font-size: 24px; text-anchor: middle;">⚠️ ERROR!</text>
+                
+                <!-- Q Output -->
+                <path d="M 380 160 L 750 160" class="wire" id="f-wire-q"/>
+                <text x="700" y="165" class="pin-label">Q</text>
+                <text x="620" y="165" class="value-label value-1" id="f-val-q">1</text>
+                
+                <!-- Q̅ Output -->
+                <path d="M 380 240 L 750 240" class="wire" id="f-wire-qbar"/>
+                <text x="690" y="245" class="pin-label">Q̅</text>
+                <text x="620" y="245" class="value-label value-1" id="f-val-qbar">1</text>
+                
+                <!-- Particles -->
+                <g id="particles-forbidden"></g>
+            </svg>
+        </div>
+
+        <div class="narration-box">
+            <strong>The Problem:</strong> Both Q and Q̅ become 1! But they're supposed to be <strong>opposites</strong>! 
+            <br><br>
+            Q should be the opposite of Q̅ (one is 1, the other is 0). But here both are 1. This is the <strong>forbidden state</strong> and it breaks the flip-flop. When you try to leave this state, the output becomes unpredictable! 😱
+        </div>
+
+        <div class="key-point">
+            <h3>🎯 Key Problem #1</h3>
+            The RS flip-flop has a <strong>forbidden input combination</strong> (S=0, R=0 for NAND version) that causes both outputs to be the same. This is BAD and we need to prevent it!
+        </div>
+    </div>
+
+    <script>
+        let particles = [];
+        let animationFrame;
+
+        class Particle {
+            constructor(pathId, color = '#00ff88') {
+                this.path = document.getElementById(pathId);
+                if (!this.path) return;
+                
+                this.pathLength = this.path.getTotalLength();
+                this.position = 0;
+                this.speed = 3;
+                this.element = null;
+                this.active = true;
+                this.color = color;
+                this.createParticle();
+            }
+
+            createParticle() {
+                const containerId = this.path.closest('svg').querySelector('[id^="particles-"]')?.id;
+                if (!containerId) return;
+                
+                this.element = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                this.element.setAttribute("class", "particle");
+                this.element.setAttribute("r", "6");
+                this.element.setAttribute("fill", this.color);
+                this.element.setAttribute("filter", `drop-shadow(0 0 8px ${this.color})`);
+                document.getElementById(containerId).appendChild(this.element);
+            }
+
+            update() {
+                if (!this.active || !this.path || !this.element) return false;
+
+                this.position += this.speed;
+
+                if (this.position >= this.pathLength) {
+                    this.active = false;
+                    if (this.element && this.element.parentNode) {
+                        this.element.parentNode.removeChild(this.element);
+                    }
+                    return false;
+                }
+
+                const point = this.path.getPointAtLength(this.position);
+                this.element.setAttribute("cx", point.x);
+                this.element.setAttribute("cy", point.y);
+
+                return true;
+            }
+        }
+
+        function animateParticles() {
+            particles = particles.filter(p => p.update());
+            if (particles.length > 0) {
+                animationFrame = requestAnimationFrame(animateParticles);
+            }
+        }
+
+        function createParticleStream(pathId, count = 3, interval = 200, color = '#00ff88') {
+            return new Promise((resolve) => {
+                let created = 0;
+                const streamInterval = setInterval(() => {
+                    const particle = new Particle(pathId, color);
+                    particles.push(particle);
+                    
+                    if (particles.length === 1) {
+                        animateParticles();
+                    }
+
+                    created++;
+                    if (created >= count) {
+                        clearInterval(streamInterval);
+                        setTimeout(resolve, 800);
+                    }
+                }, interval);
+            });
+        }
+
+        function clearAllParticles() {
+            particles.forEach(p => {
+                if (p.element && p.element.parentNode) {
+                    p.element.parentNode.removeChild(p.element);
+                }
+            });
+            particles = [];
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function animateForbidden() {
+            clearAllParticles();
+            
+            const wires = ['f-wire-s', 'f-wire-r', 'f-wire-q', 'f-wire-qbar'];
+            wires.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('active');
+            });
+            
+            await createParticleStream('f-wire-s', 4, 120, '#ff4444');
+            await sleep(100);
+            await createParticleStream('f-wire-r', 4, 120, '#ff4444');
+            
+            await sleep(300);
+            document.getElementById('f-rs-block').classList.add('active');
+            await sleep(500);
+            
+            await createParticleStream('f-wire-q', 4, 120, '#ff4444');
+            await sleep(100);
+            await createParticleStream('f-wire-qbar', 4, 120, '#ff4444');
+        }
+    </script>
+</body>
+</html>
