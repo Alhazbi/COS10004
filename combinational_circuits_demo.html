@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combinational Circuits - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #f0f0f0;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .concept-box {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .concept-box h2 {
+            margin-bottom: 15px;
+        }
+
+        .concept-box ul {
+            list-style-position: inside;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+
+        .gate-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .gate-demo {
+            flex: 1;
+            min-width: 280px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 3px solid #e0e0e0;
+        }
+
+        .gate-title {
+            text-align: center;
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .circuit-visual {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+            min-height: 200px;
+        }
+
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .input-label {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .wire {
+            position: absolute;
+            background: #999;
+            transition: background 0.3s;
+        }
+
+        .wire.active {
+            background: #ff6b6b;
+            box-shadow: 0 0 10px #ff6b6b;
+        }
+
+        .gate-shape {
+            position: absolute;
+            border: 3px solid #333;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            transition: all 0.3s;
+        }
+
+        .gate-shape.active {
+            background: #ffeb3b;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 235, 59, 0.8);
+        }
+
+        .signal-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #999;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .signal-dot.active {
+            background: #ff6b6b;
+            box-shadow: 0 0 10px #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .output-display {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: #333;
+            color: white;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .output-display.active {
+            background: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .output-display.inactive {
+            background: #999;
+            opacity: 0.5;
+        }
+
+        .truth-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .truth-table th,
+        .truth-table td {
+            border: 2px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .truth-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .truth-table tr:hover {
+            background: #f0f0f0;
+        }
+
+        .truth-table tr.highlight {
+            background: #ffeb3b;
+            font-weight: bold;
+        }
+
+        .remove-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background: #ff5252;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #ff1744;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 82, 82, 0.4);
+        }
+
+        .remove-btn:active {
+            transform: translateY(0);
+        }
+
+        .explanation {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .explanation strong {
+            color: #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .gate-demo {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Combinational Circuits</h1>
+        <p class="subtitle">See how outputs depend ONLY on current inputs</p>
+
+        <div class="demo-section">
+            <div class="concept-box">
+                <h2>Key Concepts:</h2>
+                <ul>
+                    <li><strong>Output = F(current inputs)</strong> - Output depends ONLY on what's at the inputs RIGHT NOW</li>
+                    <li><strong>If inputs change, output changes immediately</strong> - No delay, instant response</li>
+                    <li><strong>The moment inputs are removed, the output disappears</strong> - NO MEMORY!</li>
+                </ul>
+            </div>
+
+            <div class="gate-container">
+                <!-- AND Gate Demo -->
+                <div class="gate-demo">
+                    <div class="gate-title">AND Gate</div>
+                    
+                    <div class="input-section">
+                        <div class="input-control">
+                            <span class="input-label">Input A:</span>
+                            <label class="switch">
+                                <input type="checkbox" id="andA" onchange="updateGate('and')">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-control">
+                            <span class="input-label">Input B:</span>
+                            <label class="switch">
+                                <input type="checkbox" id="andB" onchange="updateGate('and')">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="circuit-visual" id="andCircuit">
+                        <!-- Input dots -->
+                        <div class="signal-dot" id="andDotA" style="left: 20px; top: 50px;"></div>
+                        <div class="signal-dot" id="andDotB" style="left: 20px; top: 120px;"></div>
+                        
+                        <!-- Wires -->
+                        <div class="wire" id="andWireA" style="left: 32px; top: 55px; width: 80px; height: 3px;"></div>
+                        <div class="wire" id="andWireB" style="left: 32px; top: 125px; width: 80px; height: 3px;"></div>
+                        <div class="wire" id="andWireOut" style="left: 182px; top: 89px; width: 80px; height: 3px;"></div>
+                        
+                        <!-- Gate -->
+                        <div class="gate-shape" id="andGate" style="left: 112px; top: 60px; width: 70px; height: 60px; border-radius: 0 35px 35px 0;">
+                            AND
+                        </div>
+                        
+                        <!-- Output dot -->
+                        <div class="signal-dot" id="andDotOut" style="left: 262px; top: 85px;"></div>
+                    </div>
+
+                    <div class="output-display" id="andOutput">
+                        Output: 0
+                    </div>
+
+                    <button class="remove-btn" onclick="removeInputs('and')">
+                        ❌ Remove All Inputs
+                    </button>
+
+                    <div class="explanation">
+                        <strong>AND Gate:</strong> Output is 1 ONLY when BOTH inputs are 1. Otherwise output is 0.
+                    </div>
+
+                    <table class="truth-table">
+                        <tr>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>Output</th>
+                        </tr>
+                        <tr id="andRow00">
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr id="andRow01">
+                            <td>0</td>
+                            <td>1</td>
+                            <td>0</td>
+                        </tr>
+                        <tr id="andRow10">
+                            <td>1</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr id="andRow11">
+                            <td>1</td>
+                            <td>1</td>
+                            <td>1</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- OR Gate Demo -->
+                <div class="gate-demo">
+                    <div class="gate-title">OR Gate</div>
+                    
+                    <div class="input-section">
+                        <div class="input-control">
+                            <span class="input-label">Input A:</span>
+                            <label class="switch">
+                                <input type="checkbox" id="orA" onchange="updateGate('or')">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-control">
+                            <span class="input-label">Input B:</span>
+                            <label class="switch">
+                                <input type="checkbox" id="orB" onchange="updateGate('or')">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="circuit-visual" id="orCircuit">
+                        <!-- Input dots -->
+                        <div class="signal-dot" id="orDotA" style="left: 20px; top: 50px;"></div>
+                        <div class="signal-dot" id="orDotB" style="left: 20px; top: 120px;"></div>
+                        
+                        <!-- Wires -->
+                        <div class="wire" id="orWireA" style="left: 32px; top: 55px; width: 80px; height: 3px;"></div>
+                        <div class="wire" id="orWireB" style="left: 32px; top: 125px; width: 80px; height: 3px;"></div>
+                        <div class="wire" id="orWireOut" style="left: 182px; top: 89px; width: 80px; height: 3px;"></div>
+                        
+                        <!-- Gate -->
+                        <div class="gate-shape" id="orGate" style="left: 112px; top: 60px; width: 70px; height: 60px; border-radius: 0 50% 50% 0;">
+                            OR
+                        </div>
+                        
+                        <!-- Output dot -->
+                        <div class="signal-dot" id="orDotOut" style="left: 262px; top: 85px;"></div>
+                    </div>
+
+                    <div class="output-display" id="orOutput">
+                        Output: 0
+                    </div>
+
+                    <button class="remove-btn" onclick="removeInputs('or')">
+                        ❌ Remove All Inputs
+                    </button>
+
+                    <div class="explanation">
+                        <strong>OR Gate:</strong> Output is 1 when AT LEAST ONE input is 1. Output is 0 only when both inputs are 0.
+                    </div>
+
+                    <table class="truth-table">
+                        <tr>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>Output</th>
+                        </tr>
+                        <tr id="orRow00">
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr id="orRow01">
+                            <td>0</td>
+                            <td>1</td>
+                            <td>1</td>
+                        </tr>
+                        <tr id="orRow10">
+                            <td>1</td>
+                            <td>0</td>
+                            <td>1</td>
+                        </tr>
+                        <tr id="orRow11">
+                            <td>1</td>
+                            <td>1</td>
+                            <td>1</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- XOR Gate Demo -->
+                <div class="gate-demo">
+                    <div class="gate-title">XOR Gate</div>
+                    
+                    <div class="input-section">
+                        <div class="input-control">
+                            <span class="input-label">Input A:</span>
+                            <label class="switch">
+                                <input type="checkbox" id="xorA" onchange="updateGate('xor')">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="input-control">
+                            <span class="input-label">Input B:</span>
+                            <label class="switch">
+                                <input type="checkbox" id="xorB" onchange="updateGate('xor')">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="circuit-visual" id="xorCircuit">
+                        <!-- Input dots -->
+                        <div class="signal-dot" id="xorDotA" style="left: 20px; top: 50px;"></div>
+                        <div class="signal-dot" id="xorDotB" style="left: 20px; top: 120px;"></div>
+                        
+                        <!-- Wires -->
+                        <div class="wire" id="xorWireA" style="left: 32px; top: 55px; width: 80px; height: 3px;"></div>
+                        <div class="wire" id="xorWireB" style="left: 32px; top: 125px; width: 80px; height: 3px;"></div>
+                        <div class="wire" id="xorWireOut" style="left: 182px; top: 89px; width: 80px; height: 3px;"></div>
+                        
+                        <!-- Gate -->
+                        <div class="gate-shape" id="xorGate" style="left: 112px; top: 60px; width: 70px; height: 60px; border-radius: 0 50% 50% 0;">
+                            XOR
+                        </div>
+                        
+                        <!-- Output dot -->
+                        <div class="signal-dot" id="xorDotOut" style="left: 262px; top: 85px;"></div>
+                    </div>
+
+                    <div class="output-display" id="xorOutput">
+                        Output: 0
+                    </div>
+
+                    <button class="remove-btn" onclick="removeInputs('xor')">
+                        ❌ Remove All Inputs
+                    </button>
+
+                    <div class="explanation">
+                        <strong>XOR Gate:</strong> Output is 1 when inputs are DIFFERENT. Output is 0 when inputs are the SAME.
+                    </div>
+
+                    <table class="truth-table">
+                        <tr>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>Output</th>
+                        </tr>
+                        <tr id="xorRow00">
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        <tr id="xorRow01">
+                            <td>0</td>
+                            <td>1</td>
+                            <td>1</td>
+                        </tr>
+                        <tr id="xorRow10">
+                            <td>1</td>
+                            <td>0</td>
+                            <td>1</td>
+                        </tr>
+                        <tr id="xorRow11">
+                            <td>1</td>
+                            <td>1</td>
+                            <td>0</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateGate(type) {
+            const aInput = document.getElementById(type + 'A').checked;
+            const bInput = document.getElementById(type + 'B').checked;
+            
+            let output;
+            switch(type) {
+                case 'and':
+                    output = aInput && bInput;
+                    break;
+                case 'or':
+                    output = aInput || bInput;
+                    break;
+                case 'xor':
+                    output = aInput !== bInput;
+                    break;
+            }
+            
+            // Update visual elements
+            updateVisual(type, aInput, bInput, output);
+            
+            // Update output display
+            const outputDisplay = document.getElementById(type + 'Output');
+            outputDisplay.textContent = 'Output: ' + (output ? '1' : '0');
+            outputDisplay.className = 'output-display ' + (output ? 'active' : 'inactive');
+            
+            // Highlight truth table row
+            updateTruthTable(type, aInput, bInput);
+        }
+        
+        function updateVisual(type, a, b, output) {
+            // Update input dots and wires
+            document.getElementById(type + 'DotA').className = 'signal-dot ' + (a ? 'active' : '');
+            document.getElementById(type + 'DotB').className = 'signal-dot ' + (b ? 'active' : '');
+            document.getElementById(type + 'WireA').className = 'wire ' + (a ? 'active' : '');
+            document.getElementById(type + 'WireB').className = 'wire ' + (b ? 'active' : '');
+            
+            // Update gate
+            document.getElementById(type + 'Gate').className = 'gate-shape ' + (output ? 'active' : '');
+            
+            // Update output wire and dot
+            document.getElementById(type + 'WireOut').className = 'wire ' + (output ? 'active' : '');
+            document.getElementById(type + 'DotOut').className = 'signal-dot ' + (output ? 'active' : '');
+        }
+        
+        function updateTruthTable(type, a, b) {
+            // Remove all highlights
+            const rows = document.querySelectorAll(`[id^="${type}Row"]`);
+            rows.forEach(row => row.classList.remove('highlight'));
+            
+            // Highlight current row
+            const rowId = type + 'Row' + (a ? '1' : '0') + (b ? '1' : '0');
+            document.getElementById(rowId).classList.add('highlight');
+        }
+        
+        function removeInputs(type) {
+            // Turn off both inputs
+            document.getElementById(type + 'A').checked = false;
+            document.getElementById(type + 'B').checked = false;
+            
+            // Update the gate
+            updateGate(type);
+            
+            // Add a visual effect to show removal
+            const outputDisplay = document.getElementById(type + 'Output');
+            outputDisplay.style.transform = 'scale(0.9)';
+            outputDisplay.style.opacity = '0.3';
+            
+            setTimeout(() => {
+                outputDisplay.style.transform = 'scale(1)';
+                outputDisplay.style.opacity = '1';
+            }, 300);
+            
+            // Show alert
+            setTimeout(() => {
+                alert(`⚠️ Notice: When inputs are removed (both = 0), the output immediately becomes 0.\n\nThis is COMBINATIONAL logic - NO MEMORY!`);
+            }, 400);
+        }
+        
+        // Initialize all gates
+        updateGate('and');
+        updateGate('or');
+        updateGate('xor');
+    </script>
+</body>
+</html>
