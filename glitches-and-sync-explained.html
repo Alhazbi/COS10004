@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Glitches & Clock Synchronization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 3em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.4em;
+            margin-bottom: 50px;
+        }
+
+        .section {
+            margin: 60px 0;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .simple-explanation {
+            background: #fff3cd;
+            border: 4px solid #ffc107;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            font-size: 1.4em;
+            line-height: 2;
+        }
+
+        .simple-explanation strong {
+            color: #f57c00;
+            font-size: 1.2em;
+        }
+
+        .demo-box {
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 30px 0;
+        }
+
+        .demo-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .wire-visual {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 30px 0;
+            position: relative;
+            min-height: 200px;
+        }
+
+        .voltage-chart {
+            width: 100%;
+            height: 300px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 10px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .voltage-line {
+            position: absolute;
+            height: 4px;
+            background: #4CAF50;
+            transition: all 0.3s;
+            left: 0;
+        }
+
+        .control-btn {
+            padding: 18px 40px;
+            margin: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #0b7dda;
+            transform: translateY(-3px);
+        }
+
+        .control-panel {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .step-by-step {
+            background: #e3f2fd;
+            border-left: 6px solid #2196f3;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .step-item {
+            font-size: 1.3em;
+            line-height: 2;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #2196f3;
+            color: white;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .comparison-box {
+            padding: 30px;
+            border-radius: 15px;
+            min-height: 400px;
+        }
+
+        .bad-box {
+            background: #ffebee;
+            border: 4px solid #f44336;
+        }
+
+        .good-box {
+            background: #e8f5e9;
+            border: 4px solid #4CAF50;
+        }
+
+        .box-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .bad-title {
+            color: #c62828;
+        }
+
+        .good-title {
+            color: #2e7d32;
+        }
+
+        canvas {
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: white;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .explanation-text {
+            font-size: 1.2em;
+            line-height: 1.9;
+            color: #333;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+            font-size: 1.4em;
+            line-height: 2;
+            text-align: center;
+        }
+
+        .highlight-box strong {
+            font-size: 1.3em;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .real-world-example {
+            background: #fff;
+            border: 4px solid #667eea;
+            border-radius: 15px;
+            padding: 35px;
+            margin: 30px 0;
+        }
+
+        .real-world-example h3 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .timeline-visual {
+            position: relative;
+            height: 300px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .latch-indicator {
+            position: absolute;
+            width: 100px;
+            height: 60px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.5s;
+            border: 3px solid #3498db;
+        }
+
+        .latch-indicator.updated {
+            background: #4CAF50;
+            border-color: #2e7d32;
+            transform: scale(1.1);
+        }
+
+        .time-marker {
+            position: absolute;
+            width: 3px;
+            height: 100%;
+            background: #ff6b6b;
+            top: 0;
+            transition: left 0.1s linear;
+        }
+
+        .time-label {
+            position: absolute;
+            bottom: 10px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 1000px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Understanding Glitches & Synchronization</h1>
+        <p class="subtitle">Let's make this crystal clear!</p>
+
+        <!-- PART 1: WHAT IS A GLITCH -->
+        <div class="section">
+            <div class="section-title">❓ Part 1: What Exactly is a Glitch?</div>
+
+            <div class="simple-explanation">
+                <strong>Simple Answer:</strong>
+                <br><br>
+                A glitch is an <strong>unwanted, temporary change</strong> in an electrical signal.
+                <br><br>
+                Imagine you want to send: <strong>0 → 1</strong> (change from 0 to 1)
+                <br><br>
+                But the wire is not perfect. The actual signal might be: <strong>0 → 1 → 0 → 1</strong>
+                <br><br>
+                Those middle changes (the extra 1→0→1) are <strong>glitches</strong> - they're mistakes!
+            </div>
+
+            <div class="real-world-example">
+                <h3>💡 Real-World Analogy:</h3>
+                <div class="explanation-text">
+                    <p style="margin-bottom: 20px;">
+                        <strong>Imagine turning on a light switch:</strong>
+                    </p>
+                    <p style="margin-bottom: 15px;">
+                        <strong>Perfect world:</strong> Switch goes OFF → ON (clean, instant)
+                    </p>
+                    <p style="margin-bottom: 15px;">
+                        <strong>Real world:</strong> As you flip it, the metal contacts bounce:
+                        <br>OFF → <span style="color: #f44336;">ON → OFF → ON → OFF →</span> ON
+                    </p>
+                    <p style="margin-top: 20px;">
+                        Those rapid bounces are like electrical glitches!
+                    </p>
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Interactive Demo: See a Glitch Happen</div>
+                
+                <div class="control-panel">
+                    <button class="control-btn btn-primary" onclick="showPerfectSignal()">▶ Show Perfect Signal</button>
+                    <button class="control-btn btn-primary" onclick="showGlitchySignal()">▶ Show Glitchy Signal (Reality!)</button>
+                </div>
+
+                <canvas id="glitchCanvas" width="1000" height="300"></canvas>
+
+                <div id="glitchExplanation" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; font-size: 1.2em; text-align: center;">
+                    Click a button to see the difference!
+                </div>
+            </div>
+
+            <div class="step-by-step">
+                <h3 style="color: #1976d2; font-size: 1.6em; margin-bottom: 20px;">Why Do Glitches Happen?</h3>
+                <div class="step-item">
+                    <span class="step-number">1</span>
+                    <strong>Electrical noise:</strong> Other signals nearby create interference (like radio static)
+                </div>
+                <div class="step-item">
+                    <span class="step-number">2</span>
+                    <strong>Wire imperfections:</strong> Signals don't change instantly - they take time to rise
+                </div>
+                <div class="step-item">
+                    <span class="step-number">3</span>
+                    <strong>Component variations:</strong> Different parts of circuit respond at different speeds
+                </div>
+                <div class="step-item">
+                    <span class="step-number">4</span>
+                    <strong>Temperature & voltage changes:</strong> Physical conditions affect signal quality
+                </div>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-box bad-box">
+                    <div class="box-title bad-title">❌ Without Clock</div>
+                    <div class="explanation-text" style="line-height: 2.2;">
+                        <strong>Problem:</strong> Latch sees EVERY change
+                        <br><br>
+                        Signal: 0 → 1 → 0 → 1 → 0 → 1
+                        <br><br>
+                        Latch updates: <span style="color: #f44336; font-weight: bold;">6 times!</span>
+                        <br><br>
+                        Final output: <span style="color: #f44336; font-weight: bold;">???</span> (unpredictable!)
+                        <br><br>
+                        <strong style="color: #c62828;">Result: Errors!</strong>
+                    </div>
+                </div>
+
+                <div class="comparison-box good-box">
+                    <div class="box-title good-title">✅ With Clock</div>
+                    <div class="explanation-text" style="line-height: 2.2;">
+                        <strong>Solution:</strong> Flip-flop only looks at signal when clock says
+                        <br><br>
+                        Signal: 0 → 1 → 0 → 1 → 0 → 1
+                        <br><br>
+                        Flip-flop checks only at <span style="color: #4CAF50; font-weight: bold;">clock edge</span>
+                        <br><br>
+                        Final output: <span style="color: #4CAF50; font-weight: bold;">1</span> (correct!)
+                        <br><br>
+                        <strong style="color: #2e7d32;">Result: Reliable!</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <strong>🎯 Key Insight:</strong>
+                Without a clock, the latch is like someone who believes EVERYTHING they hear, even mistakes.
+                <br><br>
+                With a clock, the flip-flop only listens at specific times, avoiding the mistakes!
+            </div>
+        </div>
+
+        <!-- PART 2: SYNCHRONIZATION -->
+        <div class="section">
+            <div class="section-title">🔄 Part 2: What is Synchronization?</div>
+
+            <div class="simple-explanation">
+                <strong>Simple Answer:</strong>
+                <br><br>
+                Synchronization means making sure <strong>multiple latches all update at the SAME TIME</strong>.
+                <br><br>
+                Without synchronization, different latches update at different moments = CHAOS!
+                <br><br>
+                With clock synchronization, ALL latches update together at the clock edge = ORDER!
+            </div>
+
+            <div class="real-world-example">
+                <h3>💡 Real-World Analogy:</h3>
+                <div class="explanation-text">
+                    <p style="margin-bottom: 20px;">
+                        <strong>Imagine an orchestra:</strong>
+                    </p>
+                    <p style="margin-bottom: 15px;">
+                        <strong>Without conductor (no clock):</strong> Each musician starts playing whenever they feel like it. Total chaos! Some start early, some late. Sounds terrible!
+                    </p>
+                    <p style="margin-bottom: 15px;">
+                        <strong>With conductor (clock):</strong> The conductor waves the baton - everyone starts at the EXACT same moment. Beautiful music!
+                    </p>
+                    <p style="margin-top: 20px;">
+                        The clock is like the conductor - it tells everyone WHEN to act!
+                    </p>
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">Interactive Demo: See Synchronization in Action</div>
+                
+                <div class="control-panel">
+                    <button class="control-btn btn-primary" onclick="demonstrateNoSync()">▶ No Clock (Chaos!)</button>
+                    <button class="control-btn btn-primary" onclick="demonstrateWithSync()">▶ With Clock (Synchronized!)</button>
+                    <button class="control-btn btn-secondary" onclick="resetSync()">🔄 Reset</button>
+                </div>
+
+                <div class="timeline-visual" id="syncTimeline">
+                    <!-- Time marker -->
+                    <div class="time-marker" id="timeMarker" style="left: 0;"></div>
+                    
+                    <!-- Three latches -->
+                    <div class="latch-indicator" id="latchA" style="left: 150px; top: 30px;">
+                        Latch A<br>
+                        <span id="valueA" style="font-size: 1.5em;">0</span>
+                    </div>
+                    <div class="latch-indicator" id="latchB" style="left: 150px; top: 120px;">
+                        Latch B<br>
+                        <span id="valueB" style="font-size: 1.5em;">0</span>
+                    </div>
+                    <div class="latch-indicator" id="latchC" style="left: 150px; top: 210px;">
+                        Latch C<br>
+                        <span id="valueC" style="font-size: 1.5em;">0</span>
+                    </div>
+
+                    <!-- Time labels -->
+                    <div class="time-label" style="left: 100px;">Start</div>
+                    <div class="time-label" style="left: 400px;">Time →</div>
+                </div>
+
+                <div id="syncStatus" style="margin-top: 30px; padding: 25px; background: #e3f2fd; border-radius: 10px; border-left: 5px solid #2196f3; font-size: 1.3em; text-align: center;">
+                    Click a button to see the difference!
+                </div>
+            </div>
+
+            <div class="step-by-step">
+                <h3 style="color: #1976d2; font-size: 1.6em; margin-bottom: 20px;">Step-by-Step: How Clock Synchronizes Multiple Latches</h3>
+                
+                <div class="step-item">
+                    <span class="step-number">1</span>
+                    <strong>All latches connect to the SAME clock wire</strong>
+                    <br>
+                    <span style="color: #666;">Like all musicians watching the same conductor</span>
+                </div>
+                
+                <div class="step-item">
+                    <span class="step-number">2</span>
+                    <strong>Clock signal travels to all latches</strong>
+                    <br>
+                    <span style="color: #666;">Yes, it arrives at slightly different times, but...</span>
+                </div>
+                
+                <div class="step-item">
+                    <span class="step-number">3</span>
+                    <strong>Clock signal is slow enough that the difference doesn't matter</strong>
+                    <br>
+                    <span style="color: #666;">The clock period (time between edges) is MUCH longer than signal travel time</span>
+                </div>
+                
+                <div class="step-item">
+                    <span class="step-number">4</span>
+                    <strong>All flip-flops capture their D input at the rising edge</strong>
+                    <br>
+                    <span style="color: #666;">This happens within a tiny fraction of the clock period</span>
+                </div>
+                
+                <div class="step-item">
+                    <span class="step-number">5</span>
+                    <strong>Result: All latches update "at the same time" (within nanoseconds)</strong>
+                    <br>
+                    <span style="color: #666;">Good enough for the circuit to work correctly!</span>
+                </div>
+            </div>
+
+            <div class="demo-box">
+                <div class="demo-title">The Numbers: Why Synchronization Works</div>
+                
+                <div style="background: #fff; padding: 30px; border-radius: 10px; font-size: 1.2em; line-height: 2;">
+                    <p style="margin-bottom: 20px;">
+                        <strong style="color: #667eea; font-size: 1.3em;">Example: 1 GHz Clock (typical CPU)</strong>
+                    </p>
+                    
+                    <p style="margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                        <strong>Clock period:</strong> 1 nanosecond (time between edges)
+                    </p>
+                    
+                    <p style="margin: 15px 0; padding: 15px; background: #fff3cd; border-radius: 8px;">
+                        <strong>Signal travel time across chip:</strong> ~0.01 nanoseconds
+                    </p>
+                    
+                    <p style="margin: 15px 0; padding: 15px; background: #e8f5e9; border-radius: 8px;">
+                        <strong>Difference between latches:</strong> Maybe 0.001 nanoseconds
+                    </p>
+                    
+                    <p style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%); color: white; border-radius: 10px; text-align: center; font-size: 1.2em;">
+                        <strong>0.001 nanoseconds vs 1 nanosecond = Basically the same time!</strong>
+                        <br><br>
+                        That's why all latches update "simultaneously"! ✅
+                    </p>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <strong>🎯 Key Insight:</strong>
+                The clock doesn't eliminate timing differences - it makes them SMALL ENOUGH that they don't matter!
+                <br><br>
+                Like the orchestra: not everyone starts at the EXACT same millisecond, but close enough that it sounds perfect!
+            </div>
+        </div>
+
+        <!-- FINAL SUMMARY -->
+        <div class="section">
+            <div class="section-title">📚 Final Summary</div>
+
+            <div style="background: white; padding: 40px; border-radius: 15px; font-size: 1.3em; line-height: 2.2;">
+                <div style="margin-bottom: 40px;">
+                    <h3 style="color: #f44336; font-size: 1.6em; margin-bottom: 15px;">❌ Problem 1: Glitches</h3>
+                    <p>
+                        <strong>What:</strong> Unwanted signal changes (0→1→0→1 instead of clean 0→1)
+                        <br>
+                        <strong>Why it matters:</strong> Without clock, latch responds to every glitch = wrong output
+                        <br>
+                        <strong>Solution:</strong> Clock tells flip-flop to only look at specific moments, ignoring glitches
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 40px;">
+                    <h3 style="color: #f44336; font-size: 1.6em; margin-bottom: 15px;">❌ Problem 2: No Synchronization</h3>
+                    <p>
+                        <strong>What:</strong> Different latches update at different times
+                        <br>
+                        <strong>Why it matters:</strong> Creates chaos - some latches have old data, some have new data
+                        <br>
+                        <strong>Solution:</strong> All latches share the same clock = they all update together
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; font-size: 1.3em;">
+                    <strong style="font-size: 1.4em; display: block; margin-bottom: 15px;">The Clock = Control + Coordination</strong>
+                    <br>
+                    It tells WHEN to update (avoiding glitches)
+                    <br>
+                    AND makes sure everyone updates TOGETHER (synchronization)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('glitchCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 250);
+            ctx.lineTo(950, 250);
+            ctx.moveTo(50, 50);
+            ctx.lineTo(50, 250);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('Voltage', 10, 30);
+            ctx.fillText('Time →', 850, 280);
+            ctx.fillText('LOW (0)', 10, 250);
+            ctx.fillText('HIGH (1)', 10, 70);
+
+            // Grid lines
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(50, 70);
+            ctx.lineTo(950, 70);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function showPerfectSignal() {
+            drawGrid();
+            
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            
+            // Perfect signal: 0 → 1
+            ctx.moveTo(50, 250);  // Start at LOW
+            ctx.lineTo(400, 250); // Stay LOW
+            ctx.lineTo(400, 70);  // Jump to HIGH (instant)
+            ctx.lineTo(950, 70);  // Stay HIGH
+            
+            ctx.stroke();
+
+            // Add annotation
+            ctx.fillStyle = '#4CAF50';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText('Perfect: Clean transition from 0 to 1', 300, 150);
+            
+            document.getElementById('glitchExplanation').innerHTML = 
+                '<strong style="color: #4CAF50;">✓ Perfect Signal (Ideal World)</strong><br>' +
+                'Clean transition from LOW to HIGH. This is what we WANT, but not what we GET in reality!';
+        }
+
+        function showGlitchySignal() {
+            drawGrid();
+            
+            ctx.strokeStyle = '#f44336';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            
+            // Glitchy signal: 0 → 1 → 0 → 1 → 0 → 1
+            ctx.moveTo(50, 250);   // Start at LOW
+            ctx.lineTo(380, 250);  // Stay LOW
+            ctx.lineTo(380, 70);   // Jump to HIGH
+            ctx.lineTo(450, 70);   // Stay HIGH briefly
+            ctx.lineTo(450, 250);  // GLITCH: Drop to LOW
+            ctx.lineTo(520, 250);  // Stay LOW briefly
+            ctx.lineTo(520, 70);   // GLITCH: Back to HIGH
+            ctx.lineTo(590, 70);   // Stay HIGH briefly
+            ctx.lineTo(590, 250);  // GLITCH: Drop to LOW
+            ctx.lineTo(660, 250);  // Stay LOW briefly
+            ctx.lineTo(660, 70);   // Finally stable at HIGH
+            ctx.lineTo(950, 70);   // Stay HIGH
+            
+            ctx.stroke();
+
+            // Mark glitches
+            ctx.fillStyle = '#f44336';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('GLITCH!', 440, 200);
+            ctx.fillText('GLITCH!', 510, 200);
+            ctx.fillText('GLITCH!', 580, 200);
+
+            // Draw glitch markers
+            ctx.strokeStyle = '#f44336';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(450, 50);
+            ctx.lineTo(450, 260);
+            ctx.moveTo(520, 50);
+            ctx.lineTo(520, 260);
+            ctx.moveTo(590, 50);
+            ctx.lineTo(590, 260);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            document.getElementById('glitchExplanation').innerHTML = 
+                '<strong style="color: #f44336;">⚠️ Glitchy Signal (Reality!)</strong><br>' +
+                'Notice the signal bounces up and down multiple times before settling at HIGH. ' +
+                '<br>Without a clock, a latch would respond to EACH of these changes - causing errors!';
+        }
+
+        // Synchronization demo
+        let syncAnimating = false;
+
+        function resetSync() {
+            syncAnimating = false;
+            document.getElementById('latchA').classList.remove('updated');
+            document.getElementById('latchB').classList.remove('updated');
+            document.getElementById('latchC').classList.remove('updated');
+            document.getElementById('valueA').textContent = '0';
+            document.getElementById('valueB').textContent = '0';
+            document.getElementById('valueC').textContent = '0';
+            document.getElementById('timeMarker').style.left = '0px';
+            document.getElementById('syncStatus').innerHTML = 'Click a button to see the difference!';
+            document.getElementById('syncStatus').style.background = '#e3f2fd';
+            document.getElementById('syncStatus').style.borderLeftColor = '#2196f3';
+        }
+
+        function demonstrateNoSync() {
+            if (syncAnimating) return;
+            syncAnimating = true;
+            resetSync();
+
+            document.getElementById('syncStatus').innerHTML = 
+                '<strong style="color: #c62828;">😱 WITHOUT CLOCK: Watch the chaos!</strong><br>' +
+                'Each latch updates at a different time...';
+            document.getElementById('syncStatus').style.background = '#ffebee';
+            document.getElementById('syncStatus').style.borderLeftColor = '#f44336';
+
+            let time = 0;
+            const interval = setInterval(() => {
+                time += 5;
+                document.getElementById('timeMarker').style.left = (time * 2) + 'px';
+
+                // Latch A updates first
+                if (time === 40) {
+                    document.getElementById('latchA').classList.add('updated');
+                    document.getElementById('valueA').textContent = '1';
+                }
+
+                // Latch B updates second
+                if (time === 70) {
+                    document.getElementById('latchB').classList.add('updated');
+                    document.getElementById('valueB').textContent = '1';
+                }
+
+                // Latch C updates last
+                if (time === 100) {
+                    document.getElementById('latchC').classList.add('updated');
+                    document.getElementById('valueC').textContent = '1';
+                }
+
+                if (time >= 150) {
+                    clearInterval(interval);
+                    document.getElementById('syncStatus').innerHTML = 
+                        '<strong style="color: #c62828;">😱 RESULT: Complete chaos!</strong><br>' +
+                        'Latch A updated at time 40, Latch B at time 70, Latch C at time 100.<br>' +
+                        'All different times = circuit doesn\'t work properly!';
+                    syncAnimating = false;
+                }
+            }, 50);
+        }
+
+        function demonstrateWithSync() {
+            if (syncAnimating) return;
+            syncAnimating = true;
+            resetSync();
+
+            document.getElementById('syncStatus').innerHTML = 
+                '<strong style="color: #2e7d32;">✅ WITH CLOCK: Watch them synchronize!</strong><br>' +
+                'All latches will update at the SAME TIME (clock edge)...';
+            document.getElementById('syncStatus').style.background = '#e8f5e9';
+            document.getElementById('syncStatus').style.borderLeftColor = '#4CAF50';
+
+            let time = 0;
+            const interval = setInterval(() => {
+                time += 5;
+                document.getElementById('timeMarker').style.left = (time * 2) + 'px';
+
+                // Clock edge - ALL latches update simultaneously!
+                if (time === 70) {
+                    document.getElementById('latchA').classList.add('updated');
+                    document.getElementById('latchB').classList.add('updated');
+                    document.getElementById('latchC').classList.add('updated');
+                    document.getElementById('valueA').textContent = '1';
+                    document.getElementById('valueB').textContent = '1';
+                    document.getElementById('valueC').textContent = '1';
+                }
+
+                if (time >= 150) {
+                    clearInterval(interval);
+                    document.getElementById('syncStatus').innerHTML = 
+                        '<strong style="color: #2e7d32;">✅ RESULT: Perfect synchronization!</strong><br>' +
+                        'All three latches updated at EXACTLY the same time (time 70).<br>' +
+                        'This is the power of the clock signal! 🎉';
+                    syncAnimating = false;
+                }
+            }, 50);
+        }
+
+        // Initialize
+        drawGrid();
+        ctx.fillStyle = '#999';
+        ctx.font = '24px Arial';
+        ctx.fillText('Click a button above to see signals!', 300, 150);
+    </script>
+</body>
+</html>
