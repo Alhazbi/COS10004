@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ NOR RS Latch Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-set {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+        }
+
+        .btn-set:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.6);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+            box-shadow: 0 4px 15px rgba(214, 48, 49, 0.4);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(214, 48, 49, 0.6);
+        }
+
+        .btn-hold {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn-hold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+        }
+
+        .btn-desc {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: normal;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .circuit-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .status-message {
+            text-align: center;
+            font-size: 1.2rem;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        #circuit {
+            width: 100%;
+            height: 400px;
+            display: block;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .info-section h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .info-section p {
+            line-height: 1.8;
+            color: #ccc;
+        }
+
+        .key-concepts {
+            margin-top: 15px;
+        }
+
+        .key-concepts li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+            list-style: none;
+            color: #aaa;
+        }
+
+        .key-concepts li::before {
+            content: "•";
+            color: #00d4ff;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .key-concepts strong {
+            color: #fff;
+        }
+
+        .truth-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .truth-table th, .truth-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .truth-table th {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+        }
+
+        .truth-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .truth-table .set-row {
+            background: rgba(0, 184, 148, 0.2);
+        }
+
+        .truth-table .reset-row {
+            background: rgba(214, 48, 49, 0.2);
+        }
+
+        .truth-table .hold-row {
+            background: rgba(108, 92, 231, 0.2);
+        }
+
+        .truth-table .forbidden-row {
+            background: rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+
+        .highlight-tip {
+            background: linear-gradient(90deg, rgba(0, 212, 255, 0.1), rgba(123, 44, 191, 0.1));
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .nor-difference {
+            background: linear-gradient(90deg, rgba(255, 107, 107, 0.1), rgba(255, 184, 108, 0.1));
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ NOR RS Latch Visualizer</h1>
+        <p class="subtitle">Watch electrical signals flow like water through the NOR-based circuit</p>
+
+        <div class="controls">
+            <button class="btn btn-set" onclick="setOperation()">
+                SET
+                <span class="btn-desc">Sets Q=1, Q̅=0</span>
+            </button>
+            <button class="btn btn-reset" onclick="resetOperation()">
+                RESET
+                <span class="btn-desc">Sets Q=0, Q̅=1</span>
+            </button>
+            <button class="btn btn-hold" onclick="holdOperation()">
+                HOLD
+                <span class="btn-desc">Maintains state</span>
+            </button>
+        </div>
+
+        <div class="circuit-container">
+            <div class="status-message" id="statusMessage">
+                🎯 Click a button above to see signals flow through the circuit!
+            </div>
+            <canvas id="circuit"></canvas>
+        </div>
+
+        <div class="info-section">
+            <h2>📖 How NOR RS Flip-Flop Works</h2>
+            <p>
+                A NOR-based RS flip-flop uses two NOR gates connected in a feedback loop. 
+                Each gate's output feeds back to the other gate's input, creating a bistable 
+                circuit that can store one bit of information.
+            </p>
+            <div class="nor-difference">
+                <strong>⚠️ Key Difference from NAND:</strong> Unlike NAND-based RS latches which use 
+                <em>active-low</em> inputs (0 to activate), NOR-based RS latches use <em>active-high</em> 
+                inputs (1 to activate). The forbidden state is also reversed (S=1, R=1 for NOR vs S=0, R=0 for NAND).
+            </div>
+            <ul class="key-concepts">
+                <li><strong>SET (S=1, R=0):</strong> The 1 on S forces Gate B to output 0 (Q̅=0), which feeds back to Gate A making Q=1</li>
+                <li><strong>RESET (S=0, R=1):</strong> The 1 on R forces Gate A to output 0 (Q=0), which feeds back to Gate B making Q̅=1</li>
+                <li><strong>HOLD (S=0, R=0):</strong> Both inputs low - the feedback loops maintain whatever state was previously set</li>
+                <li><strong>NOR Logic:</strong> Output is 1 only when BOTH inputs are 0; any input being 1 forces output to 0</li>
+            </ul>
+            <div class="highlight-tip">
+                Watch the <strong>glowing particles</strong> flow through the wires like electricity!
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>📋 Truth Table (NOR-based RS Latch)</h2>
+            <table class="truth-table">
+                <thead>
+                    <tr>
+                        <th>S</th>
+                        <th>R</th>
+                        <th>Q</th>
+                        <th>Q̅</th>
+                        <th>Operation</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="set-row">
+                        <td>1</td>
+                        <td>0</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td><strong>SET</strong></td>
+                        <td>Store a 1</td>
+                    </tr>
+                    <tr class="reset-row">
+                        <td>0</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>1</td>
+                        <td><strong>RESET</strong></td>
+                        <td>Store a 0</td>
+                    </tr>
+                    <tr class="hold-row">
+                        <td>0</td>
+                        <td>0</td>
+                        <td>No change</td>
+                        <td>No change</td>
+                        <td><strong>HOLD</strong></td>
+                        <td>Remember previous value</td>
+                    </tr>
+                    <tr class="forbidden-row">
+                        <td>1</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td><strong>FORBIDDEN</strong></td>
+                        <td>Invalid state - avoid!</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('circuit');
+        const ctx = canvas.getContext('2d');
+        
+        let animationId;
+        let particles = [];
+        let state = { S: 0, R: 0, Q: 'X', Qbar: 'X' };
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth - 60;
+            canvas.height = 400;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Wire paths - Q on top (Gate A), Q̅ on bottom (Gate B)
+        // Reset → Gate A (top) → Q
+        // Set → Gate B (bottom) → Q̅
+        function getWirePaths() {
+            const scale = canvas.width / 700;
+            
+            const l = {
+                // Reset input (top)
+                inputR: { x: 80 * scale, y: 120 },
+                // Set input (bottom)
+                inputS: { x: 80 * scale, y: 280 },
+                // Gate A - Upper NOR gate (outputs Q)
+                gateA: { 
+                    x: 300 * scale, 
+                    y: 100, 
+                    width: 80 * scale, 
+                    height: 60 
+                },
+                // Gate B - Lower NOR gate (outputs Q̅)
+                gateB: { 
+                    x: 300 * scale, 
+                    y: 260, 
+                    width: 80 * scale, 
+                    height: 60 
+                },
+                // Output Q (top)
+                outputQ: { x: 620 * scale, y: 130 },
+                // Output Qbar (bottom)
+                outputQbar: { x: 620 * scale, y: 290 },
+            };
+
+            return {
+                // Reset input to Gate A (top) - upper input
+                rToGateA: [
+                    { x: l.inputR.x, y: l.inputR.y },
+                    { x: l.gateA.x, y: l.inputR.y },
+                    { x: l.gateA.x, y: l.gateA.y + 15 }
+                ],
+                // Set input to Gate B (bottom) - lower input
+                sToGateB: [
+                    { x: l.inputS.x, y: l.inputS.y },
+                    { x: l.gateB.x, y: l.inputS.y },
+                    { x: l.gateB.x, y: l.gateB.y + 45 }
+                ],
+                // Gate A output to Q
+                gateAToQ: [
+                    { x: l.gateA.x + l.gateA.width + 20 * scale, y: l.gateA.y + 30 },
+                    { x: l.outputQ.x, y: l.gateA.y + 30 }
+                ],
+                // Gate B output to Qbar
+                gateBToQbar: [
+                    { x: l.gateB.x + l.gateB.width + 20 * scale, y: l.gateB.y + 30 },
+                    { x: l.outputQbar.x, y: l.gateB.y + 30 }
+                ],
+                // Feedback: Gate A output (Q) to Gate B upper input
+                feedbackAToB: [
+                    { x: l.gateA.x + l.gateA.width + 20 * scale, y: l.gateA.y + 30 },
+                    { x: l.gateA.x + l.gateA.width + 50 * scale, y: l.gateA.y + 30 },
+                    { x: l.gateA.x + l.gateA.width + 50 * scale, y: l.gateB.y - 20 },
+                    { x: l.gateB.x - 30 * scale, y: l.gateB.y - 20 },
+                    { x: l.gateB.x - 30 * scale, y: l.gateB.y + 15 },
+                    { x: l.gateB.x, y: l.gateB.y + 15 }
+                ],
+                // Feedback: Gate B output (Q̅) to Gate A lower input
+                feedbackBToA: [
+                    { x: l.gateB.x + l.gateB.width + 20 * scale, y: l.gateB.y + 30 },
+                    { x: l.gateB.x + l.gateB.width + 70 * scale, y: l.gateB.y + 30 },
+                    { x: l.gateB.x + l.gateB.width + 70 * scale, y: l.gateA.y + 80 },
+                    { x: l.gateA.x - 50 * scale, y: l.gateA.y + 80 },
+                    { x: l.gateA.x - 50 * scale, y: l.gateA.y + 45 },
+                    { x: l.gateA.x, y: l.gateA.y + 45 }
+                ],
+                layout: l
+            };
+        }
+
+        function drawNORGate(x, y, width, height, label, active) {
+            ctx.save();
+            
+            // Gate body with gradient
+            const gradient = ctx.createLinearGradient(x, y, x + width, y + height);
+            if (active) {
+                gradient.addColorStop(0, '#00d4ff');
+                gradient.addColorStop(1, '#7b2cbf');
+            } else {
+                gradient.addColorStop(0, '#2d3436');
+                gradient.addColorStop(1, '#636e72');
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.strokeStyle = active ? '#00d4ff' : '#636e72';
+            ctx.lineWidth = 2;
+            
+            // Draw curved NOR gate shape
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.quadraticCurveTo(x + width * 0.3, y + height / 2, x, y + height);
+            ctx.lineTo(x + width * 0.6, y + height);
+            ctx.quadraticCurveTo(x + width, y + height / 2, x + width * 0.6, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Inversion bubble (characteristic of NOR gate)
+            ctx.beginPath();
+            ctx.arc(x + width + 10, y + height / 2, 10, 0, Math.PI * 2);
+            ctx.fillStyle = active ? '#00d4ff' : '#2d3436';
+            ctx.fill();
+            ctx.strokeStyle = active ? '#00d4ff' : '#636e72';
+            ctx.stroke();
+            
+            // Gate label inside
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x + width * 0.4, y + height / 2 + 5);
+            
+            ctx.restore();
+        }
+
+        function drawWire(points, color, glowing) {
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            
+            if (glowing) {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 15;
+            }
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = glowing ? 4 : 3;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        function drawInputLabel(x, y, label, value, isActive) {
+            ctx.save();
+            
+            // Circle background
+            ctx.beginPath();
+            ctx.arc(x - 30, y, 25, 0, Math.PI * 2);
+            ctx.fillStyle = isActive ? 'rgba(0, 212, 255, 0.3)' : 'rgba(100, 100, 100, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = isActive ? '#00d4ff' : '#636e72';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x - 30, y - 5);
+            
+            // Value
+            ctx.fillStyle = isActive ? '#00d4ff' : '#888';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(value, x - 30, y + 18);
+            
+            ctx.restore();
+        }
+
+        function drawOutputLabel(x, y, label, value, isActive) {
+            ctx.save();
+            
+            // Rectangle background
+            ctx.beginPath();
+            ctx.roundRect(x - 5, y - 30, 60, 60, 10);
+            ctx.fillStyle = isActive ? 'rgba(0, 255, 136, 0.2)' : 'rgba(100, 100, 100, 0.2)';
+            ctx.fill();
+            ctx.strokeStyle = isActive ? '#00ff88' : '#636e72';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Label
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x + 25, y - 5);
+            
+            // Value
+            ctx.fillStyle = isActive ? '#00ff88' : '#888';
+            ctx.font = 'bold 22px Arial';
+            ctx.fillText(value, x + 25, y + 22);
+            
+            ctx.restore();
+        }
+
+        class Particle {
+            constructor(path, color, speed = 2) {
+                this.path = path;
+                this.color = color;
+                this.speed = speed;
+                this.progress = 0;
+                this.currentSegment = 0;
+                this.x = path[0].x;
+                this.y = path[0].y;
+                this.size = 6;
+                this.alive = true;
+            }
+
+            update() {
+                if (this.currentSegment >= this.path.length - 1) {
+                    this.alive = false;
+                    return;
+                }
+
+                const start = this.path[this.currentSegment];
+                const end = this.path[this.currentSegment + 1];
+                const dx = end.x - start.x;
+                const dy = end.y - start.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                this.progress += this.speed / dist;
+                
+                if (this.progress >= 1) {
+                    this.progress = 0;
+                    this.currentSegment++;
+                    if (this.currentSegment >= this.path.length - 1) {
+                        this.alive = false;
+                        return;
+                    }
+                }
+
+                const currentStart = this.path[this.currentSegment];
+                const currentEnd = this.path[this.currentSegment + 1];
+                this.x = currentStart.x + (currentEnd.x - currentStart.x) * this.progress;
+                this.y = currentStart.y + (currentEnd.y - currentStart.y) * this.progress;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 20;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function drawCircuit() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const paths = getWirePaths();
+            const l = paths.layout;
+            
+            // Determine wire colors based on state
+            const sActive = state.S === 1;
+            const rActive = state.R === 1;
+            const qActive = state.Q === 1;
+            const qbarActive = state.Qbar === 1;
+            
+            // Draw wires
+            const wireColorOff = '#4a4a5a';
+            const wireColorHigh = '#00d4ff';
+            const wireColorLow = '#ff6b6b';
+            
+            // R to Gate A (top)
+            drawWire(paths.rToGateA, rActive ? wireColorHigh : wireColorOff, rActive);
+            
+            // S to Gate B (bottom)
+            drawWire(paths.sToGateB, sActive ? wireColorHigh : wireColorOff, sActive);
+            
+            // Gate A output to Q
+            drawWire(paths.gateAToQ, qActive ? wireColorHigh : wireColorLow, qActive);
+            
+            // Gate B output to Qbar
+            drawWire(paths.gateBToQbar, qbarActive ? wireColorHigh : wireColorLow, qbarActive);
+            
+            // Feedback wires
+            drawWire(paths.feedbackAToB, qActive ? wireColorHigh : wireColorOff, qActive);
+            drawWire(paths.feedbackBToA, qbarActive ? wireColorHigh : wireColorOff, qbarActive);
+            
+            // Draw NOR gates
+            // Gate A (top) outputs Q
+            drawNORGate(l.gateA.x, l.gateA.y, l.gateA.width, l.gateA.height, 'A', qActive);
+            // Gate B (bottom) outputs Q̅
+            drawNORGate(l.gateB.x, l.gateB.y, l.gateB.width, l.gateB.height, 'B', qbarActive);
+            
+            // Draw gate output labels next to gates
+            ctx.save();
+            ctx.fillStyle = '#ffd93d';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Q', l.gateA.x + l.gateA.width + 10, l.gateA.y - 10);
+            ctx.fillText('Q̅', l.gateB.x + l.gateB.width + 10, l.gateB.y - 10);
+            ctx.restore();
+            
+            // Draw input labels - Reset on top, Set on bottom
+            drawInputLabel(l.inputR.x, l.inputR.y, 'R', state.R.toString(), rActive);
+            drawInputLabel(l.inputS.x, l.inputS.y, 'S', state.S.toString(), sActive);
+            
+            // Draw output labels - Q on top, Q̅ on bottom
+            const qDisplay = state.Q === 'X' ? 'X' : state.Q.toString();
+            const qbarDisplay = state.Qbar === 'X' ? 'X' : state.Qbar.toString();
+            drawOutputLabel(l.outputQ.x, l.outputQ.y, 'Q', qDisplay, qActive);
+            drawOutputLabel(l.outputQbar.x, l.outputQbar.y, 'Q̅', qbarDisplay, qbarActive);
+            
+            // Draw particles
+            particles.forEach(p => p.draw());
+        }
+
+        function animate() {
+            // Update particles
+            particles = particles.filter(p => p.alive);
+            particles.forEach(p => p.update());
+            
+            drawCircuit();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function spawnParticles(pathName, color, count = 5) {
+            const paths = getWirePaths();
+            const path = paths[pathName];
+            if (!path) return;
+            
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    particles.push(new Particle([...path], color, 3));
+                }, i * 150);
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('statusMessage').innerHTML = message;
+        }
+
+        function setOperation() {
+            state = { S: 1, R: 0, Q: 1, Qbar: 0 };
+            particles = [];
+            
+            updateStatus('🟢 <strong>SET Operation:</strong> S=1 forces Q̅=0 (Gate B), feedback makes Q=1 (Gate A)');
+            
+            // Spawn particles for SET operation
+            // S input goes to Gate B, forcing Q̅=0
+            spawnParticles('sToGateB', '#00d4ff', 6);
+            setTimeout(() => spawnParticles('gateBToQbar', '#ff6b6b', 4), 800);
+            // Feedback from Q̅=0 to Gate A
+            setTimeout(() => spawnParticles('feedbackBToA', '#ff6b6b', 5), 1200);
+            // Gate A outputs Q=1
+            setTimeout(() => spawnParticles('gateAToQ', '#00ff88', 5), 1800);
+            // Feedback from Q=1 to Gate B (reinforcing)
+            setTimeout(() => spawnParticles('feedbackAToB', '#00ff88', 4), 2200);
+        }
+
+        function resetOperation() {
+            state = { S: 0, R: 1, Q: 0, Qbar: 1 };
+            particles = [];
+            
+            updateStatus('🔴 <strong>RESET Operation:</strong> R=1 forces Q=0 (Gate A), feedback makes Q̅=1 (Gate B)');
+            
+            // Spawn particles for RESET operation
+            // R input goes to Gate A, forcing Q=0
+            spawnParticles('rToGateA', '#00d4ff', 6);
+            setTimeout(() => spawnParticles('gateAToQ', '#ff6b6b', 4), 800);
+            // Feedback from Q=0 to Gate B
+            setTimeout(() => spawnParticles('feedbackAToB', '#ff6b6b', 5), 1200);
+            // Gate B outputs Q̅=1
+            setTimeout(() => spawnParticles('gateBToQbar', '#00ff88', 5), 1800);
+            // Feedback from Q̅=1 to Gate A (reinforcing)
+            setTimeout(() => spawnParticles('feedbackBToA', '#00ff88', 4), 2200);
+        }
+
+        function holdOperation() {
+            // If previous state is unknown, default to Q=1
+            if (state.Q === 'X') {
+                state = { S: 0, R: 0, Q: 1, Qbar: 0 };
+            } else {
+                state = { S: 0, R: 0, Q: state.Q, Qbar: state.Qbar };
+            }
+            particles = [];
+            
+            updateStatus('🟣 <strong>HOLD Operation:</strong> S=0, R=0 - Feedback maintains Q=' + state.Q);
+            
+            // Show feedback loop particles
+            if (state.Q === 1) {
+                spawnParticles('gateAToQ', '#00ff88', 4);
+                spawnParticles('feedbackAToB', '#00ff88', 5);
+                setTimeout(() => {
+                    spawnParticles('feedbackBToA', '#888', 3);
+                }, 1000);
+            } else {
+                spawnParticles('gateBToQbar', '#00ff88', 4);
+                spawnParticles('feedbackBToA', '#00ff88', 5);
+                setTimeout(() => {
+                    spawnParticles('feedbackAToB', '#888', 3);
+                }, 1000);
+            }
+        }
+
+        // Start animation loop
+        animate();
+    </script>
+</body>
+</html>

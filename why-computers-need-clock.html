@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why Do Computers Need a Clock?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .scene {
+            display: none;
+            min-height: 100vh;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .scene.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .scene-title {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #00d4ff;
+        }
+
+        .scene-subtitle {
+            text-align: center;
+            font-size: 1.3em;
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .story-text {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            font-size: 1.4em;
+            line-height: 2;
+            text-align: center;
+            color: #ddd;
+        }
+
+        .animation-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #0f0f23;
+            border-radius: 20px;
+            padding: 40px;
+            border: 2px solid #333;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .action-button {
+            padding: 20px 50px;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .action-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+            color: white;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 40px;
+            font-size: 1.1em;
+        }
+
+        .btn-prev {
+            background: #555;
+            color: white;
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            padding: 15px 40px;
+            font-size: 1.1em;
+        }
+
+        /* Flip-flop styling */
+        .flipflop {
+            fill: #2c3e50;
+            stroke: #3498db;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .flipflop.updating {
+            fill: #3498db;
+            filter: drop-shadow(0 0 20px #3498db);
+        }
+
+        .flipflop.error {
+            fill: #e74c3c;
+            stroke: #e74c3c;
+            filter: drop-shadow(0 0 20px #e74c3c);
+        }
+
+        .wire {
+            stroke: #555;
+            stroke-width: 4;
+            fill: none;
+        }
+
+        .wire.active {
+            stroke: #00ff88;
+            filter: drop-shadow(0 0 10px #00ff88);
+        }
+
+        .wire.clock {
+            stroke: #ffd700;
+            filter: drop-shadow(0 0 10px #ffd700);
+        }
+
+        .label {
+            fill: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+
+        .value {
+            fill: #00ff88;
+            font-size: 36px;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+
+        .value.zero {
+            fill: #e74c3c;
+        }
+
+        .value.one {
+            fill: #2ecc71;
+        }
+
+        .value.error {
+            fill: #e74c3c;
+            animation: blink 0.3s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .particle {
+            fill: #00ff88;
+            filter: drop-shadow(0 0 8px #00ff88);
+        }
+
+        .particle.clock-particle {
+            fill: #ffd700;
+            filter: drop-shadow(0 0 8px #ffd700);
+        }
+
+        .message-box {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            line-height: 1.8;
+        }
+
+        .message-problem {
+            background: rgba(244, 67, 54, 0.2);
+            border: 2px solid #f44336;
+            color: #ff8a80;
+        }
+
+        .message-solution {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid #4caf50;
+            color: #b9f6ca;
+        }
+
+        .message-info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 2px solid #2196f3;
+            color: #82b1ff;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: #333;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .scene-indicator {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            font-size: 1em;
+            color: #666;
+        }
+
+        /* Traffic light specific */
+        .traffic-light {
+            fill: #333;
+            stroke: #555;
+            stroke-width: 2;
+        }
+
+        .light {
+            transition: all 0.3s ease;
+        }
+
+        .light.red { fill: #ff4444; filter: drop-shadow(0 0 15px #ff4444); }
+        .light.yellow { fill: #ffcc00; filter: drop-shadow(0 0 15px #ffcc00); }
+        .light.green { fill: #44ff44; filter: drop-shadow(0 0 15px #44ff44); }
+        .light.off { fill: #333; filter: none; }
+
+        .car {
+            transition: all 0.5s ease;
+        }
+
+        /* Clock wave */
+        .clock-wave {
+            stroke: #ffd700;
+            stroke-width: 4;
+            fill: none;
+        }
+
+        .clock-edge {
+            stroke: #ff4444;
+            stroke-width: 6;
+        }
+
+        .highlight-box {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .key-concept {
+            font-size: 1.5em;
+            color: #ffd700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress" style="width: 12.5%;"></div>
+    </div>
+    <div class="scene-indicator" id="sceneIndicator">Scene 1 of 8</div>
+
+    <!-- SCENE 1: Introduction - The Question -->
+    <div class="scene active" id="scene1">
+        <div class="scene-title">🤔 A Simple Question...</div>
+        
+        <div class="story-text">
+            Your computer has <strong>billions</strong> of tiny switches (transistors) that need to work together perfectly.
+            <br><br>
+            How do they all stay synchronized?
+            <br><br>
+            Let's find out through a story...
+        </div>
+
+        <div class="animation-container">
+            <svg viewBox="0 0 800 300">
+                <!-- Many small dots representing transistors -->
+                <g id="transistor-dots">
+                    <!-- Will be filled by JavaScript -->
+                </g>
+                <text x="400" y="280" class="label" style="font-size: 24px; fill: #00d4ff;">Billions of components...</text>
+            </svg>
+        </div>
+
+        <div class="button-container">
+            <button class="action-button btn-primary" onclick="animateTransistors()">
+                ✨ Show the Components
+            </button>
+        </div>
+    </div>
+
+    <!-- SCENE 2: The Problem - No Coordination -->
+    <div class="scene" id="scene2">
+        <div class="scene-title">🚦 Imagine: Traffic Without Rules</div>
+        
+        <div class="story-text">
+            What if traffic lights had no coordination?
+            <br>
+            Each light changes whenever it "feels like it"...
+        </div>
+
+        <div class="animation-container">
+            <svg viewBox="0 0 800 400" id="traffic-svg">
+                <!-- Intersection -->
+                <rect x="300" y="0" width="200" height="400" fill="#444"/>
+                <rect x="0" y="150" width="800" height="100" fill="#444"/>
+                
+                <!-- Road markings -->
+                <line x1="400" y1="0" x2="400" y2="150" stroke="#fff" stroke-width="3" stroke-dasharray="20,10"/>
+                <line x1="400" y1="250" x2="400" y2="400" stroke="#fff" stroke-width="3" stroke-dasharray="20,10"/>
+                
+                <!-- Traffic Light 1 (top) -->
+                <rect x="510" y="50" width="40" height="90" class="traffic-light" rx="5"/>
+                <circle cx="530" cy="70" r="12" class="light off" id="light1-red"/>
+                <circle cx="530" cy="95" r="12" class="light off" id="light1-yellow"/>
+                <circle cx="530" cy="120" r="12" class="light off" id="light1-green"/>
+                
+                <!-- Traffic Light 2 (left) -->
+                <rect x="150" y="255" width="40" height="90" class="traffic-light" rx="5"/>
+                <circle cx="170" cy="275" r="12" class="light off" id="light2-red"/>
+                <circle cx="170" cy="300" r="12" class="light off" id="light2-yellow"/>
+                <circle cx="170" cy="325" r="12" class="light off" id="light2-green"/>
+                
+                <!-- Cars -->
+                <g id="car1" class="car">
+                    <rect x="360" y="10" width="30" height="50" fill="#e74c3c" rx="5"/>
+                    <rect x="365" y="20" width="20" height="15" fill="#85c1e9"/>
+                </g>
+                <g id="car2" class="car">
+                    <rect x="20" y="175" width="50" height="30" fill="#3498db" rx="5"/>
+                    <rect x="35" y="180" width="15" height="20" fill="#85c1e9"/>
+                </g>
+                
+                <!-- Crash effect (hidden initially) -->
+                <text x="400" y="200" id="crash-text" style="font-size: 60px; text-anchor: middle; opacity: 0;">💥</text>
+            </svg>
+        </div>
+
+        <div class="message-box message-problem" id="traffic-message">
+            Click "Start Chaos" to see what happens without coordination!
+        </div>
+
+        <div class="button-container">
+            <button class="action-button btn-danger" onclick="startTrafficChaos()">
+                🚨 Start Chaos (No Coordination)
+            </button>
+        </div>
+    </div>
+
+    <!-- SCENE 3: The Same Problem in Computers -->
+    <div class="scene" id="scene3">
+        <div class="scene-title">💻 The Same Problem in Computers!</div>
+        
+        <div class="story-text">
+            Flip-flops are like tiny memory boxes. What happens when they each update at random times?
+        </div>
+
+        <div class="animation-container">
+            <svg viewBox="0 0 800 400" id="chaos-svg">
+                <!-- Three flip-flops -->
+                <g id="ff-chaos-1">
+                    <rect x="100" y="80" width="120" height="80" class="flipflop" rx="10"/>
+                    <text x="160" y="110" class="label">FF 1</text>
+                    <text x="160" y="145" class="value" id="chaos-val-1">?</text>
+                </g>
+                
+                <g id="ff-chaos-2">
+                    <rect x="340" y="80" width="120" height="80" class="flipflop" rx="10"/>
+                    <text x="400" y="110" class="label">FF 2</text>
+                    <text x="400" y="145" class="value" id="chaos-val-2">?</text>
+                </g>
+                
+                <g id="ff-chaos-3">
+                    <rect x="580" y="80" width="120" height="80" class="flipflop" rx="10"/>
+                    <text x="640" y="110" class="label">FF 3</text>
+                    <text x="640" y="145" class="value" id="chaos-val-3">?</text>
+                </g>
+
+                <!-- Wires connecting them -->
+                <path d="M 220 120 L 340 120" class="wire" id="chaos-wire-1"/>
+                <path d="M 460 120 L 580 120" class="wire" id="chaos-wire-2"/>
+
+                <!-- Input data -->
+                <text x="50" y="125" class="label" style="fill: #00d4ff;">Data In:</text>
+                <text x="50" y="155" class="value one" id="chaos-input">1</text>
+
+                <!-- Output -->
+                <text x="730" y="125" class="label" style="fill: #00d4ff;">Out:</text>
+                <text x="730" y="155" class="value" id="chaos-output">?</text>
+
+                <!-- Time indicator -->
+                <text x="400" y="220" class="label" style="fill: #aaa;">Each flip-flop updates at RANDOM times!</text>
+                
+                <!-- Random update indicators -->
+                <text x="160" y="200" class="label" style="font-size: 14px; fill: #e74c3c;" id="chaos-time-1"></text>
+                <text x="400" y="200" class="label" style="font-size: 14px; fill: #e74c3c;" id="chaos-time-2"></text>
+                <text x="640" y="200" class="label" style="font-size: 14px; fill: #e74c3c;" id="chaos-time-3"></text>
+
+                <!-- Error message area -->
+                <text x="400" y="350" class="label" style="font-size: 24px; fill: #e74c3c;" id="chaos-error"></text>
+            </svg>
+        </div>
+
+        <div class="message-box message-problem" id="chaos-message">
+            Watch how data gets corrupted when flip-flops update at different times!
+        </div>
+
+        <div class="button-container">
+            <button class="action-button btn-danger" onclick="startFlipFlopChaos()">
+                🎲 Run Without Clock (Random Updates)
+            </button>
+        </div>
+    </div>
+
+    <!-- SCENE 4: The Solution Concept -->
+    <div class="scene" id="scene4">
+        <div class="scene-title">💡 The Solution: A Shared Signal!</div>
+        
+        <div class="story-text">
+            What if everyone waited for a <strong>shared "GO" signal</strong>?
+            <br><br>
+            When the signal comes, <strong>EVERYONE acts at the SAME moment!</strong>
+        </div>
+
+        <div class="animation-container">
+            <svg viewBox="0 0 800 350">
+                <!-- Central GO signal -->
+                <circle cx="400" cy="100" r="60" fill="#333" stroke="#ffd700" stroke-width="4" id="go-signal"/>
+                <text x="400" y="115" class="label" style="font-size: 28px; fill: #ffd700;" id="go-text">WAIT</text>
+                
+                <!-- Lines to flip-flops -->
+                <path d="M 400 160 L 400 200" stroke="#ffd700" stroke-width="4" stroke-dasharray="10,5"/>
+                <path d="M 400 200 L 150 280" stroke="#ffd700" stroke-width="4" stroke-dasharray="10,5"/>
+                <path d="M 400 200 L 400 280" stroke="#ffd700" stroke-width="4" stroke-dasharray="10,5"/>
+                <path d="M 400 200 L 650 280" stroke="#ffd700" stroke-width="4" stroke-dasharray="10,5"/>
+                
+                <!-- Three flip-flops waiting -->
+                <g id="sync-ff-1">
+                    <rect x="90" y="280" width="120" height="60" class="flipflop" rx="10"/>
+                    <text x="150" y="318" class="label">FF 1</text>
+                </g>
+                
+                <g id="sync-ff-2">
+                    <rect x="340" y="280" width="120" height="60" class="flipflop" rx="10"/>
+                    <text x="400" y="318" class="label">FF 2</text>
+                </g>
+                
+                <g id="sync-ff-3">
+                    <rect x="590" y="280" width="120" height="60" class="flipflop" rx="10"/>
+                    <text x="650" y="318" class="label">FF 3</text>
+                </g>
+            </svg>
+        </div>
+
+        <div class="message-box message-info" id="go-message">
+            Click "Send GO Signal" and watch all flip-flops respond <strong>together</strong>!
+        </div>
+
+        <div class="button-container">
+            <button class="action-button btn-success" onclick="sendGoSignal()">
+                ⚡ Send GO Signal!
+            </button>
+        </div>
+    </div>
+
+    <!-- SCENE 5: Introducing the Clock -->
+    <div class="scene" id="scene5">
+        <div class="scene-title">⏰ This "GO Signal" is Called: THE CLOCK</div>
+        
+        <div class="story-text">
+            The clock is a signal that goes: <strong>0 → 1 → 0 → 1 → 0 → 1...</strong>
+            <br><br>
+            Every time it goes from 0 to 1, that's the "GO" moment!
+        </div>
+
+        <div class="animation-container">
+            <svg viewBox="0 0 800 300" id="clock-intro-svg">
+                <!-- Clock signal wave -->
+                <text x="50" y="100" class="label" style="fill: #ffd700;">CLK</text>
+                
+                <path d="M 100 150 L 100 80 L 200 80 L 200 150 L 300 150 L 300 80 L 400 80 L 400 150 L 500 150 L 500 80 L 600 80 L 600 150 L 700 150" 
+                      class="clock-wave" id="clock-wave-intro"/>
+                
+                <!-- Rising edge markers -->
+                <g id="edge-markers">
+                    <path d="M 100 150 L 100 80" class="clock-edge" opacity="0" id="edge-1"/>
+                    <path d="M 300 150 L 300 80" class="clock-edge" opacity="0" id="edge-2"/>
+                    <path d="M 500 150 L 500 80" class="clock-edge" opacity="0" id="edge-3"/>
+                </g>
+                
+                <!-- Labels for edges -->
+                <text x="100" y="60" class="label" style="fill: #ff4444; font-size: 14px;" opacity="0" id="edge-label-1">GO!</text>
+                <text x="300" y="60" class="label" style="fill: #ff4444; font-size: 14px;" opacity="0" id="edge-label-2">GO!</text>
+                <text x="500" y="60" class="label" style="fill: #ff4444; font-size: 14px;" opacity="0" id="edge-label-3">GO!</text>
+                
+                <!-- 0 and 1 labels -->
+                <text x="70" y="155" class="label" style="fill: #aaa;">0</text>
+                <text x="70" y="90" class="label" style="fill: #aaa;">1</text>
+                
+                <!-- Explanation -->
+                <text x="400" y="220" class="label" style="fill: #00d4ff;">Each 0→1 transition is called a "Rising Edge"</text>
+                <text x="400" y="250" class="label" style="fill: #aaa;">This is when flip-flops capture their input!</text>
+            </svg>
+        </div>
+
+        <div class="highlight-box">
+            <div class="key-concept">The Rising Edge (0→1) = "GO!"</div>
+            <p style="margin-top: 10px; color: #aaa;">All flip-flops update ONLY at this moment</p>
+        </div>
+
+        <div class="button-container">
+            <button class="action-button btn-primary" onclick="animateClockEdges()">
+                ⚡ Show Rising Edges
+            </button>
+        </div>
+    </div>
+
+    <!-- SCENE 6: Clock + Flip-Flop Together -->
+    <div class="scene" id="scene6">
+        <div class="scene-title">🔗 Clock + D Flip-Flop = Perfect Control!</div>
+        
+        <div class="story-text">
+            Now let's see how the clock controls a D flip-flop:
+            <br>
+            <strong>D</strong> = the data you want to store
+            <br>
+            <strong>CLK</strong> = controls WHEN to store it
+        </div>
+
+        <div class="animation-container">
+            <svg viewBox="0 0 800 400" id="dff-demo-svg">
+                <!-- D Flip-Flop -->
+                <rect x="300" y="120" width="200" height="160" class="flipflop" rx="15" id="dff-box"/>
+                <text x="400" y="200" class="label" style="font-size: 22px;">D Flip-Flop</text>
+                
+                <!-- D input -->
+                <path d="M 100 160 L 300 160" class="wire" id="dff-d-wire"/>
+                <text x="70" y="165" class="label">D</text>
+                <circle cx="150" cy="160" r="25" fill="#333" stroke="#00d4ff" stroke-width="3"/>
+                <text x="150" y="168" class="value" style="font-size: 28px;" id="dff-d-val">0</text>
+                
+                <!-- Clock input -->
+                <path d="M 100 240 L 300 240" class="wire" id="dff-clk-wire"/>
+                <text x="60" y="245" class="label">CLK</text>
+                <polygon points="300,225 320,240 300,255" fill="none" stroke="#ffd700" stroke-width="3"/>
+                
+                <!-- Clock signal visualization -->
+                <path d="M 100 320 L 100 290 L 140 290 L 140 320 L 180 320 L 180 290 L 220 290 L 220 320" 
+                      stroke="#ffd700" stroke-width="3" fill="none" id="mini-clock"/>
+                <text x="160" y="360" class="label" style="font-size: 14px; fill: #ffd700;">Clock Signal</text>
+                
+                <!-- Q output -->
+                <path d="M 500 180 L 700 180" class="wire" id="dff-q-wire"/>
+                <text x="730" y="185" class="label">Q</text>
+                <circle cx="650" cy="180" r="25" fill="#333" stroke="#2ecc71" stroke-width="3"/>
+                <text x="650" y="188" class="value" style="font-size: 28px;" id="dff-q-val">0</text>
+                
+                <!-- Status text -->
+                <text x="400" y="80" class="label" style="font-size: 20px; fill: #aaa;" id="dff-status">Set D, then pulse the clock!</text>
+                
+                <!-- Particles container -->
+                <g id="particles-dff"></g>
+            </svg>
+        </div>
+
+        <div class="button-container">
+            <button class="action-button" style="background: #9c27b0; color: white;" onclick="setDValue(0)">
+                Set D = 0
+            </button>
+            <button class="action-button" style="background: #00bcd4; color: white;" onclick="setDValue(1)">
+                Set D = 1
+            </button>
+            <button class="action-button btn-success" onclick="pulseClock()">
+                ⏰ Pulse Clock (Rising Edge)
+            </button>
+        </div>
+
+        <div class="message-box message-info" id="dff-message">
+            <strong>Try it:</strong> Set D to 1, then pulse the clock. Notice Q only changes when the clock pulses!
+        </div>
+    </div>
+
+    <!-- SCENE 7: Multiple Flip-Flops Synchronized -->
+    <div class="scene" id="scene7">
+        <div class="scene-title">🎯 Perfect Synchronization!</div>
+        
+        <div class="story-text">
+            When ALL flip-flops share the SAME clock, they ALL update at EXACTLY the same moment!
+        </div>
+
+        <div class="animation-container">
+            <svg viewBox="0 0 800 450" id="sync-demo-svg">
+                <!-- Clock signal at top -->
+                <text x="50" y="50" class="label" style="fill: #ffd700;">CLK</text>
+                <path d="M 100 50 L 100 30 L 150 30 L 150 50 L 200 50 L 200 30 L 250 30 L 250 50" 
+                      stroke="#ffd700" stroke-width="3" fill="none"/>
+                
+                <!-- Main clock line going down -->
+                <path d="M 150 60 L 150 400" stroke="#ffd700" stroke-width="4" stroke-dasharray="10,5" id="main-clock-line"/>
+                
+                <!-- Four flip-flops -->
+                <g id="sync-demo-ff-1">
+                    <path d="M 150 120 L 250 120" stroke="#ffd700" stroke-width="3"/>
+                    <rect x="250" y="90" width="140" height="70" class="flipflop" rx="10"/>
+                    <text x="320" y="115" class="label">FF 1</text>
+                    <text x="320" y="145" class="value" id="sync-val-1">0</text>
+                </g>
+                
+                <g id="sync-demo-ff-2">
+                    <path d="M 150 200 L 250 200" stroke="#ffd700" stroke-width="3"/>
+                    <rect x="250" y="170" width="140" height="70" class="flipflop" rx="10"/>
+                    <text x="320" y="195" class="label">FF 2</text>
+                    <text x="320" y="225" class="value" id="sync-val-2">0</text>
+                </g>
+                
+                <g id="sync-demo-ff-3">
+                    <path d="M 150 280 L 250 280" stroke="#ffd700" stroke-width="3"/>
+                    <rect x="250" y="250" width="140" height="70" class="flipflop" rx="10"/>
+                    <text x="320" y="275" class="label">FF 3</text>
+                    <text x="320" y="305" class="value" id="sync-val-3">0</text>
+                </g>
+                
+                <g id="sync-demo-ff-4">
+                    <path d="M 150 360 L 250 360" stroke="#ffd700" stroke-width="3"/>
+                    <rect x="250" y="330" width="140" height="70" class="flipflop" rx="10"/>
+                    <text x="320" y="355" class="label">FF 4</text>
+                    <text x="320" y="385" class="value" id="sync-val-4">0</text>
+                </g>
+                
+                <!-- Input values -->
+                <text x="500" y="115" class="label" style="fill: #aaa;">← Input: 1</text>
+                <text x="500" y="195" class="label" style="fill: #aaa;">← Input: 0</text>
+                <text x="500" y="275" class="label" style="fill: #aaa;">← Input: 1</text>
+                <text x="500" y="355" class="label" style="fill: #aaa;">← Input: 1</text>
+                
+                <!-- Clock pulse indicator -->
+                <circle cx="150" cy="50" r="15" fill="#ffd700" opacity="0" id="clock-pulse-dot"/>
+                
+                <!-- Status -->
+                <text x="650" y="240" class="label" style="fill: #00d4ff; font-size: 16px;" id="sync-status">Ready</text>
+            </svg>
+        </div>
+
+        <div class="button-container">
+            <button class="action-button btn-success" onclick="pulseSyncClock()">
+                ⏰ Pulse Clock - Watch All Update Together!
+            </button>
+            <button class="action-button" style="background: #555; color: white;" onclick="resetSyncDemo()">
+                🔄 Reset
+            </button>
+        </div>
+
+        <div class="message-box message-solution">
+            <strong>All four flip-flops update at the EXACT same instant!</strong><br>
+            This is perfect synchronization - the foundation of all digital computers!
+        </div>
+    </div>
+
+    <!-- SCENE 8: Summary -->
+    <div class="scene" id="scene8">
+        <div class="scene-title">🎓 What You Learned!</div>
+        
+        <div class="story-text" style="font-size: 1.2em;">
+            Let's recap the journey...
+        </div>
+
+        <div class="animation-container" style="background: transparent; border: none;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 900px; margin: 0 auto;">
+                <div class="message-box message-problem">
+                    <h3 style="margin-bottom: 15px;">❌ Without Clock</h3>
+                    <p>• Components update randomly</p>
+                    <p>• Data gets corrupted</p>
+                    <p>• Complete chaos!</p>
+                </div>
+                
+                <div class="message-box message-solution">
+                    <h3 style="margin-bottom: 15px;">✅ With Clock</h3>
+                    <p>• All update at same moment</p>
+                    <p>• Data stays correct</p>
+                    <p>• Perfect synchronization!</p>
+                </div>
+            </div>
+            
+            <div class="highlight-box" style="max-width: 700px; margin-top: 40px;">
+                <div class="key-concept" style="font-size: 1.8em;">The Clock = The Heartbeat of Every Computer</div>
+                <p style="margin-top: 15px; color: #ddd; font-size: 1.1em;">
+                    Modern CPUs tick at <strong>3-5 BILLION times per second</strong> (3-5 GHz)!
+                    <br>
+                    Every tick, billions of flip-flops update in perfect harmony.
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px;">
+                <p style="font-size: 1.3em; color: #00d4ff;">
+                    🎉 Congratulations! You now understand why computers need clocks! 🎉
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation buttons -->
+    <button class="action-button btn-prev" onclick="prevScene()" id="prevBtn" style="display: none;">← Back</button>
+    <button class="action-button btn-next" onclick="nextScene()" id="nextBtn">Next →</button>
+
+    <script>
+        let currentScene = 1;
+        const totalScenes = 8;
+        let chaosInterval;
+        let dffState = { d: 0, q: 0 };
+
+        // Scene navigation
+        function showScene(n) {
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+            document.getElementById('scene' + n).classList.add('active');
+            document.getElementById('progress').style.width = (n / totalScenes * 100) + '%';
+            document.getElementById('sceneIndicator').textContent = `Scene ${n} of ${totalScenes}`;
+            
+            document.getElementById('prevBtn').style.display = n === 1 ? 'none' : 'block';
+            document.getElementById('nextBtn').style.display = n === totalScenes ? 'none' : 'block';
+            
+            currentScene = n;
+            
+            // Stop any running animations
+            if (chaosInterval) clearInterval(chaosInterval);
+        }
+
+        function nextScene() {
+            if (currentScene < totalScenes) showScene(currentScene + 1);
+        }
+
+        function prevScene() {
+            if (currentScene > 1) showScene(currentScene - 1);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Scene 1: Transistor animation
+        function animateTransistors() {
+            const container = document.getElementById('transistor-dots');
+            container.innerHTML = '';
+            
+            const colors = ['#00d4ff', '#ff6b9d', '#ffd700', '#2ecc71', '#9b59b6'];
+            
+            for (let i = 0; i < 200; i++) {
+                setTimeout(() => {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', 100 + Math.random() * 600);
+                    circle.setAttribute('cy', 50 + Math.random() * 180);
+                    circle.setAttribute('r', 3 + Math.random() * 5);
+                    circle.setAttribute('fill', colors[Math.floor(Math.random() * colors.length)]);
+                    circle.style.opacity = '0';
+                    circle.style.transition = 'opacity 0.3s ease';
+                    container.appendChild(circle);
+                    
+                    setTimeout(() => circle.style.opacity = '0.8', 50);
+                }, i * 15);
+            }
+        }
+
+        // Scene 2: Traffic chaos
+        async function startTrafficChaos() {
+            const car1 = document.getElementById('car1');
+            const car2 = document.getElementById('car2');
+            const crash = document.getElementById('crash-text');
+            const message = document.getElementById('traffic-message');
+            
+            // Reset
+            car1.setAttribute('transform', 'translate(0, 0)');
+            car2.setAttribute('transform', 'translate(0, 0)');
+            crash.style.opacity = '0';
+            
+            // Random light changes
+            const lights1 = ['light1-red', 'light1-yellow', 'light1-green'];
+            const lights2 = ['light2-red', 'light2-yellow', 'light2-green'];
+            
+            message.textContent = 'Lights changing randomly...';
+            
+            // Flicker lights randomly
+            for (let i = 0; i < 10; i++) {
+                lights1.forEach(l => document.getElementById(l).classList.remove('red', 'yellow', 'green'));
+                lights2.forEach(l => document.getElementById(l).classList.remove('red', 'yellow', 'green'));
+                
+                const random1 = lights1[Math.floor(Math.random() * 3)];
+                const random2 = lights2[Math.floor(Math.random() * 3)];
+                
+                document.getElementById(random1).classList.add(random1.includes('red') ? 'red' : random1.includes('yellow') ? 'yellow' : 'green');
+                document.getElementById(random2).classList.add(random2.includes('red') ? 'red' : random2.includes('yellow') ? 'yellow' : 'green');
+                
+                await sleep(200);
+            }
+            
+            // Both go green at same time!
+            lights1.forEach(l => document.getElementById(l).classList.remove('red', 'yellow', 'green'));
+            lights2.forEach(l => document.getElementById(l).classList.remove('red', 'yellow', 'green'));
+            document.getElementById('light1-green').classList.add('green');
+            document.getElementById('light2-green').classList.add('green');
+            
+            message.textContent = 'Both lights green! Cars moving...';
+            
+            // Move cars toward collision
+            for (let i = 0; i < 30; i++) {
+                car1.setAttribute('transform', `translate(0, ${i * 5})`);
+                car2.setAttribute('transform', `translate(${i * 10}, 0)`);
+                await sleep(50);
+            }
+            
+            // Crash!
+            crash.style.opacity = '1';
+            message.innerHTML = '<strong>💥 CRASH!</strong> Without coordination, disaster happens!';
+        }
+
+        // Scene 3: Flip-flop chaos
+        async function startFlipFlopChaos() {
+            if (chaosInterval) clearInterval(chaosInterval);
+            
+            const vals = ['chaos-val-1', 'chaos-val-2', 'chaos-val-3'];
+            const times = ['chaos-time-1', 'chaos-time-2', 'chaos-time-3'];
+            const ffs = [
+                document.querySelector('#ff-chaos-1 rect'),
+                document.querySelector('#ff-chaos-2 rect'),
+                document.querySelector('#ff-chaos-3 rect')
+            ];
+            const output = document.getElementById('chaos-output');
+            const error = document.getElementById('chaos-error');
+            const message = document.getElementById('chaos-message');
+            
+            // Reset
+            vals.forEach(v => {
+                document.getElementById(v).textContent = '?';
+                document.getElementById(v).classList.remove('one', 'zero', 'error');
+            });
+            ffs.forEach(f => f.classList.remove('updating', 'error'));
+            error.textContent = '';
+            
+            message.textContent = 'Data "1" is being passed through... but flip-flops update randomly!';
+            
+            let updates = [false, false, false];
+            let values = ['?', '?', '?'];
+            
+            // Random updates over time
+            const updateOrder = [0, 1, 2].sort(() => Math.random() - 0.5);
+            const delays = [Math.random() * 500, Math.random() * 800 + 300, Math.random() * 500 + 800];
+            
+            for (let i = 0; i < 3; i++) {
+                const idx = updateOrder[i];
+                
+                setTimeout(() => {
+                    ffs[idx].classList.add('updating');
+                    document.getElementById(times[idx]).textContent = `Updated at ${delays[i].toFixed(0)}ms`;
+                    
+                    // Value depends on whether previous one updated
+                    if (idx === 0) {
+                        values[idx] = '1';
+                    } else {
+                        values[idx] = updates[idx - 1] ? values[idx - 1] : '?';
+                    }
+                    
+                    document.getElementById(vals[idx]).textContent = values[idx];
+                    document.getElementById(vals[idx]).classList.add(values[idx] === '1' ? 'one' : values[idx] === '0' ? 'zero' : 'error');
+                    
+                    updates[idx] = true;
+                    
+                    setTimeout(() => ffs[idx].classList.remove('updating'), 300);
+                }, delays[i]);
+            }
+            
+            // Show error after all updates
+            setTimeout(() => {
+                output.textContent = values[2];
+                output.classList.add(values[2] === '1' ? 'one' : 'error');
+                
+                if (values[2] !== '1') {
+                    error.textContent = '❌ ERROR! Data corrupted because of random timing!';
+                    ffs.forEach(f => f.classList.add('error'));
+                    message.innerHTML = '<strong>Data got corrupted!</strong> Each flip-flop updated at a different time, so the data didn\'t pass correctly.';
+                }
+            }, 1500);
+        }
+
+        // Scene 4: GO signal
+        async function sendGoSignal() {
+            const signal = document.getElementById('go-signal');
+            const text = document.getElementById('go-text');
+            const ffs = ['sync-ff-1', 'sync-ff-2', 'sync-ff-3'];
+            const message = document.getElementById('go-message');
+            
+            // Reset
+            signal.setAttribute('fill', '#333');
+            text.textContent = 'WAIT';
+            ffs.forEach(id => document.querySelector(`#${id} rect`).classList.remove('updating'));
+            
+            await sleep(500);
+            
+            // Send GO signal
+            signal.setAttribute('fill', '#2ecc71');
+            signal.style.filter = 'drop-shadow(0 0 30px #2ecc71)';
+            text.textContent = 'GO!';
+            text.setAttribute('fill', '#fff');
+            
+            message.textContent = 'GO signal sent!';
+            
+            await sleep(200);
+            
+            // All flip-flops respond together
+            ffs.forEach(id => {
+                document.querySelector(`#${id} rect`).classList.add('updating');
+            });
+            
+            message.innerHTML = '<strong>All flip-flops updated at the SAME moment!</strong> This is the power of synchronization!';
+            
+            await sleep(1000);
+            
+            ffs.forEach(id => {
+                document.querySelector(`#${id} rect`).classList.remove('updating');
+            });
+            
+            signal.setAttribute('fill', '#333');
+            signal.style.filter = '';
+            text.textContent = 'WAIT';
+            text.setAttribute('fill', '#ffd700');
+        }
+
+        // Scene 5: Clock edges
+        async function animateClockEdges() {
+            const edges = ['edge-1', 'edge-2', 'edge-3'];
+            const labels = ['edge-label-1', 'edge-label-2', 'edge-label-3'];
+            
+            // Reset
+            edges.forEach(e => document.getElementById(e).setAttribute('opacity', '0'));
+            labels.forEach(l => document.getElementById(l).setAttribute('opacity', '0'));
+            
+            for (let i = 0; i < 3; i++) {
+                document.getElementById(edges[i]).setAttribute('opacity', '1');
+                document.getElementById(labels[i]).setAttribute('opacity', '1');
+                
+                await sleep(600);
+                
+                document.getElementById(edges[i]).setAttribute('opacity', '0.3');
+                document.getElementById(labels[i]).setAttribute('opacity', '0.3');
+                
+                await sleep(400);
+            }
+            
+            // Reset all
+            edges.forEach(e => document.getElementById(e).setAttribute('opacity', '0'));
+            labels.forEach(l => document.getElementById(l).setAttribute('opacity', '0'));
+        }
+
+        // Scene 6: D Flip-Flop demo
+        function setDValue(val) {
+            dffState.d = val;
+            document.getElementById('dff-d-val').textContent = val;
+            document.getElementById('dff-d-val').classList.remove('one', 'zero');
+            document.getElementById('dff-d-val').classList.add(val === 1 ? 'one' : 'zero');
+            
+            document.getElementById('dff-status').textContent = `D is now ${val}. Q won't change until you pulse the clock!`;
+            document.getElementById('dff-message').innerHTML = `D = ${val}. Now pulse the clock to capture this value into Q!`;
+        }
+
+        async function pulseClock() {
+            const box = document.getElementById('dff-box');
+            const dWire = document.getElementById('dff-d-wire');
+            const clkWire = document.getElementById('dff-clk-wire');
+            const qWire = document.getElementById('dff-q-wire');
+            
+            document.getElementById('dff-status').textContent = 'Clock rising edge! Capturing D...';
+            
+            // Animate clock wire
+            clkWire.classList.add('active');
+            clkWire.style.stroke = '#ffd700';
+            
+            await sleep(200);
+            
+            // Animate D wire
+            dWire.classList.add('active');
+            
+            await sleep(200);
+            
+            // Flip-flop processes
+            box.classList.add('updating');
+            
+            await sleep(400);
+            
+            // Update Q
+            dffState.q = dffState.d;
+            document.getElementById('dff-q-val').textContent = dffState.q;
+            document.getElementById('dff-q-val').classList.remove('one', 'zero');
+            document.getElementById('dff-q-val').classList.add(dffState.q === 1 ? 'one' : 'zero');
+            
+            qWire.classList.add('active');
+            
+            document.getElementById('dff-status').textContent = `Captured! Q is now ${dffState.q}`;
+            document.getElementById('dff-message').innerHTML = `<strong>Q captured the value of D!</strong> Q = ${dffState.q}. Try changing D and pulsing again!`;
+            
+            await sleep(500);
+            
+            // Reset wires
+            dWire.classList.remove('active');
+            clkWire.classList.remove('active');
+            clkWire.style.stroke = '';
+            qWire.classList.remove('active');
+            box.classList.remove('updating');
+        }
+
+        // Scene 7: Synchronized flip-flops
+        async function pulseSyncClock() {
+            const ffs = ['sync-demo-ff-1', 'sync-demo-ff-2', 'sync-demo-ff-3', 'sync-demo-ff-4'];
+            const vals = ['sync-val-1', 'sync-val-2', 'sync-val-3', 'sync-val-4'];
+            const inputs = [1, 0, 1, 1];
+            const clockDot = document.getElementById('clock-pulse-dot');
+            const status = document.getElementById('sync-status');
+            
+            status.textContent = 'Clock pulse incoming...';
+            
+            // Animate clock pulse traveling down
+            clockDot.setAttribute('opacity', '1');
+            
+            for (let y = 50; y <= 400; y += 20) {
+                clockDot.setAttribute('cy', y);
+                await sleep(30);
+            }
+            
+            // All flip-flops update simultaneously!
+            ffs.forEach(id => document.querySelector(`#${id} rect`).classList.add('updating'));
+            status.textContent = 'ALL updating NOW!';
+            
+            await sleep(300);
+            
+            // Update all values
+            for (let i = 0; i < 4; i++) {
+                const valEl = document.getElementById(vals[i]);
+                valEl.textContent = inputs[i];
+                valEl.classList.remove('one', 'zero');
+                valEl.classList.add(inputs[i] === 1 ? 'one' : 'zero');
+            }
+            
+            await sleep(500);
+            
+            ffs.forEach(id => document.querySelector(`#${id} rect`).classList.remove('updating'));
+            clockDot.setAttribute('opacity', '0');
+            clockDot.setAttribute('cy', '50');
+            
+            status.textContent = 'All updated together!';
+        }
+
+        function resetSyncDemo() {
+            const vals = ['sync-val-1', 'sync-val-2', 'sync-val-3', 'sync-val-4'];
+            vals.forEach(v => {
+                document.getElementById(v).textContent = '0';
+                document.getElementById(v).classList.remove('one');
+                document.getElementById(v).classList.add('zero');
+            });
+            document.getElementById('sync-status').textContent = 'Ready';
+        }
+
+        // Initialize
+        showScene(1);
+    </script>
+</body>
+</html>

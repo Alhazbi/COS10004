@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RS Latch vs RS Flip-Flop - Interactive Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .circuits-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .circuit-card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid #334155;
+        }
+
+        .circuit-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .latch-indicator {
+            background: #f97316;
+        }
+
+        .ff-indicator {
+            background: #3b82f6;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .circuit-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .latch-title {
+            color: #fb923c;
+        }
+
+        .ff-title {
+            color: #60a5fa;
+        }
+
+        .badge {
+            font-size: 0.75em;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        .badge-latch {
+            background: rgba(249, 115, 22, 0.2);
+            color: #fb923c;
+        }
+
+        .badge-ff {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .circuit-canvas {
+            background: #0f172a;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            position: relative;
+            height: 300px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            text-align: center;
+        }
+
+        .control-label {
+            font-size: 0.75em;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-set {
+            background: #6b7280;
+            color: #fff;
+        }
+
+        .btn-set.active {
+            background: #22c55e;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+
+        .btn-reset {
+            background: #6b7280;
+            color: #fff;
+        }
+
+        .btn-reset.active {
+            background: #ef4444;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-clock {
+            background: #6b7280;
+            color: #fff;
+        }
+
+        .btn-clock.active {
+            background: #eab308;
+            color: #000;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+        }
+
+        .btn-auto {
+            background: #6b7280;
+            color: #fff;
+        }
+
+        .btn-auto.active {
+            background: #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+        }
+
+        .output-display {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .output-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .output-high {
+            color: #22c55e;
+        }
+
+        .output-low {
+            color: #6b7280;
+        }
+
+        .info-box {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.875em;
+            line-height: 1.6;
+        }
+
+        .info-latch {
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            color: #fb923c;
+        }
+
+        .info-ff {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+
+        .timing-diagram {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid #334155;
+            margin-bottom: 30px;
+        }
+
+        .timing-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #a78bfa;
+            margin-bottom: 16px;
+        }
+
+        .key-differences {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid #475569;
+        }
+
+        .differences-title {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #fb923c, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .differences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .difference-card {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .difference-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 1024px) {
+            .circuits-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RS Latch vs RS Flip-Flop</h1>
+        <p class="subtitle">Interactive comparison showing signal propagation and timing differences</p>
+
+        <div class="circuits-container">
+            <!-- RS Latch -->
+            <div class="circuit-card">
+                <div class="circuit-header">
+                    <div class="status-indicator latch-indicator"></div>
+                    <h2 class="circuit-title latch-title">RS Latch</h2>
+                    <span class="badge badge-latch">Level-Triggered</span>
+                </div>
+
+                <div class="circuit-canvas">
+                    <canvas id="latchCanvas" width="600" height="300"></canvas>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">RESET</div>
+                        <button class="btn btn-reset" id="latchR">R: 0</button>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">SET</div>
+                        <button class="btn btn-set" id="latchS">S: 0</button>
+                    </div>
+                </div>
+
+                <div class="output-display">
+                    Output Q: <span class="output-value output-low" id="latchQ">0 (LOW)</span>
+                </div>
+
+                <div class="info-box info-latch">
+                    <strong>⚡ Behavior:</strong> Output changes <em>immediately</em> when inputs change. 
+                    The latch is "transparent" - signals flow through instantly like an open valve.
+                </div>
+            </div>
+
+            <!-- RS Flip-Flop -->
+            <div class="circuit-card">
+                <div class="circuit-header">
+                    <div class="status-indicator ff-indicator"></div>
+                    <h2 class="circuit-title ff-title">RS Flip-Flop</h2>
+                    <span class="badge badge-ff">Edge-Triggered</span>
+                </div>
+
+                <div class="circuit-canvas">
+                    <canvas id="ffCanvas" width="600" height="300"></canvas>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-label">RESET</div>
+                        <button class="btn btn-reset" id="ffR">R: 0</button>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">SET</div>
+                        <button class="btn btn-set" id="ffS">S: 0</button>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">CLOCK</div>
+                        <button class="btn btn-clock" id="ffClock">CLK: ↓</button>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-auto" id="autoClock">▶ Start Auto-Clock</button>
+                </div>
+
+                <div class="output-display">
+                    Output Q: <span class="output-value output-low" id="ffQ">0 (LOW)</span>
+                </div>
+
+                <div class="info-box info-ff">
+                    <strong>⏱ Behavior:</strong> Output changes <em>only</em> on the rising edge (↑) of the clock. 
+                    Inputs are sampled at clock edge, then held stable until next edge.
+                </div>
+            </div>
+        </div>
+
+        <!-- Timing Diagram -->
+        <div class="timing-diagram">
+            <h3 class="timing-title">📊 Real-Time Timing Diagram</h3>
+            <canvas id="timingCanvas" width="1200" height="400"></canvas>
+        </div>
+
+        <!-- Key Differences -->
+        <div class="key-differences">
+            <h3 class="differences-title">🔑 Key Differences</h3>
+            <div class="differences-grid">
+                <div class="difference-card">
+                    <div class="difference-title" style="color: #fb923c;">🔓 Latch (Transparent)</div>
+                    <p>Changes output <strong>immediately</strong> when inputs change. Like an open gate - 
+                    signals pass through instantly.</p>
+                </div>
+                <div class="difference-card">
+                    <div class="difference-title" style="color: #60a5fa;">🔒 Flip-Flop (Synchronized)</div>
+                    <p>Changes output <strong>only on clock edge</strong>. Like a turnstile - 
+                    only lets signals through at specific moments.</p>
+                </div>
+                <div class="difference-card">
+                    <div class="difference-title" style="color: #a78bfa;">💡 Why It Matters</div>
+                    <p>Flip-flops enable <strong>synchronous circuits</strong> where all components 
+                    update together, preventing race conditions and glitches.</p>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 20px; font-size: 0.875em; color: #94a3b8;">
+                💡 Tip: Enable auto-clock and change S/R inputs to see how the flip-flop waits for clock edges!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const state = {
+            latch: { S: false, R: false, Q: false },
+            ff: { S: false, R: false, Q: false, clock: false, prevClock: false },
+            autoClock: false,
+            particles: { latch: [], ff: [] },
+            particleId: 0,
+            history: []
+        };
+
+        // Get canvas contexts
+        const latchCanvas = document.getElementById('latchCanvas');
+        const ffCanvas = document.getElementById('ffCanvas');
+        const timingCanvas = document.getElementById('timingCanvas');
+        const latchCtx = latchCanvas.getContext('2d');
+        const ffCtx = ffCanvas.getContext('2d');
+        const timingCtx = timingCanvas.getContext('2d');
+
+        // Particle class for signal propagation
+        class Particle {
+            constructor(id, path, color, duration = 600) {
+                this.id = id;
+                this.path = path; // Array of {x, y} points
+                this.color = color;
+                this.duration = duration;
+                this.startTime = Date.now();
+            }
+
+            getPosition() {
+                const elapsed = Date.now() - this.startTime;
+                const progress = Math.min(elapsed / this.duration, 1);
+                
+                if (progress >= 1) return null; // Particle finished
+
+                // Interpolate along path
+                const totalSegments = this.path.length - 1;
+                const segmentProgress = progress * totalSegments;
+                const currentSegment = Math.floor(segmentProgress);
+                const segmentFraction = segmentProgress - currentSegment;
+
+                const start = this.path[Math.min(currentSegment, this.path.length - 1)];
+                const end = this.path[Math.min(currentSegment + 1, this.path.length - 1)];
+
+                return {
+                    x: start.x + (end.x - start.x) * segmentFraction,
+                    y: start.y + (end.y - start.y) * segmentFraction,
+                    opacity: Math.sin(progress * Math.PI) // Fade in and out
+                };
+            }
+        }
+
+        // Create particle
+        function createParticle(path, color, isLatch) {
+            const particle = new Particle(state.particleId++, path, color);
+            if (isLatch) {
+                state.particles.latch.push(particle);
+            } else {
+                state.particles.ff.push(particle);
+            }
+        }
+
+        // Draw circuit helper functions
+        function drawWire(ctx, x1, y1, x2, y2, active, thickness = 3) {
+            ctx.strokeStyle = active ? '#22c55e' : '#6b7280';
+            ctx.lineWidth = thickness;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+
+        function drawCircle(ctx, x, y, radius, active) {
+            ctx.fillStyle = active ? '#22c55e' : '#374151';
+            ctx.strokeStyle = '#6b7280';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function drawGate(ctx, x, y, width, height, label, highlight) {
+            ctx.fillStyle = highlight ? '#fef3c7' : '#1e293b';
+            ctx.strokeStyle = highlight ? '#f59e0b' : '#64748b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(x - width/2, y - height/2, width, height, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, x, y);
+        }
+
+        function drawText(ctx, text, x, y, color, size = 14) {
+            ctx.fillStyle = color;
+            ctx.font = `bold ${size}px sans-serif`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x, y);
+        }
+
+        function drawParticle(ctx, particle) {
+            const pos = particle.getPosition();
+            if (!pos) return false;
+
+            // Glow effect
+            const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 12);
+            gradient.addColorStop(0, particle.color + Math.round(pos.opacity * 255).toString(16).padStart(2, '0'));
+            gradient.addColorStop(0.5, particle.color + Math.round(pos.opacity * 128).toString(16).padStart(2, '0'));
+            gradient.addColorStop(1, particle.color + '00');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Core
+            ctx.fillStyle = particle.color;
+            ctx.globalAlpha = pos.opacity;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+
+            return true;
+        }
+
+        // Draw RS Latch (NOR-based with R on top, S on bottom)
+        function drawLatch() {
+            latchCtx.clearRect(0, 0, latchCanvas.width, latchCanvas.height);
+
+            // Labels - R on top (to Gate A), S on bottom (to Gate B)
+            drawText(latchCtx, 'R', 20, 90, '#ef4444', 18);
+            drawText(latchCtx, 'S', 20, 210, '#22c55e', 18);
+            drawText(latchCtx, 'Q', 520, 90, '#22c55e', 18);
+            drawText(latchCtx, 'Q̄', 520, 210, '#ef4444', 18);
+
+            // Gate labels
+            drawText(latchCtx, 'A', 250, 70, '#94a3b8', 12);
+            drawText(latchCtx, 'B', 250, 230, '#94a3b8', 12);
+
+            // Input wires - R to top gate, S to bottom gate
+            drawWire(latchCtx, 50, 90, 120, 90, state.latch.R);
+            drawWire(latchCtx, 50, 210, 120, 210, state.latch.S);
+            
+            // Output wires - Q from top gate, Q̄ from bottom gate
+            drawWire(latchCtx, 300, 90, 470, 90, state.latch.Q);
+            drawWire(latchCtx, 300, 210, 470, 210, !state.latch.Q);
+
+            // Input circles
+            drawCircle(latchCtx, 120, 90, 10, state.latch.R);
+            drawCircle(latchCtx, 120, 210, 10, state.latch.S);
+
+            // Gates (NOR gates) - Gate A on top outputs Q, Gate B on bottom outputs Q̄
+            drawGate(latchCtx, 210, 90, 80, 50, 'NOR', state.latch.Q);
+            drawGate(latchCtx, 210, 210, 80, 50, 'NOR', !state.latch.Q);
+
+            // Gate input wires from inputs
+            drawWire(latchCtx, 130, 90, 170, 80, state.latch.R);
+            drawWire(latchCtx, 130, 210, 170, 220, state.latch.S);
+
+            // Cross-coupling feedback (Q → Gate B input, Q̄ → Gate A input)
+            // Q output to Gate B upper input
+            latchCtx.strokeStyle = state.latch.Q ? '#22c55e' : '#64748b';
+            latchCtx.lineWidth = 2;
+            latchCtx.beginPath();
+            latchCtx.moveTo(300, 90);
+            latchCtx.lineTo(340, 90);
+            latchCtx.lineTo(340, 160);
+            latchCtx.lineTo(150, 160);
+            latchCtx.lineTo(150, 200);
+            latchCtx.lineTo(170, 200);
+            latchCtx.stroke();
+
+            // Q̄ output to Gate A lower input
+            latchCtx.strokeStyle = !state.latch.Q ? '#ef4444' : '#64748b';
+            latchCtx.beginPath();
+            latchCtx.moveTo(300, 210);
+            latchCtx.lineTo(360, 210);
+            latchCtx.lineTo(360, 140);
+            latchCtx.lineTo(150, 140);
+            latchCtx.lineTo(150, 100);
+            latchCtx.lineTo(170, 100);
+            latchCtx.stroke();
+
+            // Output circles
+            drawCircle(latchCtx, 470, 90, 12, state.latch.Q);
+            drawCircle(latchCtx, 470, 210, 12, !state.latch.Q);
+
+            // Draw particles
+            state.particles.latch = state.particles.latch.filter(p => drawParticle(latchCtx, p));
+        }
+
+        // Draw RS Flip-Flop (R on top, S on bottom)
+        function drawFF() {
+            ffCtx.clearRect(0, 0, ffCanvas.width, ffCanvas.height);
+
+            // Labels - R on top, S on bottom
+            drawText(ffCtx, 'R', 20, 70, '#ef4444', 18);
+            drawText(ffCtx, 'S', 20, 180, '#22c55e', 18);
+            drawText(ffCtx, 'CLK', 20, 125, '#eab308', 18);
+            drawText(ffCtx, 'Q', 520, 90, '#22c55e', 18);
+            drawText(ffCtx, 'Q̄', 520, 210, '#ef4444', 18);
+
+            // Main flip-flop box
+            ffCtx.fillStyle = '#1e293b';
+            ffCtx.strokeStyle = '#64748b';
+            ffCtx.lineWidth = 3;
+            ffCtx.beginPath();
+            ffCtx.roundRect(160, 40, 240, 220, 10);
+            ffCtx.fill();
+            ffCtx.stroke();
+
+            // Input labels inside box
+            drawText(ffCtx, 'R', 175, 70, '#94a3b8', 14);
+            drawText(ffCtx, 'S', 175, 180, '#94a3b8', 14);
+            drawText(ffCtx, 'Q', 375, 90, '#94a3b8', 14);
+            drawText(ffCtx, 'Q̄', 375, 210, '#94a3b8', 14);
+
+            // Clock triangle indicator
+            ffCtx.fillStyle = '#eab308';
+            ffCtx.beginPath();
+            ffCtx.moveTo(160, 125);
+            ffCtx.lineTo(180, 115);
+            ffCtx.lineTo(180, 135);
+            ffCtx.closePath();
+            ffCtx.fill();
+
+            // Label inside
+            drawText(ffCtx, 'RS FF', 260, 145, '#64748b', 12);
+
+            // Wires - R on top, S on bottom
+            drawWire(ffCtx, 60, 70, 160, 70, state.ff.R);
+            drawWire(ffCtx, 60, 180, 160, 180, state.ff.S);
+            drawWire(ffCtx, 80, 125, 160, 125, state.ff.clock);
+            drawWire(ffCtx, 400, 90, 470, 90, state.ff.Q);
+            drawWire(ffCtx, 400, 210, 470, 210, !state.ff.Q);
+
+            // Input circles
+            drawCircle(ffCtx, 100, 70, 10, state.ff.R);
+            drawCircle(ffCtx, 100, 180, 10, state.ff.S);
+
+            // Output circles
+            drawCircle(ffCtx, 470, 90, 12, state.ff.Q);
+            drawCircle(ffCtx, 470, 210, 12, !state.ff.Q);
+
+            // Draw particles
+            state.particles.ff = state.particles.ff.filter(p => drawParticle(ffCtx, p));
+        }
+
+        // Draw timing diagram
+        function drawTimingDiagram() {
+            timingCtx.clearRect(0, 0, timingCanvas.width, timingCanvas.height);
+
+            const maxHistory = 60;
+            const waveHeight = 40;
+            const waveSpacing = 60;
+            const startX = 80;
+            const stepWidth = (timingCanvas.width - startX - 20) / maxHistory;
+
+            const waves = [
+                { label: 'Latch S', color: '#f97316', data: state.history.map(h => h.latch.S) },
+                { label: 'Latch R', color: '#ef4444', data: state.history.map(h => h.latch.R) },
+                { label: 'Latch Q', color: '#22c55e', data: state.history.map(h => h.latch.Q) },
+                { label: '', color: '#000000', data: [] },
+                { label: 'FF CLK', color: '#eab308', data: state.history.map(h => h.ff.clock) },
+                { label: 'FF S', color: '#f97316', data: state.history.map(h => h.ff.S) },
+                { label: 'FF R', color: '#ef4444', data: state.history.map(h => h.ff.R) },
+                { label: 'FF Q', color: '#22c55e', data: state.history.map(h => h.ff.Q) }
+            ];
+
+            waves.forEach((wave, waveIndex) => {
+                const y = waveIndex * waveSpacing + 40;
+
+                if (wave.label) {
+                    // Draw label
+                    timingCtx.fillStyle = '#94a3b8';
+                    timingCtx.font = 'bold 12px monospace';
+                    timingCtx.textAlign = 'right';
+                    timingCtx.fillText(wave.label, startX - 10, y);
+
+                    // Draw waveform
+                    if (wave.data.length > 0) {
+                        timingCtx.strokeStyle = wave.color;
+                        timingCtx.lineWidth = 2;
+                        timingCtx.beginPath();
+
+                        wave.data.forEach((value, i) => {
+                            const x = startX + i * stepWidth;
+                            const waveY = value ? y - waveHeight/2 : y + waveHeight/2;
+
+                            if (i === 0) {
+                                timingCtx.moveTo(x, waveY);
+                            } else {
+                                const prevValue = wave.data[i - 1];
+                                if (prevValue !== value) {
+                                    // Draw vertical transition
+                                    timingCtx.lineTo(x, value ? y + waveHeight/2 : y - waveHeight/2);
+                                }
+                                timingCtx.lineTo(x, waveY);
+                            }
+                        });
+
+                        timingCtx.stroke();
+                    }
+                }
+            });
+
+            // Draw grid
+            timingCtx.strokeStyle = '#334155';
+            timingCtx.lineWidth = 1;
+            for (let i = 0; i <= maxHistory; i += 10) {
+                const x = startX + i * stepWidth;
+                timingCtx.beginPath();
+                timingCtx.moveTo(x, 0);
+                timingCtx.lineTo(x, timingCanvas.height);
+                timingCtx.stroke();
+            }
+        }
+
+        // Update latch logic (NOR-based: R on top→Gate A→Q, S on bottom→Gate B→Q̄)
+        function updateLatch() {
+            const prevQ = state.latch.Q;
+
+            // NOR RS Latch logic:
+            // S=1, R=0: Q=1, Q̄=0 (SET)
+            // S=0, R=1: Q=0, Q̄=1 (RESET)
+            // S=0, R=0: Hold previous state
+            if (state.latch.S && !state.latch.R) {
+                state.latch.Q = true;
+                if (!prevQ) {
+                    // SET: Signal flows from S (bottom) through Gate B, 
+                    // then feedback to Gate A, then Q output
+                    createParticle([
+                        {x: 120, y: 210},
+                        {x: 170, y: 220},
+                        {x: 250, y: 210},
+                        {x: 300, y: 210}
+                    ], '#22c55e', true);
+                    // Then feedback to top gate and Q output
+                    setTimeout(() => {
+                        createParticle([
+                            {x: 300, y: 210},
+                            {x: 360, y: 210},
+                            {x: 360, y: 140},
+                            {x: 150, y: 140},
+                            {x: 150, y: 100},
+                            {x: 170, y: 100}
+                        ], '#22c55e', true);
+                    }, 300);
+                    setTimeout(() => {
+                        createParticle([
+                            {x: 250, y: 90},
+                            {x: 300, y: 90},
+                            {x: 400, y: 90},
+                            {x: 470, y: 90}
+                        ], '#22c55e', true);
+                    }, 600);
+                }
+            } else if (!state.latch.S && state.latch.R) {
+                state.latch.Q = false;
+                if (prevQ) {
+                    // RESET: Signal flows from R (top) through Gate A,
+                    // then feedback to Gate B, then Q̄ output
+                    createParticle([
+                        {x: 120, y: 90},
+                        {x: 170, y: 80},
+                        {x: 250, y: 90},
+                        {x: 300, y: 90}
+                    ], '#ef4444', true);
+                    // Then feedback to bottom gate and Q̄ output
+                    setTimeout(() => {
+                        createParticle([
+                            {x: 300, y: 90},
+                            {x: 340, y: 90},
+                            {x: 340, y: 160},
+                            {x: 150, y: 160},
+                            {x: 150, y: 200},
+                            {x: 170, y: 200}
+                        ], '#ef4444', true);
+                    }, 300);
+                    setTimeout(() => {
+                        createParticle([
+                            {x: 250, y: 210},
+                            {x: 300, y: 210},
+                            {x: 400, y: 210},
+                            {x: 470, y: 210}
+                        ], '#ef4444', true);
+                    }, 600);
+                }
+            }
+
+            // Update display
+            const qDisplay = document.getElementById('latchQ');
+            qDisplay.textContent = state.latch.Q ? '1 (HIGH)' : '0 (LOW)';
+            qDisplay.className = 'output-value ' + (state.latch.Q ? 'output-high' : 'output-low');
+        }
+
+        // Update flip-flop logic (R on top, S on bottom)
+        function updateFF() {
+            const prevQ = state.ff.Q;
+
+            // Check for rising edge
+            if (state.ff.clock && !state.ff.prevClock) {
+                // Rising edge detected
+                createParticle([
+                    {x: 80, y: 125},
+                    {x: 160, y: 125}
+                ], '#eab308', false);
+
+                if (state.ff.S && !state.ff.R) {
+                    // SET operation - S is on bottom (y=180)
+                    setTimeout(() => {
+                        state.ff.Q = true;
+                    }, 400);
+
+                    createParticle([
+                        {x: 100, y: 180},
+                        {x: 160, y: 180},
+                        {x: 280, y: 150},
+                        {x: 400, y: 90},
+                        {x: 470, y: 90}
+                    ], '#22c55e', false);
+                } else if (!state.ff.S && state.ff.R) {
+                    // RESET operation - R is on top (y=70)
+                    setTimeout(() => {
+                        state.ff.Q = false;
+                    }, 400);
+
+                    createParticle([
+                        {x: 100, y: 70},
+                        {x: 160, y: 70},
+                        {x: 280, y: 150},
+                        {x: 400, y: 210}
+                    ], '#ef4444', false);
+                }
+            }
+
+            state.ff.prevClock = state.ff.clock;
+
+            // Update display
+            const qDisplay = document.getElementById('ffQ');
+            qDisplay.textContent = state.ff.Q ? '1 (HIGH)' : '0 (LOW)';
+            qDisplay.className = 'output-value ' + (state.ff.Q ? 'output-high' : 'output-low');
+        }
+
+        // Record history for timing diagram
+        function recordHistory() {
+            state.history.push({
+                latch: { S: state.latch.S, R: state.latch.R, Q: state.latch.Q },
+                ff: { S: state.ff.S, R: state.ff.R, Q: state.ff.Q, clock: state.ff.clock }
+            });
+
+            if (state.history.length > 60) {
+                state.history.shift();
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            drawLatch();
+            drawFF();
+            drawTimingDiagram();
+            requestAnimationFrame(animate);
+        }
+
+        // Event listeners
+        document.getElementById('latchS').addEventListener('click', function() {
+            state.latch.S = !state.latch.S;
+            this.textContent = 'S: ' + (state.latch.S ? '1' : '0');
+            this.classList.toggle('active', state.latch.S);
+            updateLatch();
+        });
+
+        document.getElementById('latchR').addEventListener('click', function() {
+            state.latch.R = !state.latch.R;
+            this.textContent = 'R: ' + (state.latch.R ? '1' : '0');
+            this.classList.toggle('active', state.latch.R);
+            updateLatch();
+        });
+
+        document.getElementById('ffS').addEventListener('click', function() {
+            state.ff.S = !state.ff.S;
+            this.textContent = 'S: ' + (state.ff.S ? '1' : '0');
+            this.classList.toggle('active', state.ff.S);
+        });
+
+        document.getElementById('ffR').addEventListener('click', function() {
+            state.ff.R = !state.ff.R;
+            this.textContent = 'R: ' + (state.ff.R ? '1' : '0');
+            this.classList.toggle('active', state.ff.R);
+        });
+
+        document.getElementById('ffClock').addEventListener('click', function() {
+            if (!state.autoClock) {
+                state.ff.clock = !state.ff.clock;
+                this.textContent = 'CLK: ' + (state.ff.clock ? '↑' : '↓');
+                this.classList.toggle('active', state.ff.clock);
+                updateFF();
+            }
+        });
+
+        let autoClockInterval;
+        document.getElementById('autoClock').addEventListener('click', function() {
+            state.autoClock = !state.autoClock;
+            this.textContent = state.autoClock ? '⏸ Stop Auto-Clock' : '▶ Start Auto-Clock';
+            this.classList.toggle('active', state.autoClock);
+
+            if (state.autoClock) {
+                document.getElementById('ffClock').disabled = true;
+                autoClockInterval = setInterval(() => {
+                    state.ff.clock = !state.ff.clock;
+                    document.getElementById('ffClock').textContent = 'CLK: ' + (state.ff.clock ? '↑' : '↓');
+                    document.getElementById('ffClock').classList.toggle('active', state.ff.clock);
+                    updateFF();
+                }, 800);
+            } else {
+                document.getElementById('ffClock').disabled = false;
+                clearInterval(autoClockInterval);
+            }
+        });
+
+        // History recording interval
+        setInterval(recordHistory, 200);
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>

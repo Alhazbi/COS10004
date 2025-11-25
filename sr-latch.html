@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SR Latch Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            min-height: 100vh;
+            font-family: 'Share Tech Mono', monospace;
+            color: #00ff88;
+            overflow-x: hidden;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15) 0px,
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff8855;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #00ff8888;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: linear-gradient(145deg, #12121a, #0d0d12);
+            border: 1px solid #00ff8833;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00ff88, transparent);
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Circuit Visualization */
+        .circuit-container {
+            position: relative;
+            height: 350px;
+            background: 
+                radial-gradient(circle at 50% 50%, #0f1a15 0%, transparent 70%),
+                linear-gradient(90deg, #0a0a0f 0%, #0d1210 50%, #0a0a0f 100%);
+            border-radius: 8px;
+            border: 1px solid #00ff8822;
+        }
+
+        .circuit-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* NAND Gate styling */
+        .nand-gate {
+            fill: #1a1a24;
+            stroke: #00ff88;
+            stroke-width: 2;
+            transition: all 0.3s ease;
+        }
+
+        .nand-gate.active {
+            fill: #1a2a24;
+            filter: drop-shadow(0 0 10px #00ff8866);
+        }
+
+        .wire {
+            stroke: #334455;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            transition: stroke 0.15s ease;
+        }
+
+        .wire.high {
+            stroke: #00ff88;
+            filter: drop-shadow(0 0 6px #00ff88);
+        }
+
+        .wire.low {
+            stroke: #ff4466;
+        }
+
+        .wire.propagating {
+            stroke-dasharray: 8 4;
+            animation: dash 0.3s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        .signal-pulse {
+            fill: #00ff88;
+            opacity: 0;
+        }
+
+        .signal-pulse.active {
+            animation: pulse-move 0.4s ease-out forwards;
+        }
+
+        @keyframes pulse-move {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            fill: #00ff88;
+        }
+
+        .label.input {
+            fill: #ffaa00;
+        }
+
+        .label.output {
+            fill: #00ddff;
+        }
+
+        .value-indicator {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .value-indicator.high {
+            fill: #00ff88;
+        }
+
+        .value-indicator.low {
+            fill: #ff4466;
+        }
+
+        /* Controls */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            background: #0d0d12;
+            border: 1px solid #00ff8822;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .control-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .control-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .control-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 4px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .control-value.high {
+            background: #00ff8822;
+            color: #00ff88;
+            box-shadow: 0 0 15px #00ff8833;
+        }
+
+        .control-value.low {
+            background: #ff446622;
+            color: #ff4466;
+            box-shadow: 0 0 15px #ff446633;
+        }
+
+        .toggle-btn {
+            width: 100%;
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            background: linear-gradient(180deg, #1a1a24, #12121a);
+            border: 1px solid #00ff8855;
+            color: #00ff88;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .toggle-btn:hover {
+            background: linear-gradient(180deg, #1f2a28, #152520);
+            box-shadow: 0 0 20px #00ff8833;
+        }
+
+        .toggle-btn:active {
+            transform: scale(0.98);
+        }
+
+        .toggle-btn.set-btn:hover {
+            border-color: #ffaa00;
+            color: #ffaa00;
+            box-shadow: 0 0 20px #ffaa0033;
+        }
+
+        .toggle-btn.reset-btn:hover {
+            border-color: #ff4466;
+            color: #ff4466;
+            box-shadow: 0 0 20px #ff446633;
+        }
+
+        /* Output Display */
+        .output-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .output-box {
+            background: #0a0a0f;
+            border: 2px solid #00ddff44;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .output-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: #00ddff;
+            margin-bottom: 10px;
+        }
+
+        .output-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .output-value.high {
+            color: #00ff88;
+            text-shadow: 0 0 20px #00ff88;
+        }
+
+        .output-value.low {
+            color: #ff4466;
+            text-shadow: 0 0 20px #ff4466;
+        }
+
+        /* Timing Diagram */
+        .timing-panel {
+            grid-column: 1 / -1;
+        }
+
+        .timing-container {
+            background: #0d0d12;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #00ff8822;
+        }
+
+        .timing-svg {
+            width: 100%;
+            height: 280px;
+        }
+
+        .timing-grid {
+            stroke: #1a2a28;
+            stroke-width: 1;
+        }
+
+        .timing-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+        }
+
+        .timing-wave {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+        }
+
+        .wave-set { stroke: #ffaa00; }
+        .wave-reset { stroke: #ff4466; }
+        .wave-q { stroke: #00ff88; }
+        .wave-qbar { stroke: #00ddff; }
+
+        .timing-cursor {
+            stroke: #ffffff44;
+            stroke-width: 2;
+            stroke-dasharray: 5 5;
+        }
+
+        /* Truth Table */
+        .truth-table {
+            margin-top: 20px;
+        }
+
+        .truth-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .truth-table th,
+        .truth-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #00ff8833;
+        }
+
+        .truth-table th {
+            background: #00ff8822;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .truth-table tr.current {
+            background: #00ff8833;
+            box-shadow: inset 0 0 20px #00ff8822;
+        }
+
+        .truth-table .high-val { color: #00ff88; }
+        .truth-table .low-val { color: #ff4466; }
+
+        /* Playback Controls */
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .playback-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            background: linear-gradient(180deg, #1a1a24, #12121a);
+            border: 1px solid #00ff8855;
+            color: #00ff88;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .playback-btn:hover {
+            background: linear-gradient(180deg, #1f2a28, #152520);
+            box-shadow: 0 0 15px #00ff8833;
+        }
+
+        .playback-btn.active {
+            background: #00ff8833;
+            border-color: #00ff88;
+        }
+
+        /* Status display */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #0a0a0f;
+            border-radius: 6px;
+            border: 1px solid #00ff8822;
+        }
+
+        .status-text {
+            color: #00ff8888;
+            font-size: 0.85rem;
+        }
+
+        .status-state {
+            font-family: 'Orbitron', sans-serif;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .status-state.set { background: #ffaa0033; color: #ffaa00; }
+        .status-state.reset { background: #ff446633; color: #ff4466; }
+        .status-state.hold { background: #00ff8833; color: #00ff88; }
+        .status-state.invalid { background: #ff00ff33; color: #ff00ff; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Glow animation for active elements */
+        @keyframes glow-pulse {
+            0%, 100% { filter: drop-shadow(0 0 5px currentColor); }
+            50% { filter: drop-shadow(0 0 15px currentColor); }
+        }
+
+        .glow-active {
+            animation: glow-pulse 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SR LATCH SIMULATOR</h1>
+        <p class="subtitle">NAND Gate Implementation • Interactive Timing Diagram</p>
+
+        <div class="main-layout">
+            <!-- Circuit Panel -->
+            <div class="panel">
+                <div class="panel-title">Circuit Diagram</div>
+                <div class="circuit-container">
+                    <svg class="circuit-svg" viewBox="0 0 400 300">
+                        <!-- Grid pattern -->
+                        <defs>
+                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1a2a28" stroke-width="0.5"/>
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" opacity="0.5"/>
+
+                        <!-- Input wires -->
+                        <path id="wire-set-in" class="wire" d="M 30 80 L 100 80"/>
+                        <path id="wire-reset-in" class="wire" d="M 30 220 L 100 220"/>
+
+                        <!-- Feedback wires -->
+                        <path id="wire-q-feedback" class="wire" d="M 280 95 L 320 95 L 320 180 L 80 180 L 80 205 L 100 205"/>
+                        <path id="wire-qbar-feedback" class="wire" d="M 280 205 L 340 205 L 340 120 L 80 120 L 80 95 L 100 95"/>
+
+                        <!-- Output wires -->
+                        <path id="wire-q-out" class="wire" d="M 280 95 L 370 95"/>
+                        <path id="wire-qbar-out" class="wire" d="M 280 205 L 370 205"/>
+
+                        <!-- NAND Gate A (Top) -->
+                        <g id="nand-a" transform="translate(100, 55)">
+                            <path class="nand-gate" d="M 0 0 L 0 80 L 60 80 Q 120 80 120 40 Q 120 0 60 0 Z"/>
+                            <circle cx="135" cy="40" r="10" class="nand-gate"/>
+                            <!-- Input dots -->
+                            <circle cx="0" cy="25" r="4" fill="#ffaa00"/>
+                            <circle cx="0" cy="55" r="4" fill="#00ddff"/>
+                            <!-- Output dot -->
+                            <circle cx="145" cy="40" r="4" fill="#00ff88"/>
+                            <text x="50" y="45" class="label" text-anchor="middle" font-size="12">NAND</text>
+                            <text x="50" y="60" class="label" text-anchor="middle" font-size="10">A</text>
+                        </g>
+
+                        <!-- NAND Gate B (Bottom) -->
+                        <g id="nand-b" transform="translate(100, 165)">
+                            <path class="nand-gate" d="M 0 0 L 0 80 L 60 80 Q 120 80 120 40 Q 120 0 60 0 Z"/>
+                            <circle cx="135" cy="40" r="10" class="nand-gate"/>
+                            <!-- Input dots -->
+                            <circle cx="0" cy="25" r="4" fill="#00ff88"/>
+                            <circle cx="0" cy="55" r="4" fill="#ffaa00"/>
+                            <!-- Output dot -->
+                            <circle cx="145" cy="40" r="4" fill="#00ddff"/>
+                            <text x="50" y="45" class="label" text-anchor="middle" font-size="12">NAND</text>
+                            <text x="50" y="60" class="label" text-anchor="middle" font-size="10">B</text>
+                        </g>
+
+                        <!-- Labels -->
+                        <text x="20" y="85" class="label input">S̄</text>
+                        <text x="20" y="225" class="label input">R̄</text>
+                        <text x="375" y="100" class="label output">Q</text>
+                        <text x="375" y="210" class="label output">Q̄</text>
+
+                        <!-- Value indicators -->
+                        <text id="val-set" x="55" y="75" class="value-indicator">1</text>
+                        <text id="val-reset" x="55" y="230" class="value-indicator">1</text>
+                        <text id="val-q" x="355" y="85" class="value-indicator">1</text>
+                        <text id="val-qbar" x="355" y="220" class="value-indicator">0</text>
+
+                        <!-- Signal propagation pulses -->
+                        <circle id="pulse-set" class="signal-pulse" r="6"/>
+                        <circle id="pulse-reset" class="signal-pulse" r="6"/>
+                        <circle id="pulse-q" class="signal-pulse" r="6"/>
+                        <circle id="pulse-qbar" class="signal-pulse" r="6"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="panel">
+                <div class="panel-title">Input Controls</div>
+                <div class="controls-panel">
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name" style="color: #ffaa00;">S̄ (SET)</span>
+                            <span id="set-display" class="control-value high">1</span>
+                        </div>
+                        <button class="toggle-btn set-btn" onclick="toggleSet()">
+                            Toggle SET (Active Low)
+                        </button>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name" style="color: #ff4466;">R̄ (RESET)</span>
+                            <span id="reset-display" class="control-value high">1</span>
+                        </div>
+                        <button class="toggle-btn reset-btn" onclick="toggleReset()">
+                            Toggle RESET (Active Low)
+                        </button>
+                    </div>
+
+                    <div class="output-display">
+                        <div class="output-box">
+                            <div class="output-name">Q</div>
+                            <div id="q-display" class="output-value high">1</div>
+                        </div>
+                        <div class="output-box">
+                            <div class="output-name">Q̄</div>
+                            <div id="qbar-display" class="output-value low">0</div>
+                        </div>
+                    </div>
+
+                    <div class="status-bar">
+                        <span class="status-text">Current State:</span>
+                        <span id="state-display" class="status-state hold">HOLD (Memory)</span>
+                    </div>
+
+                    <!-- Truth Table -->
+                    <div class="truth-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>S̄</th>
+                                    <th>R̄</th>
+                                    <th>Q</th>
+                                    <th>Q̄</th>
+                                    <th>State</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="row-hold" class="current">
+                                    <td class="high-val">1</td>
+                                    <td class="high-val">1</td>
+                                    <td>Q</td>
+                                    <td>Q̄</td>
+                                    <td>Hold</td>
+                                </tr>
+                                <tr id="row-set">
+                                    <td class="low-val">0</td>
+                                    <td class="high-val">1</td>
+                                    <td class="high-val">1</td>
+                                    <td class="low-val">0</td>
+                                    <td>Set</td>
+                                </tr>
+                                <tr id="row-reset">
+                                    <td class="high-val">1</td>
+                                    <td class="low-val">0</td>
+                                    <td class="low-val">0</td>
+                                    <td class="high-val">1</td>
+                                    <td>Reset</td>
+                                </tr>
+                                <tr id="row-invalid">
+                                    <td class="low-val">0</td>
+                                    <td class="low-val">0</td>
+                                    <td class="high-val">1</td>
+                                    <td class="high-val">1</td>
+                                    <td>Invalid</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timing Diagram Panel -->
+            <div class="panel timing-panel">
+                <div class="panel-title">Timing Diagram</div>
+                <div class="timing-container">
+                    <svg class="timing-svg" viewBox="0 0 1000 250">
+                        <!-- Grid -->
+                        <defs>
+                            <pattern id="timing-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                                <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#1a2a28" stroke-width="0.5"/>
+                            </pattern>
+                        </defs>
+                        <rect x="80" y="0" width="900" height="250" fill="url(#timing-grid)" opacity="0.5"/>
+
+                        <!-- Labels -->
+                        <text x="10" y="40" class="timing-label" fill="#ffaa00">S̄ (SET)</text>
+                        <text x="10" y="100" class="timing-label" fill="#ff4466">R̄ (RESET)</text>
+                        <text x="10" y="160" class="timing-label" fill="#00ff88">Q</text>
+                        <text x="10" y="220" class="timing-label" fill="#00ddff">Q̄</text>
+
+                        <!-- Baseline reference lines -->
+                        <line x1="80" y1="30" x2="980" y2="30" class="timing-grid"/>
+                        <line x1="80" y1="50" x2="980" y2="50" class="timing-grid"/>
+                        <line x1="80" y1="90" x2="980" y2="90" class="timing-grid"/>
+                        <line x1="80" y1="110" x2="980" y2="110" class="timing-grid"/>
+                        <line x1="80" y1="150" x2="980" y2="150" class="timing-grid"/>
+                        <line x1="80" y1="170" x2="980" y2="170" class="timing-grid"/>
+                        <line x1="80" y1="210" x2="980" y2="210" class="timing-grid"/>
+                        <line x1="80" y1="230" x2="980" y2="230" class="timing-grid"/>
+
+                        <!-- High/Low labels -->
+                        <text x="65" y="35" class="timing-label" fill="#00ff8866" font-size="10">1</text>
+                        <text x="65" y="55" class="timing-label" fill="#ff446666" font-size="10">0</text>
+                        <text x="65" y="95" class="timing-label" fill="#00ff8866" font-size="10">1</text>
+                        <text x="65" y="115" class="timing-label" fill="#ff446666" font-size="10">0</text>
+                        <text x="65" y="155" class="timing-label" fill="#00ff8866" font-size="10">1</text>
+                        <text x="65" y="175" class="timing-label" fill="#ff446666" font-size="10">0</text>
+                        <text x="65" y="215" class="timing-label" fill="#00ff8866" font-size="10">1</text>
+                        <text x="65" y="235" class="timing-label" fill="#ff446666" font-size="10">0</text>
+
+                        <!-- Waveforms -->
+                        <path id="wave-set" class="timing-wave wave-set" d="M 80 30"/>
+                        <path id="wave-reset" class="timing-wave wave-reset" d="M 80 90"/>
+                        <path id="wave-q" class="timing-wave wave-q" d="M 80 150"/>
+                        <path id="wave-qbar" class="timing-wave wave-qbar" d="M 80 210"/>
+
+                        <!-- Time cursor -->
+                        <line id="time-cursor" class="timing-cursor" x1="80" y1="0" x2="80" y2="250"/>
+                    </svg>
+
+                    <div class="playback-controls">
+                        <button class="playback-btn" onclick="clearTiming()">Clear</button>
+                        <button class="playback-btn" onclick="runDemo()">Run Demo Sequence</button>
+                        <button id="auto-btn" class="playback-btn" onclick="toggleAutoAdvance()">Auto Advance: OFF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let setInput = 1;
+        let resetInput = 1;
+        let qOutput = 1;
+        let qBarOutput = 0;
+        
+        // Timing diagram state
+        let timePosition = 80;
+        const maxTime = 980;
+        const stepSize = 30;
+        
+        let waveSet = [];
+        let waveReset = [];
+        let waveQ = [];
+        let waveQBar = [];
+        
+        let autoAdvance = false;
+        let autoInterval = null;
+
+        // Initialize
+        function init() {
+            waveSet = [{x: 80, val: 1}];
+            waveReset = [{x: 80, val: 1}];
+            waveQ = [{x: 80, val: 1}];
+            waveQBar = [{x: 80, val: 0}];
+            updateAllDisplays();
+            updateWaveforms();
+        }
+
+        // Toggle SET input
+        function toggleSet() {
+            setInput = setInput === 1 ? 0 : 1;
+            advanceTime();
+            processLatch();
+            animatePropagation('set');
+        }
+
+        // Toggle RESET input
+        function toggleReset() {
+            resetInput = resetInput === 1 ? 0 : 1;
+            advanceTime();
+            processLatch();
+            animatePropagation('reset');
+        }
+
+        // Process NAND latch logic
+        function processLatch() {
+            const prevQ = qOutput;
+            const prevQBar = qBarOutput;
+
+            // NAND gate logic for SR latch
+            // Gate A: inputs are S̄ and Q̄ feedback, output is Q
+            // Gate B: inputs are Q feedback and R̄, output is Q̄
+            
+            if (setInput === 0 && resetInput === 1) {
+                // SET condition
+                qOutput = 1;
+                qBarOutput = 0;
+            } else if (setInput === 1 && resetInput === 0) {
+                // RESET condition
+                qOutput = 0;
+                qBarOutput = 1;
+            } else if (setInput === 0 && resetInput === 0) {
+                // Invalid condition - both outputs high
+                qOutput = 1;
+                qBarOutput = 1;
+            }
+            // If both inputs are 1, maintain current state (HOLD)
+
+            // Add to waveforms
+            addWavePoint(waveSet, setInput);
+            addWavePoint(waveReset, resetInput);
+            addWavePoint(waveQ, qOutput);
+            addWavePoint(waveQBar, qBarOutput);
+
+            updateAllDisplays();
+            updateWaveforms();
+            highlightTruthTableRow();
+        }
+
+        // Add point to waveform
+        function addWavePoint(wave, val) {
+            const lastPoint = wave[wave.length - 1];
+            if (lastPoint.val !== val) {
+                // Add transition point at current position
+                wave.push({x: timePosition, val: lastPoint.val});
+                wave.push({x: timePosition, val: val});
+            }
+            wave.push({x: timePosition + stepSize, val: val});
+        }
+
+        // Advance time position
+        function advanceTime() {
+            if (timePosition < maxTime - stepSize) {
+                timePosition += stepSize;
+            }
+            updateTimeCursor();
+        }
+
+        // Update time cursor position
+        function updateTimeCursor() {
+            document.getElementById('time-cursor').setAttribute('x1', timePosition);
+            document.getElementById('time-cursor').setAttribute('x2', timePosition);
+        }
+
+        // Update all displays
+        function updateAllDisplays() {
+            // Input displays
+            updateValueDisplay('set-display', setInput);
+            updateValueDisplay('reset-display', resetInput);
+            
+            // Output displays
+            updateValueDisplay('q-display', qOutput);
+            updateValueDisplay('qbar-display', qBarOutput);
+            
+            // Circuit value indicators
+            updateCircuitValue('val-set', setInput);
+            updateCircuitValue('val-reset', resetInput);
+            updateCircuitValue('val-q', qOutput);
+            updateCircuitValue('val-qbar', qBarOutput);
+            
+            // Wire states
+            updateWireState('wire-set-in', setInput);
+            updateWireState('wire-reset-in', resetInput);
+            updateWireState('wire-q-out', qOutput);
+            updateWireState('wire-qbar-out', qBarOutput);
+            updateWireState('wire-q-feedback', qOutput);
+            updateWireState('wire-qbar-feedback', qBarOutput);
+            
+            // NAND gates
+            updateNandGate('nand-a', qOutput);
+            updateNandGate('nand-b', qBarOutput);
+            
+            // State display
+            updateStateDisplay();
+        }
+
+        function updateValueDisplay(id, val) {
+            const elem = document.getElementById(id);
+            elem.textContent = val;
+            elem.className = 'control-value ' + (val ? 'high' : 'low');
+            if (id === 'q-display' || id === 'qbar-display') {
+                elem.className = 'output-value ' + (val ? 'high' : 'low');
+            }
+        }
+
+        function updateCircuitValue(id, val) {
+            const elem = document.getElementById(id);
+            elem.textContent = val;
+            elem.className = 'value-indicator ' + (val ? 'high' : 'low');
+        }
+
+        function updateWireState(id, val) {
+            const wire = document.getElementById(id);
+            wire.className = 'wire ' + (val ? 'high' : 'low');
+        }
+
+        function updateNandGate(id, outputVal) {
+            const gate = document.getElementById(id);
+            if (outputVal) {
+                gate.querySelector('.nand-gate').classList.add('active');
+            } else {
+                gate.querySelector('.nand-gate').classList.remove('active');
+            }
+        }
+
+        function updateStateDisplay() {
+            const stateElem = document.getElementById('state-display');
+            let state, stateClass;
+            
+            if (setInput === 0 && resetInput === 0) {
+                state = 'INVALID';
+                stateClass = 'invalid';
+            } else if (setInput === 0) {
+                state = 'SET';
+                stateClass = 'set';
+            } else if (resetInput === 0) {
+                state = 'RESET';
+                stateClass = 'reset';
+            } else {
+                state = 'HOLD (Memory)';
+                stateClass = 'hold';
+            }
+            
+            stateElem.textContent = state;
+            stateElem.className = 'status-state ' + stateClass;
+        }
+
+        function highlightTruthTableRow() {
+            // Remove current class from all rows
+            document.querySelectorAll('.truth-table tr').forEach(row => {
+                row.classList.remove('current');
+            });
+            
+            // Add current class to matching row
+            let rowId;
+            if (setInput === 0 && resetInput === 0) {
+                rowId = 'row-invalid';
+            } else if (setInput === 0) {
+                rowId = 'row-set';
+            } else if (resetInput === 0) {
+                rowId = 'row-reset';
+            } else {
+                rowId = 'row-hold';
+            }
+            document.getElementById(rowId).classList.add('current');
+        }
+
+        // Generate waveform path
+        function generateWavePath(wave, highY, lowY) {
+            if (wave.length === 0) return '';
+            
+            let path = `M ${wave[0].x} ${wave[0].val ? highY : lowY}`;
+            
+            for (let i = 1; i < wave.length; i++) {
+                const y = wave[i].val ? highY : lowY;
+                path += ` L ${wave[i].x} ${y}`;
+            }
+            
+            return path;
+        }
+
+        // Update waveform displays
+        function updateWaveforms() {
+            document.getElementById('wave-set').setAttribute('d', generateWavePath(waveSet, 30, 50));
+            document.getElementById('wave-reset').setAttribute('d', generateWavePath(waveReset, 90, 110));
+            document.getElementById('wave-q').setAttribute('d', generateWavePath(waveQ, 150, 170));
+            document.getElementById('wave-qbar').setAttribute('d', generateWavePath(waveQBar, 210, 230));
+        }
+
+        // Animate signal propagation
+        function animatePropagation(source) {
+            // Add propagating class to wires temporarily
+            const wires = document.querySelectorAll('.wire');
+            wires.forEach(wire => wire.classList.add('propagating'));
+            
+            setTimeout(() => {
+                wires.forEach(wire => wire.classList.remove('propagating'));
+            }, 400);
+        }
+
+        // Clear timing diagram
+        function clearTiming() {
+            timePosition = 80;
+            waveSet = [{x: 80, val: setInput}];
+            waveReset = [{x: 80, val: resetInput}];
+            waveQ = [{x: 80, val: qOutput}];
+            waveQBar = [{x: 80, val: qBarOutput}];
+            updateWaveforms();
+            updateTimeCursor();
+        }
+
+        // Run demo sequence
+        async function runDemo() {
+            clearTiming();
+            
+            // Reset to initial state
+            setInput = 1;
+            resetInput = 1;
+            qOutput = 1;
+            qBarOutput = 0;
+            updateAllDisplays();
+            
+            const sequence = [
+                {set: 1, reset: 1, delay: 500},  // Hold
+                {set: 0, reset: 1, delay: 800},  // Set (Q=1)
+                {set: 1, reset: 1, delay: 800},  // Hold
+                {set: 1, reset: 0, delay: 800},  // Reset (Q=0)
+                {set: 1, reset: 1, delay: 800},  // Hold
+                {set: 0, reset: 1, delay: 800},  // Set again
+                {set: 1, reset: 1, delay: 800},  // Hold
+                {set: 0, reset: 0, delay: 800},  // Invalid
+                {set: 1, reset: 1, delay: 800},  // Return to hold
+            ];
+            
+            for (const step of sequence) {
+                if (setInput !== step.set) {
+                    setInput = step.set;
+                    advanceTime();
+                    processLatch();
+                    animatePropagation('set');
+                    await sleep(300);
+                }
+                
+                if (resetInput !== step.reset) {
+                    resetInput = step.reset;
+                    advanceTime();
+                    processLatch();
+                    animatePropagation('reset');
+                }
+                
+                await sleep(step.delay);
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Toggle auto advance
+        function toggleAutoAdvance() {
+            autoAdvance = !autoAdvance;
+            const btn = document.getElementById('auto-btn');
+            
+            if (autoAdvance) {
+                btn.textContent = 'Auto Advance: ON';
+                btn.classList.add('active');
+                autoInterval = setInterval(() => {
+                    if (timePosition < maxTime - stepSize) {
+                        // Extend waveforms without changing values
+                        timePosition += stepSize;
+                        waveSet.push({x: timePosition, val: setInput});
+                        waveReset.push({x: timePosition, val: resetInput});
+                        waveQ.push({x: timePosition, val: qOutput});
+                        waveQBar.push({x: timePosition, val: qBarOutput});
+                        updateWaveforms();
+                        updateTimeCursor();
+                    }
+                }, 500);
+            } else {
+                btn.textContent = 'Auto Advance: OFF';
+                btn.classList.remove('active');
+                clearInterval(autoInterval);
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 's' || e.key === 'S') {
+                toggleSet();
+            } else if (e.key === 'r' || e.key === 'R') {
+                toggleReset();
+            } else if (e.key === 'c' || e.key === 'C') {
+                clearTiming();
+            } else if (e.key === 'd' || e.key === 'D') {
+                runDemo();
+            }
+        });
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
