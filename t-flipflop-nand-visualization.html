@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T Flip-Flop with NAND Gates - Interactive Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #ecf0f1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #b366ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .circuit-container {
+            background: #0a0a1a;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #1a3a5c;
+            overflow: hidden;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .wire {
+            fill: none;
+            stroke: #3a3a5c;
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke 0.3s ease;
+        }
+
+        .wire.active {
+            stroke: #00ff88;
+            filter: drop-shadow(0 0 8px #00ff88);
+        }
+
+        .wire.active-zero {
+            stroke: #ff6b6b;
+            filter: drop-shadow(0 0 8px #ff6b6b);
+        }
+
+        .wire.clock-active {
+            stroke: #ff00ff;
+            filter: drop-shadow(0 0 8px #ff00ff);
+        }
+
+        .gate-nand {
+            fill: #2a1e3a;
+            stroke: #b366ff;
+            stroke-width: 2;
+            transition: all 0.3s ease;
+        }
+
+        .gate-nand.processing {
+            fill: #3a2a5a;
+            filter: drop-shadow(0 0 15px #b366ff);
+        }
+
+        .gate-label {
+            font-size: 11px;
+            font-weight: bold;
+            fill: #ffffff;
+            text-anchor: middle;
+        }
+
+        .signal-label {
+            font-size: 18px;
+            font-weight: bold;
+            fill: #ecf0f1;
+        }
+
+        .value-display {
+            font-size: 20px;
+            font-weight: bold;
+            text-anchor: middle;
+            transition: fill 0.3s ease;
+        }
+
+        .value-0 { fill: #ff6b6b; }
+        .value-1 { fill: #00ff88; }
+
+        .value-box {
+            fill: rgba(0, 0, 0, 0.5);
+            rx: 5;
+        }
+
+        .particle {
+            fill: #00ff88;
+            filter: drop-shadow(0 0 6px #00ff88);
+        }
+
+        .particle-zero {
+            fill: #ff6b6b;
+            filter: drop-shadow(0 0 6px #ff6b6b);
+        }
+
+        .particle-clock {
+            fill: #ff00ff;
+            filter: drop-shadow(0 0 6px #ff00ff);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .toggle-btn {
+            width: 80px;
+            height: 45px;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn.off {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .toggle-btn.on {
+            background: linear-gradient(145deg, #00ff88, #00dd77);
+            color: #1a1a2e;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn {
+            padding: 15px 35px;
+            font-size: 18px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clock {
+            background: linear-gradient(145deg, #ff00ff, #cc00cc);
+            color: white;
+            box-shadow: 0 4px 20px rgba(255, 0, 255, 0.4);
+        }
+
+        .btn-clock:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255, 0, 255, 0.6);
+        }
+
+        .btn-clock:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .truth-tables {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .truth-table {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .truth-table h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #b366ff;
+            font-size: 1.3em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(179, 102, 255, 0.2);
+            color: #b366ff;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tr:hover {
+            background: rgba(179, 102, 255, 0.1);
+        }
+
+        tr.highlight {
+            background: rgba(0, 255, 136, 0.2) !important;
+            box-shadow: inset 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .step-indicator {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .explanation {
+            background: rgba(179, 102, 255, 0.1);
+            border-left: 4px solid #b366ff;
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+
+        .explanation h3 {
+            color: #b366ff;
+            margin-bottom: 10px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        .legend-1 { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+        .legend-0 { background: #ff6b6b; box-shadow: 0 0 10px #ff6b6b; }
+        .legend-clk { background: #ff00ff; box-shadow: 0 0 10px #ff00ff; }
+
+        .gate-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .gate-info-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gate-info-card h4 {
+            color: #b366ff;
+            margin-bottom: 8px;
+        }
+
+        .output-display {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .mode-hold { background: rgba(100, 100, 100, 0.4); color: #aaa; }
+        .mode-toggle { background: rgba(179, 102, 255, 0.3); color: #b366ff; }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .controls {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ T Flip-Flop with NAND Gates</h1>
+            <p>All-NAND implementation (same as JK with J=K=T)</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Key Concept -->
+            <div class="card">
+                <h2>🎯 Key Concept</h2>
+                <div class="explanation">
+                    <p>The <strong>T (Toggle) Flip-Flop</strong> has only <strong>ONE control input</strong>. When T=1 and clock pulses, the output <strong>toggles</strong>. When T=0, the output <strong>holds</strong>.</p>
+                    <br>
+                    <p><strong>Circuit Structure (from lecture slide 11):</strong> 4 NAND gates total:</p>
+                    <p>• Two <strong>3-input NAND gates</strong> for input gating (with T, CLK, and feedback)</p>
+                    <p>• Two <strong>2-input NAND gates</strong> forming the cross-coupled SR latch</p>
+                    <br>
+                    <p><strong>The Magic:</strong> NAND gates output 0 <strong>only</strong> when ALL inputs are 1. The feedback from Q and Q' ensures only ONE input NAND can output 0 at a time!</p>
+                </div>
+            </div>
+
+            <!-- Circuit Visualization -->
+            <div class="card">
+                <h2>🔌 Interactive Circuit</h2>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label>T Input (Toggle)</label>
+                        <button class="toggle-btn off" id="tToggle" onclick="toggleT()">0</button>
+                    </div>
+                    <div class="control-group">
+                        <label>Clock Pulse</label>
+                        <button class="btn btn-clock" id="btnClock" onclick="triggerClock()">⏰ CLOCK</button>
+                    </div>
+                </div>
+
+                <div class="step-indicator" id="stepIndicator">
+                    🎯 Set T input, then click CLOCK to see signals propagate through the circuit!
+                </div>
+
+                <div class="circuit-container">
+                    <svg viewBox="0 0 1000 450" id="circuit">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#b366ff"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Background grid -->
+                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                        </pattern>
+                        <rect width="100%" height="100%" fill="url(#grid)"/>
+
+                        <!-- ===== INPUT WIRES ===== -->
+                        
+                        <!-- T Input -->
+                        <path d="M 30 120 L 100 120" class="wire" id="wire-t-in"/>
+                        <!-- T splits to both NAND gates -->
+                        <path d="M 100 120 L 100 150 L 180 150" class="wire" id="wire-t-to-nand1"/>
+                        <path d="M 100 120 L 100 300 L 180 300" class="wire" id="wire-t-to-nand2"/>
+
+                        <!-- Clock Input -->
+                        <path d="M 30 220 L 80 220" class="wire" id="wire-clk-in"/>
+                        <!-- Clock splits to both NAND gates -->
+                        <path d="M 80 220 L 80 180 L 180 180" class="wire" id="wire-clk-to-nand1"/>
+                        <path d="M 80 220 L 80 270 L 180 270" class="wire" id="wire-clk-to-nand2"/>
+
+                        <!-- Q' Feedback to NAND1 (top) - comes from bottom right, goes up and around -->
+                        <path d="M 60 400 L 60 210 L 180 210" class="wire" id="wire-qbar-fb-to-nand1"/>
+                        
+                        <!-- Q Feedback to NAND2 (bottom) - comes from top right, goes down and around -->
+                        <path d="M 40 50 L 40 330 L 180 330" class="wire" id="wire-q-fb-to-nand2"/>
+
+                        <!-- ===== NAND GATE 1 (3-input: T, CLK, Q') ===== -->
+                        <path d="M 180 130 L 180 230 L 250 230 Q 290 230 290 180 Q 290 130 250 130 Z" 
+                              class="gate-nand" id="gate-nand1"/>
+                        <circle cx="298" cy="180" r="8" fill="#0a0a1a" stroke="#b366ff" stroke-width="2"/>
+                        <text x="230" y="185" class="gate-label">NAND</text>
+                        
+                        <!-- NAND1 output to NAND3 -->
+                        <path d="M 306 180 L 420 180" class="wire" id="wire-nand1-to-nand3"/>
+
+                        <!-- ===== NAND GATE 2 (3-input: T, CLK, Q) ===== -->
+                        <path d="M 180 250 L 180 350 L 250 350 Q 290 350 290 300 Q 290 250 250 250 Z" 
+                              class="gate-nand" id="gate-nand2"/>
+                        <circle cx="298" cy="300" r="8" fill="#0a0a1a" stroke="#b366ff" stroke-width="2"/>
+                        <text x="230" y="305" class="gate-label">NAND</text>
+                        
+                        <!-- NAND2 output to NAND4 -->
+                        <path d="M 306 300 L 420 300" class="wire" id="wire-nand2-to-nand4"/>
+
+                        <!-- ===== NAND GATE 3 (2-input SR Latch - top) ===== -->
+                        <path d="M 420 150 L 420 210 L 490 210 Q 530 210 530 180 Q 530 150 490 150 Z" 
+                              class="gate-nand" id="gate-nand3"/>
+                        <circle cx="538" cy="180" r="8" fill="#0a0a1a" stroke="#b366ff" stroke-width="2"/>
+                        <text x="470" y="185" class="gate-label">NAND</text>
+                        
+                        <!-- NAND3 output (Q) -->
+                        <path d="M 546 180 L 680 180" class="wire" id="wire-nand3-out"/>
+                        <!-- Q continues to output -->
+                        <path d="M 680 180 L 850 180" class="wire" id="wire-q-out"/>
+                        
+                        <!-- Cross-coupling: Q to NAND4 -->
+                        <path d="M 680 180 L 680 250 L 400 250 L 400 290 L 420 290" class="wire" id="wire-q-to-nand4"/>
+
+                        <!-- ===== NAND GATE 4 (2-input SR Latch - bottom) ===== -->
+                        <path d="M 420 270 L 420 330 L 490 330 Q 530 330 530 300 Q 530 270 490 270 Z" 
+                              class="gate-nand" id="gate-nand4"/>
+                        <circle cx="538" cy="300" r="8" fill="#0a0a1a" stroke="#b366ff" stroke-width="2"/>
+                        <text x="470" y="305" class="gate-label">NAND</text>
+                        
+                        <!-- NAND4 output (Q') -->
+                        <path d="M 546 300 L 680 300" class="wire" id="wire-nand4-out"/>
+                        <!-- Q' continues to output -->
+                        <path d="M 680 300 L 850 300" class="wire" id="wire-qbar-out"/>
+                        
+                        <!-- Cross-coupling: Q' to NAND3 -->
+                        <path d="M 680 300 L 700 300 L 700 230 L 400 230 L 400 200 L 420 200" class="wire" id="wire-qbar-to-nand3"/>
+
+                        <!-- External feedback loops -->
+                        <!-- Q feedback going up and left -->
+                        <path d="M 850 180 L 900 180 L 900 50 L 40 50" class="wire" id="wire-q-ext-feedback"/>
+                        <!-- Q' feedback going down and left -->
+                        <path d="M 850 300 L 920 300 L 920 400 L 60 400" class="wire" id="wire-qbar-ext-feedback"/>
+
+                        <!-- ===== LABELS ===== -->
+                        <text x="15" y="125" class="signal-label" style="fill: #00d4ff;">T</text>
+                        <text x="8" y="225" class="signal-label" style="fill: #ff00ff;">CLK</text>
+                        <text x="870" y="185" class="signal-label" style="fill: #00ff88;">Q</text>
+                        <text x="865" y="305" class="signal-label" style="fill: #ff6b6b;">Q'</text>
+
+                        <!-- Internal signal labels -->
+                        <text x="360" y="170" class="signal-label" style="font-size: 14px; fill: #b366ff;">S̄</text>
+                        <text x="360" y="310" class="signal-label" style="font-size: 14px; fill: #b366ff;">R̄</text>
+
+                        <!-- ===== VALUE DISPLAYS ===== -->
+                        <rect x="55" y="95" width="35" height="30" class="value-box"/>
+                        <text x="72" y="117" class="value-display value-0" id="val-t">0</text>
+                        
+                        <rect x="55" y="195" width="35" height="30" class="value-box"/>
+                        <text x="72" y="217" class="value-display value-0" id="val-clk" style="fill: #ff00ff;">0</text>
+                        
+                        <rect x="340" y="155" width="35" height="30" class="value-box"/>
+                        <text x="357" y="177" class="value-display value-1" id="val-sbar">1</text>
+                        
+                        <rect x="340" y="285" width="35" height="30" class="value-box"/>
+                        <text x="357" y="307" class="value-display value-1" id="val-rbar">1</text>
+                        
+                        <rect x="790" y="155" width="45" height="35" class="value-box"/>
+                        <text x="812" y="180" class="value-display value-0" id="val-q">0</text>
+                        
+                        <rect x="790" y="280" width="45" height="35" class="value-box"/>
+                        <text x="812" y="305" class="value-display value-1" id="val-qbar">1</text>
+
+                        <!-- Gate input annotations -->
+                        <text x="165" y="155" style="fill: #aaa; font-size: 10px;">T</text>
+                        <text x="165" y="185" style="fill: #aaa; font-size: 10px;">CLK</text>
+                        <text x="165" y="215" style="fill: #aaa; font-size: 10px;">Q'</text>
+                        <text x="165" y="275" style="fill: #aaa; font-size: 10px;">CLK</text>
+                        <text x="165" y="305" style="fill: #aaa; font-size: 10px;">T</text>
+                        <text x="165" y="335" style="fill: #aaa; font-size: 10px;">Q</text>
+                        <text x="405" y="185" style="fill: #aaa; font-size: 10px;">S̄</text>
+                        <text x="405" y="205" style="fill: #aaa; font-size: 10px;">Q'</text>
+                        <text x="405" y="285" style="fill: #aaa; font-size: 10px;">Q</text>
+                        <text x="405" y="305" style="fill: #aaa; font-size: 10px;">R̄</text>
+
+                        <!-- Section labels -->
+                        <rect x="160" y="105" width="160" height="22" fill="rgba(179,102,255,0.2)" rx="5"/>
+                        <text x="240" y="120" style="fill: #b366ff; font-size: 11px; text-anchor: middle;">Input Gating (3-input NAND)</text>
+                        
+                        <rect x="390" y="130" width="180" height="200" fill="none" stroke="rgba(179,102,255,0.3)" 
+                              stroke-width="2" stroke-dasharray="5,5" rx="10"/>
+                        <text x="480" y="350" style="fill: #b366ff; font-size: 11px; text-anchor: middle;">NAND SR Latch</text>
+
+                        <!-- Particle container -->
+                        <g id="particleContainer"></g>
+                    </svg>
+                </div>
+
+                <!-- Gate Output Display -->
+                <div class="gate-info">
+                    <div class="gate-info-card">
+                        <h4>NAND1 (3-input)</h4>
+                        <p>NAND(T, CLK, Q')</p>
+                        <p class="output-display">S̄ = <span id="info-sbar">1</span></p>
+                    </div>
+                    <div class="gate-info-card">
+                        <h4>NAND2 (3-input)</h4>
+                        <p>NAND(T, CLK, Q)</p>
+                        <p class="output-display">R̄ = <span id="info-rbar">1</span></p>
+                    </div>
+                    <div class="gate-info-card">
+                        <h4>NAND Latch Output</h4>
+                        <p>S̄: <span id="info-latch-sbar">1</span>, R̄: <span id="info-latch-rbar">1</span></p>
+                        <p class="output-display">Q = <span id="info-q" style="color: #00ff88;">0</span></p>
+                    </div>
+                    <div class="gate-info-card">
+                        <h4>Current Mode</h4>
+                        <p>T = <span id="info-mode-t">0</span></p>
+                        <p class="output-display"><span id="mode-display" class="mode-indicator mode-hold">HOLD</span></p>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-1"></div>
+                        <span>Logic 1 (HIGH)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-0"></div>
+                        <span>Logic 0 (LOW)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-clk"></div>
+                        <span>Clock Signal</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Explanation -->
+            <div class="card" id="explanation">
+                <h2>📖 How It Works</h2>
+                <div class="explanation">
+                    <h3>All-NAND T Flip-Flop (Lecture Slide 11 Design)</h3>
+                    <p>This circuit uses <strong>4 NAND gates</strong> - identical to JK flip-flop but with J=K=T:</p>
+                    <br>
+                    <p><strong>• T=0 (HOLD):</strong> Both 3-input NANDs output 1 (since T=0 makes it impossible for all inputs to be 1). S̄=R̄=1 tells the NAND latch to hold.</p>
+                    <br>
+                    <p><strong>• T=1 (TOGGLE):</strong> Feedback determines which NAND can output 0:</p>
+                    <p>&nbsp;&nbsp;&nbsp;- If Q=0 (Q'=1): NAND1 sees all 1s → S̄=0 → SET Q to 1</p>
+                    <p>&nbsp;&nbsp;&nbsp;- If Q=1 (Q'=0): NAND2 sees all 1s → R̄=0 → RESET Q to 0</p>
+                    <br>
+                    <p><strong>NAND SR Latch Rules:</strong> S̄=0 sets Q=1, R̄=0 resets Q=0, S̄=R̄=1 holds state</p>
+                </div>
+            </div>
+
+            <!-- Truth Tables -->
+            <div class="card">
+                <h2>📋 Truth Tables</h2>
+                
+                <div class="truth-tables">
+                    <div class="truth-table">
+                        <h3>NAND Gate</h3>
+                        <table>
+                            <thead>
+                                <tr><th>A</th><th>B</th><th>NAND</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>0</td><td>0</td><td style="color: #00ff88; font-weight: bold;">1</td></tr>
+                                <tr><td>0</td><td>1</td><td style="color: #00ff88; font-weight: bold;">1</td></tr>
+                                <tr><td>1</td><td>0</td><td style="color: #00ff88; font-weight: bold;">1</td></tr>
+                                <tr><td>1</td><td>1</td><td style="color: #ff6b6b; font-weight: bold;">0</td></tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 15px; text-align: center; opacity: 0.8;">
+                            Output is 0 <strong>only</strong> when ALL inputs are 1
+                        </p>
+                    </div>
+
+                    <div class="truth-table">
+                        <h3>T Flip-Flop</h3>
+                        <table id="tffTable">
+                            <thead>
+                                <tr><th>T</th><th>Q<sub>N</sub></th><th>Q<sub>N+1</sub></th><th>Mode</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr id="row-hold-0" class="highlight"><td>0</td><td>0</td><td>0</td><td>HOLD</td></tr>
+                                <tr id="row-hold-1"><td>0</td><td>1</td><td>1</td><td>HOLD</td></tr>
+                                <tr id="row-toggle-0"><td>1</td><td>0</td><td style="color: #00ff88;">1</td><td>TOGGLE</td></tr>
+                                <tr id="row-toggle-1"><td>1</td><td>1</td><td style="color: #ff6b6b;">0</td><td>TOGGLE</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="truth-table">
+                        <h3>NAND SR Latch (Active-LOW)</h3>
+                        <table>
+                            <thead>
+                                <tr><th>S̄</th><th>R̄</th><th>Q</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>0</td><td>1</td><td style="color: #00ff88;">1</td><td>SET</td></tr>
+                                <tr><td>1</td><td>0</td><td style="color: #ff6b6b;">0</td><td>RESET</td></tr>
+                                <tr><td>1</td><td>1</td><td>Q</td><td>HOLD</td></tr>
+                                <tr><td>0</td><td>0</td><td>?</td><td>Invalid</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = { t: 0, clk: 0, q: 0, qbar: 1, sbar: 1, rbar: 1 };
+        let isAnimating = false;
+        let particles = [];
+        let continuousFeedback = null;
+
+        function nand(...inputs) {
+            return inputs.every(i => i === 1) ? 0 : 1;
+        }
+
+        class Particle {
+            constructor(pathId, speed = 2, type = 'signal') {
+                this.path = document.getElementById(pathId);
+                if (!this.path) { this.active = false; return; }
+                this.pathLength = this.path.getTotalLength();
+                this.position = 0;
+                this.speed = speed;
+                this.type = type;
+                this.active = true;
+                this.createElement();
+            }
+
+            createElement() {
+                this.element = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                let className = this.type === 'clock' ? 'particle-clock' : 
+                               this.type === 'zero' ? 'particle-zero' : 'particle';
+                this.element.setAttribute("class", className);
+                this.element.setAttribute("r", "6");
+                document.getElementById('particleContainer')?.appendChild(this.element);
+            }
+
+            update() {
+                if (!this.active || !this.path || !this.element) return false;
+                this.position += this.speed;
+                if (this.position >= this.pathLength) {
+                    this.active = false;
+                    this.element?.parentNode?.removeChild(this.element);
+                    return false;
+                }
+                const point = this.path.getPointAtLength(this.position);
+                this.element.setAttribute("cx", point.x);
+                this.element.setAttribute("cy", point.y);
+                return true;
+            }
+        }
+
+        function animateParticles() {
+            particles = particles.filter(p => p.update());
+            if (particles.length > 0) requestAnimationFrame(animateParticles);
+        }
+
+        function createParticleStream(pathId, count = 5, interval = 120, speed = 2, type = 'signal') {
+            return new Promise(resolve => {
+                let created = 0;
+                const streamInterval = setInterval(() => {
+                    const p = new Particle(pathId, speed, type);
+                    if (p.active) {
+                        particles.push(p);
+                        if (particles.length === 1) animateParticles();
+                    }
+                    if (++created >= count) { clearInterval(streamInterval); setTimeout(resolve, 400); }
+                }, interval);
+            });
+        }
+
+        function startContinuousFeedback() {
+            stopContinuousFeedback();
+            continuousFeedback = setInterval(() => {
+                const qType = state.q ? 'signal' : 'zero';
+                const qbarType = state.qbar ? 'signal' : 'zero';
+                [new Particle('wire-q-to-nand4', 1.5, qType), 
+                 new Particle('wire-qbar-to-nand3', 1.5, qbarType)]
+                .filter(p => p.active).forEach(p => {
+                    particles.push(p);
+                    if (particles.length === 1) animateParticles();
+                });
+            }, 400);
+        }
+
+        function stopContinuousFeedback() {
+            if (continuousFeedback) { clearInterval(continuousFeedback); continuousFeedback = null; }
+        }
+
+        function clearParticles() {
+            particles.forEach(p => p.element?.parentNode?.removeChild(p.element));
+            particles = [];
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        function updateValue(id, value, isClk = false) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = value;
+                if (!isClk) {
+                    el.classList.remove('value-0', 'value-1');
+                    el.classList.add(value === 1 ? 'value-1' : 'value-0');
+                }
+            }
+        }
+
+        function activateWire(id, isOne = true) {
+            const w = document.getElementById(id);
+            if (w) {
+                w.classList.remove('active', 'active-zero', 'clock-active');
+                w.classList.add(id.includes('clk') ? 'clock-active' : (isOne ? 'active' : 'active-zero'));
+            }
+        }
+
+        function deactivateAllWires() {
+            document.querySelectorAll('.wire').forEach(w => w.classList.remove('active', 'active-zero', 'clock-active'));
+        }
+
+        function activateGate(id) { document.getElementById(id)?.classList.add('processing'); }
+        function deactivateGate(id) { document.getElementById(id)?.classList.remove('processing'); }
+        function deactivateAllGates() { document.querySelectorAll('.gate-nand').forEach(g => g.classList.remove('processing')); }
+
+        function updateInfoDisplays() {
+            ['info-sbar', 'info-rbar', 'info-latch-sbar', 'info-latch-rbar', 'info-q', 'info-mode-t']
+                .forEach(id => {
+                    const el = document.getElementById(id);
+                    if (id === 'info-sbar' || id === 'info-latch-sbar') el.textContent = state.sbar;
+                    else if (id === 'info-rbar' || id === 'info-latch-rbar') el.textContent = state.rbar;
+                    else if (id === 'info-q') { el.textContent = state.q; el.style.color = state.q ? '#00ff88' : '#ff6b6b'; }
+                    else if (id === 'info-mode-t') el.textContent = state.t;
+                });
+            const mode = document.getElementById('mode-display');
+            mode.textContent = state.t ? 'TOGGLE' : 'HOLD';
+            mode.className = 'mode-indicator ' + (state.t ? 'mode-toggle' : 'mode-hold');
+        }
+
+        function highlightTruthTableRow() {
+            document.querySelectorAll('#tffTable tbody tr').forEach(r => r.classList.remove('highlight'));
+            const rowId = state.t === 0 ? (state.q === 0 ? 'row-hold-0' : 'row-hold-1') : 
+                                          (state.q === 0 ? 'row-toggle-0' : 'row-toggle-1');
+            document.getElementById(rowId)?.classList.add('highlight');
+        }
+
+        function toggleT() {
+            if (isAnimating) return;
+            state.t = state.t ? 0 : 1;
+            const btn = document.getElementById('tToggle');
+            btn.textContent = state.t;
+            btn.className = 'toggle-btn ' + (state.t ? 'on' : 'off');
+            updateValue('val-t', state.t);
+            updateInfoDisplays();
+            highlightTruthTableRow();
+            document.getElementById('stepIndicator').textContent = 
+                `🎯 T=${state.t} → ${state.t ? 'TOGGLE' : 'HOLD'} mode. Click CLOCK to ${state.t ? 'flip the output' : 'maintain state'}!`;
+        }
+
+        async function triggerClock() {
+            if (isAnimating) return;
+            isAnimating = true;
+            document.getElementById('btnClock').disabled = true;
+            stopContinuousFeedback();
+            deactivateAllWires();
+            deactivateAllGates();
+            clearParticles();
+
+            const t = state.t, oldQ = state.q, oldQbar = state.qbar;
+
+            // Step 1: Clock HIGH
+            document.getElementById('stepIndicator').textContent = "⏰ Step 1: Clock pulse - CLK goes HIGH";
+            state.clk = 1;
+            updateValue('val-clk', 1);
+            activateWire('wire-clk-in');
+            await createParticleStream('wire-clk-in', 4, 100, 2.5, 'clock');
+            activateWire('wire-clk-to-nand1'); activateWire('wire-clk-to-nand2');
+            createParticleStream('wire-clk-to-nand1', 3, 100, 2, 'clock');
+            await createParticleStream('wire-clk-to-nand2', 3, 100, 2, 'clock');
+            await sleep(200);
+
+            // Step 2: T input
+            document.getElementById('stepIndicator').textContent = `📥 Step 2: T=${t} propagates to input NANDs`;
+            activateWire('wire-t-in', t === 1);
+            await createParticleStream('wire-t-in', 4, 100, 2.5, t ? 'signal' : 'zero');
+            activateWire('wire-t-to-nand1', t === 1); activateWire('wire-t-to-nand2', t === 1);
+            createParticleStream('wire-t-to-nand1', 4, 100, 1.8, t ? 'signal' : 'zero');
+            await createParticleStream('wire-t-to-nand2', 4, 100, 1.8, t ? 'signal' : 'zero');
+            await sleep(200);
+
+            // Step 3: Feedback
+            document.getElementById('stepIndicator').textContent = `🔄 Step 3: Feedback Q'=${oldQbar} to NAND1, Q=${oldQ} to NAND2`;
+            activateWire('wire-qbar-fb-to-nand1', oldQbar === 1);
+            activateWire('wire-q-fb-to-nand2', oldQ === 1);
+            createParticleStream('wire-qbar-fb-to-nand1', 4, 100, 2, oldQbar ? 'signal' : 'zero');
+            await createParticleStream('wire-q-fb-to-nand2', 4, 100, 2, oldQ ? 'signal' : 'zero');
+            await sleep(200);
+
+            // Step 4: Input NANDs compute
+            document.getElementById('stepIndicator').textContent = `⚙️ Step 4: NAND1 & NAND2 compute S̄ and R̄`;
+            activateGate('gate-nand1'); activateGate('gate-nand2');
+            await sleep(600);
+            state.sbar = nand(t, state.clk, oldQbar);
+            state.rbar = nand(t, state.clk, oldQ);
+            updateValue('val-sbar', state.sbar); updateValue('val-rbar', state.rbar);
+            updateInfoDisplays();
+            deactivateGate('gate-nand1'); deactivateGate('gate-nand2');
+            await sleep(200);
+
+            // Step 5: To latch
+            document.getElementById('stepIndicator').textContent = `➡️ Step 5: S̄=${state.sbar}, R̄=${state.rbar} enter NAND latch`;
+            activateWire('wire-nand1-to-nand3', state.sbar === 1);
+            activateWire('wire-nand2-to-nand4', state.rbar === 1);
+            await createParticleStream('wire-nand1-to-nand3', 4, 100, 2, state.sbar ? 'signal' : 'zero');
+            await createParticleStream('wire-nand2-to-nand4', 4, 100, 2, state.rbar ? 'signal' : 'zero');
+            await sleep(200);
+
+            // Step 6: Latch computes
+            document.getElementById('stepIndicator').textContent = `⚡ Step 6: NAND latch computes new Q and Q'`;
+            activateGate('gate-nand3'); activateGate('gate-nand4');
+            await sleep(600);
+
+            // NAND latch logic: S̄=0 sets Q=1, R̄=0 resets Q=0, both=1 holds
+            if (state.sbar === 0 && state.rbar === 1) { state.q = 1; state.qbar = 0; }
+            else if (state.sbar === 1 && state.rbar === 0) { state.q = 0; state.qbar = 1; }
+            // else hold
+
+            updateValue('val-q', state.q); updateValue('val-qbar', state.qbar);
+            updateInfoDisplays();
+            deactivateGate('gate-nand3'); deactivateGate('gate-nand4');
+            await sleep(200);
+
+            // Step 7: Outputs
+            document.getElementById('stepIndicator').textContent = `📤 Step 7: Q=${state.q}, Q'=${state.qbar} outputs`;
+            activateWire('wire-nand3-out', state.q === 1); activateWire('wire-q-out', state.q === 1);
+            activateWire('wire-nand4-out', state.qbar === 1); activateWire('wire-qbar-out', state.qbar === 1);
+            createParticleStream('wire-nand3-out', 3, 100, 2, state.q ? 'signal' : 'zero');
+            await createParticleStream('wire-nand4-out', 3, 100, 2, state.qbar ? 'signal' : 'zero');
+            createParticleStream('wire-q-out', 3, 100, 2, state.q ? 'signal' : 'zero');
+            await createParticleStream('wire-qbar-out', 3, 100, 2, state.qbar ? 'signal' : 'zero');
+            await sleep(200);
+
+            // Step 8: Cross-coupling
+            document.getElementById('stepIndicator').textContent = `🔄 Step 8: Internal latch cross-coupling`;
+            activateWire('wire-q-to-nand4', state.q === 1); activateWire('wire-qbar-to-nand3', state.qbar === 1);
+            createParticleStream('wire-q-to-nand4', 4, 100, 1.5, state.q ? 'signal' : 'zero');
+            await createParticleStream('wire-qbar-to-nand3', 4, 100, 1.5, state.qbar ? 'signal' : 'zero');
+            await sleep(200);
+
+            // Step 9: External feedback
+            document.getElementById('stepIndicator').textContent = `🔄 Step 9: External feedback loops`;
+            activateWire('wire-q-ext-feedback', state.q === 1); activateWire('wire-qbar-ext-feedback', state.qbar === 1);
+            createParticleStream('wire-q-ext-feedback', 4, 100, 1.5, state.q ? 'signal' : 'zero');
+            await createParticleStream('wire-qbar-ext-feedback', 4, 100, 1.5, state.qbar ? 'signal' : 'zero');
+            await sleep(200);
+
+            // Reset
+            state.clk = 0; updateValue('val-clk', 0);
+            state.sbar = 1; state.rbar = 1;
+            updateValue('val-sbar', 1); updateValue('val-rbar', 1);
+            updateInfoDisplays();
+            highlightTruthTableRow();
+            startContinuousFeedback();
+
+            const mode = t ? 'TOGGLE' : 'HOLD';
+            const result = t ? `Q toggled from ${oldQ} to ${state.q}` : `State unchanged: Q=${state.q}`;
+            document.getElementById('stepIndicator').textContent = `✅ Complete! ${mode}: ${result}`;
+
+            document.getElementById('explanation').innerHTML = `
+                <h2>📖 Operation Complete: ${mode}</h2>
+                <div class="explanation">
+                    <h3>✅ What happened:</h3>
+                    <p><strong>Input:</strong> T = ${t}, Q<sub>N</sub> = ${oldQ}, Q'<sub>N</sub> = ${oldQbar}</p>
+                    <br>
+                    <p>1. <strong>NAND1:</strong> NAND(${t}, 1, ${oldQbar}) = ${nand(t, 1, oldQbar)} → S̄</p>
+                    <p>2. <strong>NAND2:</strong> NAND(${t}, 1, ${oldQ}) = ${nand(t, 1, oldQ)} → R̄</p>
+                    <p>3. <strong>NAND Latch:</strong> S̄=${nand(t, 1, oldQbar)}, R̄=${nand(t, 1, oldQ)} → Q=${state.q}</p>
+                    <br>
+                    <p><strong>Key:</strong> ${t === 0 ? 'T=0 means neither NAND can output 0, so S̄=R̄=1 → HOLD' : 
+                        (oldQ === 0 ? 'Q=0 means NAND1 sees all 1s → S̄=0 → SET Q=1' : 
+                                      'Q=1 means NAND2 sees all 1s → R̄=0 → RESET Q=0')}</p>
+                </div>`;
+
+            isAnimating = false;
+            document.getElementById('btnClock').disabled = false;
+        }
+
+        // Initialize
+        updateValue('val-t', state.t); updateValue('val-clk', state.clk);
+        updateValue('val-sbar', state.sbar); updateValue('val-rbar', state.rbar);
+        updateValue('val-q', state.q); updateValue('val-qbar', state.qbar);
+        updateInfoDisplays(); highlightTruthTableRow();
+    </script>
+</body>
+</html>
