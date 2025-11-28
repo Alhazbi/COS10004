@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ripple Counter - Domino Toggle Analogy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-wood: #3e2723;
+            --bg-wood-light: #5d4037;
+            --accent-orange: #ff6b35;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --accent-yellow: #ffc107;
+            --accent-pink: #e91e63;
+            --accent-purple: #9c27b0;
+            --accent-cyan: #00bcd4;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --standing-color: #4caf50;
+            --fallen-color: #f44336;
+            --rise-color: #4caf50;
+            --fall-color: #ff9800;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Bit selector */
+        .bit-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .bit-btn {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 12px 25px;
+            border: 2px solid var(--bg-card);
+            border-radius: 10px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bit-btn:hover {
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+        }
+
+        .bit-btn.active {
+            background: var(--accent-orange);
+            border-color: var(--accent-orange);
+            color: var(--bg-main);
+        }
+
+        /* Main Scene */
+        .scene-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: var(--bg-main);
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-domino {
+            width: 18px;
+            height: 36px;
+            border-radius: 4px;
+        }
+
+        .legend-domino.standing {
+            background: linear-gradient(180deg, #c8e6c9, #a5d6a7);
+        }
+
+        .legend-domino.fallen {
+            background: linear-gradient(180deg, #ffcdd2, #ef9a9a);
+            transform: rotate(25deg);
+        }
+
+        /* Main domino area */
+        .domino-area {
+            background: linear-gradient(180deg, var(--bg-wood-light), var(--bg-wood));
+            border-radius: 16px;
+            padding: 30px 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .domino-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 60px,
+                rgba(0,0,0,0.08) 60px,
+                rgba(0,0,0,0.08) 62px
+            );
+            pointer-events: none;
+        }
+
+        /* Domino row - right to left */
+        .domino-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+            flex-direction: row-reverse; /* Right to left */
+        }
+
+        /* Clock unit */
+        .clock-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clock-box {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, var(--accent-orange), #e65100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .clock-box:hover {
+            transform: scale(1.05);
+        }
+
+        .clock-box.pulse {
+            animation: clockPulse 0.3s ease;
+        }
+
+        @keyframes clockPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); box-shadow: 0 0 40px rgba(255, 107, 53, 0.8); }
+            100% { transform: scale(1); }
+        }
+
+        .clock-label {
+            font-weight: 700;
+            color: var(--accent-orange);
+            font-size: 0.9rem;
+        }
+
+        /* Instruction badge */
+        .instruction-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+            min-width: 70px;
+            transition: all 0.3s ease;
+        }
+
+        .instruction-badge.rise {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--rise-color);
+            border: 2px solid var(--rise-color);
+        }
+
+        .instruction-badge.fall {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--fall-color);
+            border: 2px solid var(--fall-color);
+        }
+
+        .instruction-badge.none {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border: 2px solid var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .instruction-badge.triggered {
+            animation: badgePulse 0.4s ease;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Arrow between elements */
+        .arrow-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 0 5px;
+        }
+
+        .arrow {
+            font-size: 1.5rem;
+            color: #555;
+            transition: all 0.3s ease;
+        }
+
+        .arrow.active {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px var(--accent-yellow);
+            animation: arrowPulse 0.4s ease;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .arrow-label {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .arrow-label.visible {
+            opacity: 1;
+            color: var(--accent-pink);
+        }
+
+        /* Domino unit */
+        .domino-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .domino-wrapper {
+            position: relative;
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .domino {
+            width: 36px;
+            height: 80px;
+            background: linear-gradient(180deg, #fafafa, #e0e0e0);
+            border-radius: 5px;
+            transform-origin: bottom center;
+            transition: transform 0.4s cubic-bezier(0.68, -0.3, 0.265, 1.3);
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .domino-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .domino::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: #bbb;
+            border-radius: 1px;
+        }
+
+        .domino.standing {
+            transform: rotate(0deg);
+            background: linear-gradient(180deg, #c8e6c9, #a5d6a7);
+        }
+
+        .domino.standing .domino-value {
+            color: #2e7d32;
+        }
+
+        .domino.fallen {
+            transform: rotate(-80deg);
+            background: linear-gradient(180deg, #ffcdd2, #ef9a9a);
+        }
+
+        .domino.fallen .domino-value {
+            color: #c62828;
+        }
+
+        .domino.triggered {
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3), 0 0 25px var(--accent-yellow);
+        }
+
+        .domino-name {
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .domino-weight {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* Next instruction from domino */
+        .next-instruction {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-align: center;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .next-instruction .action {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .next-instruction .action.will-rise {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--rise-color);
+        }
+
+        .next-instruction .action.will-fall {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--fall-color);
+        }
+
+        .next-instruction .action.waiting {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        /* Binary Display */
+        .binary-display-section {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .binary-bits {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .binary-bit {
+            width: 50px;
+            height: 60px;
+            background: var(--bg-main);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fira Code', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .binary-bit.active {
+            background: rgba(76, 175, 80, 0.2);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .bit-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .bit-value.one { color: var(--standing-color); }
+        .bit-value.zero { color: var(--fallen-color); }
+
+        .bit-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .decimal-display {
+            font-size: 1.5rem;
+            color: var(--accent-yellow);
+        }
+
+        .decimal-display span {
+            font-family: 'Fira Code', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        /* Count info */
+        .count-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .count-item {
+            text-align: center;
+            padding: 10px 20px;
+            background: var(--bg-main);
+            border-radius: 8px;
+        }
+
+        .count-item-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .count-item-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-yellow));
+            color: var(--bg-main);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-main);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-green);
+        }
+
+        .btn-secondary.active {
+            background: var(--accent-green);
+            color: var(--bg-main);
+        }
+
+        .btn-reset {
+            background: var(--bg-main);
+            color: var(--text-secondary);
+        }
+
+        .btn-reset:hover {
+            color: var(--accent-pink);
+        }
+
+        /* Explanation */
+        .explanation {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .explanation h3 {
+            font-size: 1rem;
+            color: var(--accent-yellow);
+            margin-bottom: 12px;
+        }
+
+        .explanation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .explanation-item {
+            padding: 15px;
+            background: var(--bg-main);
+            border-radius: 10px;
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .explanation-item h4 {
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+        }
+
+        .explanation-item p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .explanation-item strong {
+            color: var(--text-primary);
+        }
+
+        .highlight-rise { color: var(--rise-color); font-weight: 700; }
+        .highlight-fall { color: var(--fall-color); font-weight: 700; }
+
+        /* Sequence tracker */
+        .sequence-tracker {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-main);
+            border-radius: 10px;
+        }
+
+        .sequence-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .sequence-items {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sequence-item {
+            padding: 6px 12px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+        }
+
+        .sequence-item.reached {
+            opacity: 1;
+        }
+
+        .sequence-item.current {
+            opacity: 1;
+            background: var(--accent-orange);
+            color: var(--bg-main);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Ripple Counter: Domino Toggle</h1>
+            <p class="subtitle">Watch dominos rise & fall to count in binary</p>
+        </header>
+
+        <!-- Bit Selector -->
+        <div class="bit-selector">
+            <button class="bit-btn" data-bits="1">1-Bit (0-1)</button>
+            <button class="bit-btn" data-bits="2">2-Bit (0-3)</button>
+            <button class="bit-btn active" data-bits="3">3-Bit (0-7)</button>
+        </div>
+
+        <div class="scene-container">
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-domino standing"></div>
+                    <span>Standing = <strong style="color: var(--standing-color)">1</strong></span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-domino fallen"></div>
+                    <span>Fallen = <strong style="color: var(--fallen-color)">0</strong></span>
+                </div>
+                <div class="legend-item">
+                    <span style="color: var(--accent-pink)">⚡ Falling (1→0) triggers next!</span>
+                </div>
+            </div>
+
+            <!-- Domino Area -->
+            <div class="domino-area">
+                <div class="domino-row" id="dominoRow">
+                    <!-- Generated by JS - Right to Left order -->
+                </div>
+            </div>
+
+            <!-- Binary Display -->
+            <div class="binary-display-section">
+                <div class="binary-bits" id="binaryBits">
+                    <!-- Generated by JS -->
+                </div>
+                <div class="decimal-display">
+                    = <span id="decimalValue">0</span>
+                </div>
+            </div>
+
+            <!-- Count Info -->
+            <div class="count-info">
+                <div class="count-item">
+                    <div class="count-item-label">Clock Pulses</div>
+                    <div class="count-item-value" id="pulseCount">0</div>
+                </div>
+                <div class="count-item">
+                    <div class="count-item-label">Max Count</div>
+                    <div class="count-item-value" id="maxCount">7</div>
+                </div>
+            </div>
+
+            <!-- Sequence Tracker -->
+            <div class="sequence-tracker">
+                <div class="sequence-title">📊 Counting Sequence:</div>
+                <div class="sequence-items" id="sequenceItems">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn-primary" id="clockBtn">⚡ Clock Pulse</button>
+                <button class="btn-secondary" id="autoBtn">🔄 Auto</button>
+                <button class="btn-reset" id="resetBtn">↺ Reset</button>
+            </div>
+        </div>
+
+        <!-- Explanation -->
+        <div class="explanation">
+            <h3>💡 Understanding the Ripple</h3>
+            <div class="explanation-grid">
+                <div class="explanation-item">
+                    <h4>1. Clock Toggles Q₀</h4>
+                    <p>Each clock pulse makes <strong>Q₀ toggle</strong>. If standing (1), it falls (0). If fallen (0), it rises (1).</p>
+                </div>
+                <div class="explanation-item">
+                    <h4>2. Falling Triggers Next</h4>
+                    <p>Only when a domino <span class="highlight-fall">FALLS (1→0)</span> does it trigger the next one. <span class="highlight-rise">Rising (0→1)</span> does nothing!</p>
+                </div>
+                <div class="explanation-item">
+                    <h4>3. The Ripple Delay</h4>
+                    <p>Each trigger takes time to propagate. This delay is why it's called a <strong>"ripple"</strong> counter.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let numBits = 3;
+        let bits = [0, 0, 0]; // Q0, Q1, Q2 (index 0 = LSB)
+        let pulseCount = 0;
+        let autoInterval = null;
+        const rippleDelay = 350;
+
+        function generateDOM() {
+            const row = document.getElementById('dominoRow');
+            const binaryBits = document.getElementById('binaryBits');
+            const sequenceItems = document.getElementById('sequenceItems');
+            
+            row.innerHTML = '';
+            binaryBits.innerHTML = '';
+            sequenceItems.innerHTML = '';
+
+            // Generate sequence items
+            const maxVal = Math.pow(2, numBits);
+            for (let i = 0; i < maxVal; i++) {
+                const item = document.createElement('div');
+                item.className = 'sequence-item' + (i === 0 ? ' current reached' : '');
+                item.dataset.value = i;
+                item.textContent = i.toString(2).padStart(numBits, '0');
+                sequenceItems.appendChild(item);
+            }
+
+            // Clock unit (will appear on RIGHT due to flex-direction: row-reverse)
+            const clockUnit = document.createElement('div');
+            clockUnit.className = 'clock-unit';
+            clockUnit.innerHTML = `
+                <div class="instruction-badge ${bits[0] === 0 ? 'rise' : 'fall'}" id="clockInstruction">
+                    ${bits[0] === 0 ? '↑ RISE' : '↓ FALL'}
+                </div>
+                <div class="clock-box" id="clockBox" title="Click to pulse!">⏱️</div>
+                <div class="clock-label">CLOCK</div>
+            `;
+            row.appendChild(clockUnit);
+
+            // Generate dominos (Q0 first, then Q1, Q2 - they'll appear right to left)
+            for (let i = 0; i < numBits; i++) {
+                // Arrow (except before Q0)
+                if (i > 0) {
+                    const arrowUnit = document.createElement('div');
+                    arrowUnit.className = 'arrow-unit';
+                    arrowUnit.innerHTML = `
+                        <div class="arrow" id="arrow${i-1}">←</div>
+                        <div class="arrow-label" id="arrowLabel${i-1}">1→0!</div>
+                    `;
+                    row.appendChild(arrowUnit);
+                } else {
+                    // Arrow from clock to Q0
+                    const arrowUnit = document.createElement('div');
+                    arrowUnit.className = 'arrow-unit';
+                    arrowUnit.innerHTML = `
+                        <div class="arrow" id="arrowClock">←</div>
+                        <div class="arrow-label" id="arrowLabelClock">pulse</div>
+                    `;
+                    row.appendChild(arrowUnit);
+                }
+
+                // Domino unit
+                const dominoUnit = document.createElement('div');
+                dominoUnit.className = 'domino-unit';
+                
+                const isLast = i === numBits - 1;
+                const nextInstruction = isLast ? '' : `
+                    <div class="next-instruction" id="nextInstr${i}">
+                        ${bits[i] === 1 ? 
+                            `When I fall → <span class="action will-${bits[i+1] === 0 ? 'rise' : 'fall'}">${bits[i+1] === 0 ? '↑Q'+(i+1) : '↓Q'+(i+1)}</span>` : 
+                            `<span class="action waiting">Waiting...</span>`
+                        }
+                    </div>
+                `;
+
+                dominoUnit.innerHTML = `
+                    <div class="domino-wrapper">
+                        <div class="domino ${bits[i] === 1 ? 'standing' : 'fallen'}" id="domino${i}" data-bit="${i}">
+                            <div class="domino-value">${bits[i]}</div>
+                        </div>
+                    </div>
+                    <div class="domino-name">Q${i}</div>
+                    <div class="domino-weight">2${i > 0 ? '<sup>'+i+'</sup>' : '⁰'} = ${Math.pow(2, i)}</div>
+                    ${nextInstruction}
+                `;
+                row.appendChild(dominoUnit);
+
+                // Binary bit display (these need to be in reverse order: MSB first)
+            }
+
+            // Binary bits display (MSB to LSB, left to right)
+            for (let i = numBits - 1; i >= 0; i--) {
+                const bitDiv = document.createElement('div');
+                bitDiv.className = 'binary-bit' + (bits[i] === 1 ? ' active' : '');
+                bitDiv.id = `binaryBit${i}`;
+                bitDiv.innerHTML = `
+                    <div class="bit-value ${bits[i] === 1 ? 'one' : 'zero'}" id="bitValue${i}">${bits[i]}</div>
+                    <div class="bit-label">Q${i}</div>
+                `;
+                binaryBits.appendChild(bitDiv);
+            }
+
+            document.getElementById('maxCount').textContent = maxVal - 1;
+
+            // Add click handlers
+            document.getElementById('clockBox').addEventListener('click', clockPulse);
+        }
+
+        function updateVisuals() {
+            // Update dominos
+            for (let i = 0; i < numBits; i++) {
+                const domino = document.getElementById(`domino${i}`);
+                const valueEl = domino.querySelector('.domino-value');
+                
+                domino.classList.remove('standing', 'fallen');
+                domino.classList.add(bits[i] === 1 ? 'standing' : 'fallen');
+                valueEl.textContent = bits[i];
+
+                // Update binary display
+                const binaryBit = document.getElementById(`binaryBit${i}`);
+                const bitValue = document.getElementById(`bitValue${i}`);
+                binaryBit.classList.toggle('active', bits[i] === 1);
+                bitValue.textContent = bits[i];
+                bitValue.classList.remove('one', 'zero');
+                bitValue.classList.add(bits[i] === 1 ? 'one' : 'zero');
+
+                // Update next instruction
+                if (i < numBits - 1) {
+                    const nextInstr = document.getElementById(`nextInstr${i}`);
+                    if (nextInstr) {
+                        if (bits[i] === 1) {
+                            const nextAction = bits[i+1] === 0 ? 'rise' : 'fall';
+                            const arrow = bits[i+1] === 0 ? '↑' : '↓';
+                            nextInstr.innerHTML = `When I fall → <span class="action will-${nextAction}">${arrow}Q${i+1}</span>`;
+                        } else {
+                            nextInstr.innerHTML = `<span class="action waiting">Waiting...</span>`;
+                        }
+                    }
+                }
+            }
+
+            // Update clock instruction
+            const clockInstr = document.getElementById('clockInstruction');
+            if (bits[0] === 0) {
+                clockInstr.textContent = '↑ RISE';
+                clockInstr.classList.remove('fall');
+                clockInstr.classList.add('rise');
+            } else {
+                clockInstr.textContent = '↓ FALL';
+                clockInstr.classList.remove('rise');
+                clockInstr.classList.add('fall');
+            }
+
+            // Update decimal
+            let decimal = 0;
+            for (let i = 0; i < numBits; i++) {
+                decimal += bits[i] * Math.pow(2, i);
+            }
+            document.getElementById('decimalValue').textContent = decimal;
+            document.getElementById('pulseCount').textContent = pulseCount;
+
+            // Update sequence tracker
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                const val = parseInt(item.dataset.value);
+                item.classList.remove('current');
+                if (val <= decimal) {
+                    item.classList.add('reached');
+                }
+                if (val === decimal) {
+                    item.classList.add('current');
+                }
+            });
+        }
+
+        function clearAnimations() {
+            document.querySelectorAll('.arrow').forEach(a => a.classList.remove('active'));
+            document.querySelectorAll('.arrow-label').forEach(a => a.classList.remove('visible'));
+            document.querySelectorAll('.domino').forEach(d => d.classList.remove('triggered'));
+            document.querySelectorAll('.instruction-badge').forEach(b => b.classList.remove('triggered'));
+        }
+
+        function clockPulse() {
+            clearAnimations();
+
+            const oldBits = [...bits];
+            const changes = []; // Array of {index, oldVal, newVal}
+
+            // Clock animation
+            const clockBox = document.getElementById('clockBox');
+            const clockInstr = document.getElementById('clockInstruction');
+            clockBox.classList.add('pulse');
+            clockInstr.classList.add('triggered');
+            setTimeout(() => {
+                clockBox.classList.remove('pulse');
+                clockInstr.classList.remove('triggered');
+            }, 300);
+
+            // Toggle Q0
+            bits[0] = 1 - bits[0];
+            changes.push({ index: 0, oldVal: oldBits[0], newVal: bits[0] });
+
+            // Check cascade: falling edge (1->0) triggers next
+            for (let i = 0; i < numBits - 1; i++) {
+                if (oldBits[i] === 1 && bits[i] === 0) {
+                    // This bit fell, toggle next
+                    const nextOld = bits[i + 1];
+                    bits[i + 1] = 1 - bits[i + 1];
+                    changes.push({ index: i + 1, oldVal: nextOld, newVal: bits[i + 1] });
+                    oldBits[i + 1] = nextOld; // Update for next iteration check
+                }
+            }
+
+            // Animate changes with ripple delay
+            changes.forEach((change, idx) => {
+                setTimeout(() => {
+                    // Show arrow
+                    if (change.index === 0) {
+                        document.getElementById('arrowClock').classList.add('active');
+                        document.getElementById('arrowLabelClock').classList.add('visible');
+                    } else {
+                        document.getElementById(`arrow${change.index - 1}`).classList.add('active');
+                        document.getElementById(`arrowLabel${change.index - 1}`).classList.add('visible');
+                    }
+
+                    // Trigger domino
+                    document.getElementById(`domino${change.index}`).classList.add('triggered');
+
+                    // Update this domino
+                    const domino = document.getElementById(`domino${change.index}`);
+                    const valueEl = domino.querySelector('.domino-value');
+                    domino.classList.remove('standing', 'fallen');
+                    domino.classList.add(change.newVal === 1 ? 'standing' : 'fallen');
+                    valueEl.textContent = change.newVal;
+
+                    // Update binary bit
+                    const binaryBit = document.getElementById(`binaryBit${change.index}`);
+                    const bitValue = document.getElementById(`bitValue${change.index}`);
+                    binaryBit.classList.toggle('active', change.newVal === 1);
+                    bitValue.textContent = change.newVal;
+                    bitValue.classList.remove('one', 'zero');
+                    bitValue.classList.add(change.newVal === 1 ? 'one' : 'zero');
+
+                }, idx * rippleDelay);
+            });
+
+            // Final update after all animations
+            setTimeout(() => {
+                clearAnimations();
+                updateVisuals();
+            }, changes.length * rippleDelay + 200);
+
+            pulseCount++;
+            document.getElementById('pulseCount').textContent = pulseCount;
+        }
+
+        function reset() {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                document.getElementById('autoBtn').classList.remove('active');
+                document.getElementById('autoBtn').textContent = '🔄 Auto';
+            }
+            bits = new Array(numBits).fill(0);
+            pulseCount = 0;
+            clearAnimations();
+            
+            // Reset sequence tracker
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('reached', 'current');
+                if (item.dataset.value === '0') {
+                    item.classList.add('reached', 'current');
+                }
+            });
+            
+            updateVisuals();
+        }
+
+        function setNumBits(n) {
+            numBits = n;
+            bits = new Array(numBits).fill(0);
+            pulseCount = 0;
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                document.getElementById('autoBtn').classList.remove('active');
+                document.getElementById('autoBtn').textContent = '🔄 Auto';
+            }
+            generateDOM();
+            updateVisuals();
+        }
+
+        // Event listeners
+        document.getElementById('clockBtn').addEventListener('click', clockPulse);
+        
+        document.getElementById('autoBtn').addEventListener('click', function() {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                this.classList.remove('active');
+                this.textContent = '🔄 Auto';
+            } else {
+                autoInterval = setInterval(clockPulse, 1200);
+                this.classList.add('active');
+                this.textContent = '⏸ Stop';
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', reset);
+
+        document.querySelectorAll('.bit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.bit-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                setNumBits(parseInt(this.dataset.bits));
+            });
+        });
+
+        // Initialize
+        generateDOM();
+        updateVisuals();
+    </script>
+</body>
+</html>
