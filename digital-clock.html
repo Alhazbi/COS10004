@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock - Frequency Division</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-void: #000000;
+            --bg-panel: #0a0a12;
+            --accent-gold: #ffd700;
+            --accent-amber: #ffaa00;
+            --accent-red: #ff3333;
+            --accent-cyan: #00ffff;
+            --lcd-glow: rgba(255, 215, 0, 0.15);
+            --text-primary: #ffffff;
+            --text-dim: #555570;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-void);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Starfield background */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(1px 1px at 20px 30px, white, transparent),
+                radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 50px 160px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 90px 40px, white, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 160px 120px, white, transparent),
+                radial-gradient(1px 1px at 200px 200px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 250px 50px, white, transparent),
+                radial-gradient(1px 1px at 300px 150px, rgba(255,255,255,0.8), transparent);
+            background-repeat: repeat;
+            background-size: 300px 200px;
+            animation: twinkle 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-shadow: 
+                0 0 20px var(--accent-gold),
+                0 0 40px var(--accent-amber);
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        /* Main clock display */
+        .clock-container {
+            background: var(--bg-panel);
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 
+                0 0 60px rgba(255, 215, 0, 0.1),
+                inset 0 0 100px rgba(0,0,0,0.8);
+            margin-bottom: 50px;
+        }
+
+        .clock-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .time-unit {
+            text-align: center;
+        }
+
+        .time-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(4rem, 12vw, 8rem);
+            font-weight: 900;
+            color: var(--accent-gold);
+            text-shadow: 
+                0 0 30px var(--accent-gold),
+                0 0 60px rgba(255, 215, 0, 0.5);
+            line-height: 1;
+            position: relative;
+        }
+
+        .time-value::before {
+            content: attr(data-value);
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: rgba(255, 215, 0, 0.1);
+            filter: blur(2px);
+        }
+
+        .time-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 10px;
+        }
+
+        .time-separator {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 10vw, 6rem);
+            color: var(--accent-gold);
+            animation: colonBlink 1s ease-in-out infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes colonBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Crystal oscillator section */
+        .crystal-section {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            margin-bottom: 40px;
+        }
+
+        .crystal-label {
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .crystal-freq {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 20px var(--accent-cyan);
+        }
+
+        .crystal-wave {
+            margin-top: 20px;
+            height: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wave-line {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            animation: waveMove 0.5s linear infinite;
+        }
+
+        @keyframes waveMove {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        /* Frequency divider chain */
+        .divider-chain {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .divider-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .divider-box {
+            width: 100px;
+            padding: 20px 15px;
+            background: linear-gradient(145deg, rgba(255,215,0,0.1), transparent);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .divider-box:hover {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .divider-box.active {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .divider-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            margin-bottom: 5px;
+        }
+
+        .divider-freq {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .divider-arrow {
+            font-size: 1.5rem;
+            color: var(--accent-gold);
+            opacity: 0.5;
+        }
+
+        /* Visual divider animation */
+        .visual-dividers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .divider-visual {
+            background: var(--bg-panel);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .divider-title {
+            font-size: 0.75rem;
+            color: var(--accent-amber);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .counter-bar {
+            height: 40px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .counter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), var(--accent-amber));
+            border-radius: 8px;
+            transition: width 0.05s linear;
+            position: relative;
+        }
+
+        .counter-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: white;
+            box-shadow: 0 0 10px white;
+        }
+
+        .counter-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .counter-stats .current {
+            color: var(--accent-gold);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Output indicators */
+        .output-section {
+            text-align: center;
+        }
+
+        .output-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .output-leds {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .led-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .led {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #444;
+            transition: all 0.1s ease;
+        }
+
+        .led.on {
+            background: var(--accent-gold);
+            box-shadow: 0 0 20px var(--accent-gold), 0 0 40px rgba(255, 215, 0, 0.5);
+        }
+
+        .led.seconds {
+            background: #333;
+        }
+
+        .led.seconds.on {
+            background: var(--accent-red);
+            box-shadow: 0 0 20px var(--accent-red);
+        }
+
+        .led-text {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Info panel */
+        .info-panel {
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.05), transparent);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+            padding: 35px;
+            margin-top: 50px;
+        }
+
+        .info-panel h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-gold);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .info-panel p {
+            color: var(--text-dim);
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .division-chain {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 25px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .division-step {
+            padding: 10px 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 6px;
+            color: var(--accent-gold);
+            font-size: 0.9rem;
+        }
+
+        .division-arrow {
+            color: var(--accent-amber);
+            font-size: 1.2rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        button {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-amber));
+            color: var(--bg-void);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-reset {
+            background: transparent;
+            border: 2px solid var(--text-dim);
+            color: var(--text-dim);
+        }
+
+        .btn-reset:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* Speed selector */
+        .speed-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .speed-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            padding: 10px 20px;
+            border: 1px solid var(--text-dim);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .speed-btn.active {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .clock-display {
+                flex-wrap: wrap;
+            }
+            
+            .divider-chain {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .divider-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="starfield"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Digital Clock</h1>
+            <p class="subtitle">Frequency division using cascaded toggle flip-flop counters</p>
+        </header>
+
+        <div class="clock-container">
+            <!-- Main time display -->
+            <div class="clock-display">
+                <div class="time-unit">
+                    <div class="time-value" id="hoursDisplay" data-value="00">00</div>
+                    <div class="time-label">Hours</div>
+                </div>
+                <div class="time-separator">:</div>
+                <div class="time-unit">
+                    <div class="time-value" id="minutesDisplay" data-value="00">00</div>
+                    <div class="time-label">Minutes</div>
+                </div>
+                <div class="time-separator">:</div>
+                <div class="time-unit">
+                    <div class="time-value" id="secondsDisplay" data-value="00">00</div>
+                    <div class="time-label">Seconds</div>
+                </div>
+            </div>
+
+            <!-- Crystal oscillator -->
+            <div class="crystal-section">
+                <div class="crystal-label">Crystal Oscillator</div>
+                <div class="crystal-freq">32,768 Hz</div>
+                <div class="crystal-wave">
+                    <svg class="wave-line" viewBox="0 0 800 50" preserveAspectRatio="none">
+                        <path d="M0,25 Q10,0 20,25 T40,25 T60,25 T80,25 T100,25 T120,25 T140,25 T160,25 T180,25 T200,25 T220,25 T240,25 T260,25 T280,25 T300,25 T320,25 T340,25 T360,25 T380,25 T400,25 T420,25 T440,25 T460,25 T480,25 T500,25 T520,25 T540,25 T560,25 T580,25 T600,25 T620,25 T640,25 T660,25 T680,25 T700,25 T720,25 T740,25 T760,25 T780,25 T800,25" 
+                              fill="none" stroke="#00ffff" stroke-width="2"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Divider chain -->
+            <div class="divider-chain">
+                <div class="divider-stage">
+                    <div class="divider-box" data-stage="0">
+                        <div class="divider-value">÷2</div>
+                        <div class="divider-freq">16384 Hz</div>
+                    </div>
+                </div>
+                <span class="divider-arrow">→</span>
+                <div class="divider-stage">
+                    <div class="divider-box" data-stage="1">
+                        <div class="divider-value">÷2</div>
+                        <div class="divider-freq">8192 Hz</div>
+                    </div>
+                </div>
+                <span class="divider-arrow">→</span>
+                <div class="divider-stage">
+                    <div class="divider-box" data-stage="2">
+                        <div class="divider-value">÷2</div>
+                        <div class="divider-freq">4096 Hz</div>
+                    </div>
+                </div>
+                <span class="divider-arrow">→</span>
+                <div class="divider-stage">
+                    <div class="divider-box" data-stage="3">
+                        <div class="divider-value">...</div>
+                        <div class="divider-freq">...</div>
+                    </div>
+                </div>
+                <span class="divider-arrow">→</span>
+                <div class="divider-stage">
+                    <div class="divider-box active" data-stage="15">
+                        <div class="divider-value">÷2</div>
+                        <div class="divider-freq">1 Hz</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual counters -->
+            <div class="visual-dividers">
+                <div class="divider-visual">
+                    <div class="divider-title">Seconds Counter (0-59)</div>
+                    <div class="counter-bar">
+                        <div class="counter-fill" id="secondsFill" style="width: 0%"></div>
+                    </div>
+                    <div class="counter-stats">
+                        <span>0</span>
+                        <span class="current" id="secondsCounter">0</span>
+                        <span>59</span>
+                    </div>
+                </div>
+                <div class="divider-visual">
+                    <div class="divider-title">Minutes Counter (0-59)</div>
+                    <div class="counter-bar">
+                        <div class="counter-fill" id="minutesFill" style="width: 0%"></div>
+                    </div>
+                    <div class="counter-stats">
+                        <span>0</span>
+                        <span class="current" id="minutesCounter">0</span>
+                        <span>59</span>
+                    </div>
+                </div>
+                <div class="divider-visual">
+                    <div class="divider-title">Hours Counter (0-23)</div>
+                    <div class="counter-bar">
+                        <div class="counter-fill" id="hoursFill" style="width: 0%"></div>
+                    </div>
+                    <div class="counter-stats">
+                        <span>0</span>
+                        <span class="current" id="hoursCounter">0</span>
+                        <span>23</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output LEDs -->
+            <div class="output-section">
+                <div class="output-label">Output Signals</div>
+                <div class="output-leds">
+                    <div class="led-indicator">
+                        <div class="led seconds" id="ledSecond"></div>
+                        <span class="led-text">1 Hz</span>
+                    </div>
+                    <div class="led-indicator">
+                        <div class="led" id="ledMinute"></div>
+                        <span class="led-text">Minute</span>
+                    </div>
+                    <div class="led-indicator">
+                        <div class="led" id="ledHour"></div>
+                        <span class="led-text">Hour</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn-start" id="startBtn">▶ Start Clock</button>
+                <button class="btn-reset" id="resetBtn">↺ Reset</button>
+            </div>
+
+            <div class="speed-selector">
+                <button class="speed-btn" data-speed="1000">1x Real</button>
+                <button class="speed-btn active" data-speed="100">10x Fast</button>
+                <button class="speed-btn" data-speed="16">60x Fast</button>
+            </div>
+        </div>
+
+        <!-- Info panel -->
+        <div class="info-panel">
+            <h3>⚡ How Digital Watches Work</h3>
+            <p>Digital watches use a quartz crystal that vibrates at exactly 32,768 Hz (2¹⁵). This specific frequency is chosen because 15 binary counter stages (toggle flip-flops) can divide it down to exactly 1 Hz — one tick per second.</p>
+            
+            <div class="division-chain">
+                <div class="division-step">32768 Hz</div>
+                <span class="division-arrow">→</span>
+                <div class="division-step">16384</div>
+                <span class="division-arrow">→</span>
+                <div class="division-step">8192</div>
+                <span class="division-arrow">→</span>
+                <div class="division-step">...</div>
+                <span class="division-arrow">→</span>
+                <div class="division-step">2</div>
+                <span class="division-arrow">→</span>
+                <div class="division-step" style="background: rgba(255,51,51,0.2); color: #ff3333;">1 Hz</div>
+            </div>
+            
+            <p style="margin-top: 20px;">Each divide-by-2 stage is a single toggle flip-flop. The output toggles every time the input goes high, effectively halving the frequency. Chain 15 of these together and you transform 32,768 rapid pulses into 1 slow tick per second!</p>
+        </div>
+    </div>
+
+    <script>
+        let clockInterval = null;
+        let hours = 0, minutes = 0, seconds = 0;
+        let speed = 100;
+        let subSecond = 0;
+
+        function pad(n) {
+            return n.toString().padStart(2, '0');
+        }
+
+        function updateDisplay() {
+            const h = pad(hours);
+            const m = pad(minutes);
+            const s = pad(seconds);
+
+            document.getElementById('hoursDisplay').textContent = h;
+            document.getElementById('hoursDisplay').dataset.value = h;
+            document.getElementById('minutesDisplay').textContent = m;
+            document.getElementById('minutesDisplay').dataset.value = m;
+            document.getElementById('secondsDisplay').textContent = s;
+            document.getElementById('secondsDisplay').dataset.value = s;
+
+            // Update counter displays
+            document.getElementById('secondsCounter').textContent = seconds;
+            document.getElementById('minutesCounter').textContent = minutes;
+            document.getElementById('hoursCounter').textContent = hours;
+
+            // Update fill bars
+            document.getElementById('secondsFill').style.width = (seconds / 59 * 100) + '%';
+            document.getElementById('minutesFill').style.width = (minutes / 59 * 100) + '%';
+            document.getElementById('hoursFill').style.width = (hours / 23 * 100) + '%';
+        }
+
+        function tick() {
+            subSecond++;
+            
+            // Flash second LED on each tick
+            const ledSecond = document.getElementById('ledSecond');
+            ledSecond.classList.add('on');
+            setTimeout(() => ledSecond.classList.remove('on'), speed / 2);
+
+            // Animate divider stages
+            document.querySelectorAll('.divider-box').forEach((box, i) => {
+                if (Math.random() > 0.5) {
+                    box.classList.add('active');
+                    setTimeout(() => {
+                        if (box.dataset.stage !== '15') box.classList.remove('active');
+                    }, 50);
+                }
+            });
+
+            if (subSecond >= 10) {
+                subSecond = 0;
+                seconds++;
+
+                if (seconds >= 60) {
+                    seconds = 0;
+                    minutes++;
+                    
+                    // Flash minute LED
+                    const ledMinute = document.getElementById('ledMinute');
+                    ledMinute.classList.add('on');
+                    setTimeout(() => ledMinute.classList.remove('on'), 500);
+
+                    if (minutes >= 60) {
+                        minutes = 0;
+                        hours++;
+
+                        // Flash hour LED
+                        const ledHour = document.getElementById('ledHour');
+                        ledHour.classList.add('on');
+                        setTimeout(() => ledHour.classList.remove('on'), 1000);
+
+                        if (hours >= 24) {
+                            hours = 0;
+                        }
+                    }
+                }
+            }
+
+            updateDisplay();
+        }
+
+        function toggleClock() {
+            const btn = document.getElementById('startBtn');
+            if (clockInterval) {
+                clearInterval(clockInterval);
+                clockInterval = null;
+                btn.textContent = '▶ Start Clock';
+            } else {
+                clockInterval = setInterval(tick, speed / 10);
+                btn.textContent = '⏸ Pause';
+            }
+        }
+
+        function resetClock() {
+            if (clockInterval) {
+                clearInterval(clockInterval);
+                clockInterval = null;
+                document.getElementById('startBtn').textContent = '▶ Start Clock';
+            }
+            hours = 0;
+            minutes = 0;
+            seconds = 0;
+            subSecond = 0;
+            updateDisplay();
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', toggleClock);
+        document.getElementById('resetBtn').addEventListener('click', resetClock);
+
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                speed = parseInt(btn.dataset.speed);
+                
+                if (clockInterval) {
+                    clearInterval(clockInterval);
+                    clockInterval = setInterval(tick, speed / 10);
+                }
+            });
+        });
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

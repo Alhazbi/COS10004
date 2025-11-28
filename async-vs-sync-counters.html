@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Async vs Sync Counters</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-panel: #12121a;
+            --bg-card: #1a1a25;
+            --async-primary: #ff6b35;
+            --async-secondary: #ff8c5a;
+            --async-glow: rgba(255, 107, 53, 0.4);
+            --sync-primary: #00d4ff;
+            --sync-secondary: #4de8ff;
+            --sync-glow: rgba(0, 212, 255, 0.4);
+            --clock-color: #a855f7;
+            --text-bright: #f0f0f5;
+            --text-dim: #6b6b80;
+            --wire-color: #3d3d50;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: 'Chakra Petch', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-bright);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Circuit board pattern background */
+        .circuit-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: 
+                linear-gradient(var(--wire-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--wire-color) 1px, transparent 1px),
+                linear-gradient(var(--wire-color) 0.5px, transparent 0.5px),
+                linear-gradient(90deg, var(--wire-color) 0.5px, transparent 0.5px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 25px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--async-primary), var(--sync-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-dim);
+        }
+
+        /* Main comparison layout */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1000px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .counter-panel {
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .counter-panel.async {
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        .counter-panel.sync {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--wire-color);
+        }
+
+        .panel-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .async .panel-icon {
+            background: linear-gradient(135deg, var(--async-primary), var(--async-secondary));
+        }
+
+        .sync .panel-icon {
+            background: linear-gradient(135deg, var(--sync-primary), var(--sync-secondary));
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .async .panel-title { color: var(--async-primary); }
+        .sync .panel-title { color: var(--sync-primary); }
+
+        .panel-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* Binary display */
+        .binary-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .bit-box {
+            width: 70px;
+            height: 80px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--wire-color);
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .bit-box.changing {
+            transform: scale(1.1);
+        }
+
+        .async .bit-box.changing {
+            border-color: var(--async-primary);
+            box-shadow: 0 0 25px var(--async-glow);
+        }
+
+        .sync .bit-box.changing {
+            border-color: var(--sync-primary);
+            box-shadow: 0 0 25px var(--sync-glow);
+        }
+
+        .bit-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .bit-value {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .async .bit-value { color: var(--async-primary); }
+        .sync .bit-value { color: var(--sync-primary); }
+
+        .bit-weight {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            margin-top: 3px;
+        }
+
+        /* Decimal display */
+        .decimal-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .decimal-value {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .async .decimal-value { color: var(--async-secondary); }
+        .sync .decimal-value { color: var(--sync-secondary); }
+
+        /* Flip-flop diagram */
+        .flipflop-diagram {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
+            min-height: 180px;
+        }
+
+        .diagram-title {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .flipflop-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+        }
+
+        .ff-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ff-box {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--wire-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            background: var(--bg-panel);
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .ff-box.triggered {
+            animation: ffTrigger 0.3s ease;
+        }
+
+        .async .ff-box.triggered {
+            border-color: var(--async-primary);
+            box-shadow: 0 0 20px var(--async-glow);
+        }
+
+        .sync .ff-box.triggered {
+            border-color: var(--sync-primary);
+            box-shadow: 0 0 20px var(--sync-glow);
+        }
+
+        @keyframes ffTrigger {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .ff-label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .ff-output {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .async .ff-output { color: var(--async-primary); }
+        .sync .ff-output { color: var(--sync-primary); }
+
+        /* Clock input indicator */
+        .clock-input {
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--clock-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            transition: all 0.15s ease;
+        }
+
+        .clock-input.active {
+            opacity: 1;
+            box-shadow: 0 0 15px var(--clock-color);
+        }
+
+        /* Wire connections */
+        .wire {
+            width: 40px;
+            height: 3px;
+            background: var(--wire-color);
+            position: relative;
+        }
+
+        .wire::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: -4px;
+            border: 5px solid transparent;
+            border-left-color: var(--wire-color);
+        }
+
+        .wire.signal {
+            animation: signalFlow 0.3s ease;
+        }
+
+        .async .wire.signal {
+            background: var(--async-primary);
+        }
+
+        .async .wire.signal::after {
+            border-left-color: var(--async-primary);
+        }
+
+        @keyframes signalFlow {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        /* Clock bus for sync */
+        .clock-bus {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .clock-bus-line {
+            width: 280px;
+            height: 3px;
+            background: var(--clock-color);
+            border-radius: 2px;
+            position: relative;
+            opacity: 0.4;
+            transition: all 0.15s ease;
+        }
+
+        .clock-bus-line.active {
+            opacity: 1;
+            box-shadow: 0 0 10px var(--clock-color);
+        }
+
+        .clock-bus-label {
+            font-size: 0.65rem;
+            color: var(--clock-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .clock-tap {
+            position: absolute;
+            width: 3px;
+            height: 20px;
+            background: var(--clock-color);
+            top: -20px;
+        }
+
+        .clock-tap:nth-child(1) { left: 20px; }
+        .clock-tap:nth-child(2) { left: 110px; }
+        .clock-tap:nth-child(3) { right: 110px; }
+        .clock-tap:nth-child(4) { right: 20px; }
+
+        /* Timing diagram */
+        .timing-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .timing-title {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .timing-diagram {
+            position: relative;
+            height: 160px;
+        }
+
+        .timing-row {
+            display: flex;
+            align-items: center;
+            height: 35px;
+            margin-bottom: 5px;
+        }
+
+        .timing-label {
+            width: 50px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        .timing-wave {
+            flex: 1;
+            height: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wave-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Propagation delay indicator */
+        .delay-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--async-primary);
+            margin-top: 15px;
+        }
+
+        .delay-indicator.sync-indicator {
+            background: rgba(0, 212, 255, 0.1);
+            border-left-color: var(--sync-primary);
+        }
+
+        .delay-icon {
+            font-size: 1.2rem;
+        }
+
+        .delay-text {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .delay-text strong {
+            color: var(--async-primary);
+        }
+
+        .sync-indicator .delay-text strong {
+            color: var(--sync-primary);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-clock {
+            background: linear-gradient(135deg, var(--clock-color), #c084fc);
+            color: white;
+        }
+
+        .btn-clock:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+        }
+
+        .btn-auto {
+            background: var(--bg-card);
+            color: var(--text-bright);
+            border: 2px solid var(--clock-color);
+        }
+
+        .btn-auto:hover {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .btn-auto.active {
+            background: var(--clock-color);
+            color: white;
+        }
+
+        .btn-reset {
+            background: var(--bg-card);
+            color: var(--text-dim);
+            border: 2px solid var(--wire-color);
+        }
+
+        .btn-reset:hover {
+            border-color: var(--text-dim);
+            color: var(--text-bright);
+        }
+
+        /* Speed control */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .speed-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 200px;
+            height: 6px;
+            background: var(--wire-color);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--clock-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--clock-color);
+        }
+
+        /* Comparison table */
+        .comparison-table {
+            background: var(--bg-panel);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 40px;
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--wire-color);
+        }
+
+        th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+        }
+
+        th:nth-child(2) { color: var(--async-primary); }
+        th:nth-child(3) { color: var(--sync-primary); }
+
+        td {
+            font-size: 0.9rem;
+        }
+
+        td:first-child {
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        td:nth-child(2) {
+            color: var(--async-secondary);
+        }
+
+        td:nth-child(3) {
+            color: var(--sync-secondary);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-badge.slow {
+            background: rgba(255, 107, 53, 0.2);
+            color: var(--async-primary);
+        }
+
+        .status-badge.fast {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--sync-primary);
+        }
+
+        /* Ripple animation text */
+        .ripple-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-top: 15px;
+            color: var(--text-dim);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ripple-step {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 0 3px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .async .ripple-step.active {
+            background: var(--async-primary);
+            color: white;
+        }
+
+        .sync .ripple-step.active {
+            background: var(--sync-primary);
+            color: var(--bg-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="circuit-bg"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Asynchronous vs Synchronous Counters</h1>
+            <p class="subtitle">Understanding the ripple effect and synchronized timing</p>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn-clock" id="clockBtn">
+                <span>⏱</span> Clock Pulse
+            </button>
+            <button class="btn-auto" id="autoBtn">
+                <span>⚡</span> Auto Clock
+            </button>
+            <button class="btn-reset" id="resetBtn">
+                <span>↺</span> Reset
+            </button>
+        </div>
+
+        <div class="speed-control">
+            <span class="speed-label">Clock Speed:</span>
+            <input type="range" id="speedSlider" min="200" max="2000" value="800">
+            <span class="speed-label" id="speedValue">800ms</span>
+        </div>
+
+        <!-- Comparison Grid -->
+        <div class="comparison-grid">
+            <!-- Asynchronous Counter -->
+            <div class="counter-panel async">
+                <div class="panel-header">
+                    <div class="panel-icon">🌊</div>
+                    <div>
+                        <div class="panel-title">Asynchronous (Ripple)</div>
+                        <div class="panel-subtitle">Changes ripple through sequentially</div>
+                    </div>
+                </div>
+
+                <div class="binary-display" id="asyncBinary">
+                    <div class="bit-box" data-bit="3">
+                        <span class="bit-label">Q3</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2³</span>
+                    </div>
+                    <div class="bit-box" data-bit="2">
+                        <span class="bit-label">Q2</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2²</span>
+                    </div>
+                    <div class="bit-box" data-bit="1">
+                        <span class="bit-label">Q1</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2¹</span>
+                    </div>
+                    <div class="bit-box" data-bit="0">
+                        <span class="bit-label">Q0</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2⁰</span>
+                    </div>
+                </div>
+
+                <div class="decimal-display">
+                    <span class="decimal-value" id="asyncDecimal">0</span>
+                </div>
+
+                <div class="flipflop-diagram">
+                    <div class="diagram-title">Circuit Topology</div>
+                    <div class="flipflop-row" id="asyncFFRow">
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="0">
+                                <div class="clock-input" id="asyncClk0"></div>
+                                FF0
+                            </div>
+                            <span class="ff-label">CLK→</span>
+                            <span class="ff-output" id="asyncQ0">Q0: 0</span>
+                        </div>
+                        <div class="wire" id="asyncWire0"></div>
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="1">
+                                <div class="clock-input" id="asyncClk1"></div>
+                                FF1
+                            </div>
+                            <span class="ff-label">Q0→</span>
+                            <span class="ff-output" id="asyncQ1">Q1: 0</span>
+                        </div>
+                        <div class="wire" id="asyncWire1"></div>
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="2">
+                                <div class="clock-input" id="asyncClk2"></div>
+                                FF2
+                            </div>
+                            <span class="ff-label">Q1→</span>
+                            <span class="ff-output" id="asyncQ2">Q2: 0</span>
+                        </div>
+                        <div class="wire" id="asyncWire2"></div>
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="3">
+                                <div class="clock-input" id="asyncClk3"></div>
+                                FF3
+                            </div>
+                            <span class="ff-label">Q2→</span>
+                            <span class="ff-output" id="asyncQ3">Q3: 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ripple-text" id="asyncRipple">
+                    Waiting for clock pulse...
+                </div>
+
+                <div class="delay-indicator">
+                    <span class="delay-icon">⚠️</span>
+                    <span class="delay-text">
+                        <strong>Propagation delay</strong> — each stage adds ~10ns delay
+                    </span>
+                </div>
+            </div>
+
+            <!-- Synchronous Counter -->
+            <div class="counter-panel sync">
+                <div class="panel-header">
+                    <div class="panel-icon">⚡</div>
+                    <div>
+                        <div class="panel-title">Synchronous</div>
+                        <div class="panel-subtitle">All flip-flops change together</div>
+                    </div>
+                </div>
+
+                <div class="binary-display" id="syncBinary">
+                    <div class="bit-box" data-bit="3">
+                        <span class="bit-label">Q3</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2³</span>
+                    </div>
+                    <div class="bit-box" data-bit="2">
+                        <span class="bit-label">Q2</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2²</span>
+                    </div>
+                    <div class="bit-box" data-bit="1">
+                        <span class="bit-label">Q1</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2¹</span>
+                    </div>
+                    <div class="bit-box" data-bit="0">
+                        <span class="bit-label">Q0</span>
+                        <span class="bit-value">0</span>
+                        <span class="bit-weight">2⁰</span>
+                    </div>
+                </div>
+
+                <div class="decimal-display">
+                    <span class="decimal-value" id="syncDecimal">0</span>
+                </div>
+
+                <div class="flipflop-diagram">
+                    <div class="diagram-title">Circuit Topology</div>
+                    <div class="flipflop-row" id="syncFFRow">
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="0">
+                                <div class="clock-input" id="syncClk0"></div>
+                                FF0
+                            </div>
+                            <span class="ff-output" id="syncQ0">Q0: 0</span>
+                        </div>
+                        <div style="width: 30px;"></div>
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="1">
+                                <div class="clock-input" id="syncClk1"></div>
+                                FF1
+                            </div>
+                            <span class="ff-output" id="syncQ1">Q1: 0</span>
+                        </div>
+                        <div style="width: 30px;"></div>
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="2">
+                                <div class="clock-input" id="syncClk2"></div>
+                                FF2
+                            </div>
+                            <span class="ff-output" id="syncQ2">Q2: 0</span>
+                        </div>
+                        <div style="width: 30px;"></div>
+                        <div class="ff-unit">
+                            <div class="ff-box" data-ff="3">
+                                <div class="clock-input" id="syncClk3"></div>
+                                FF3
+                            </div>
+                            <span class="ff-output" id="syncQ3">Q3: 0</span>
+                        </div>
+                    </div>
+                    <div class="clock-bus">
+                        <div class="clock-bus-line" id="syncClockBus">
+                            <div class="clock-tap"></div>
+                            <div class="clock-tap"></div>
+                            <div class="clock-tap"></div>
+                            <div class="clock-tap"></div>
+                        </div>
+                        <span class="clock-bus-label">Common Clock Bus</span>
+                    </div>
+                </div>
+
+                <div class="ripple-text" id="syncRipple">
+                    Waiting for clock pulse...
+                </div>
+
+                <div class="delay-indicator sync-indicator">
+                    <span class="delay-icon">✓</span>
+                    <span class="delay-text">
+                        <strong>No ripple delay</strong> — all bits update simultaneously
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-table">
+            <div class="table-title">⚡ Quick Comparison</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Asynchronous (Ripple)</th>
+                        <th>Synchronous</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Clocking</td>
+                        <td>Only 1st FF gets clock</td>
+                        <td>ALL FFs get clock</td>
+                    </tr>
+                    <tr>
+                        <td>Timing</td>
+                        <td>FFs change at different times</td>
+                        <td>FFs change at same time</td>
+                    </tr>
+                    <tr>
+                        <td>Speed</td>
+                        <td><span class="status-badge slow">Slower</span></td>
+                        <td><span class="status-badge fast">Much Faster</span></td>
+                    </tr>
+                    <tr>
+                        <td>Complexity</td>
+                        <td>Very simple</td>
+                        <td>More complex</td>
+                    </tr>
+                    <tr>
+                        <td>Use Cases</td>
+                        <td>Small counters, low-speed</td>
+                        <td>CPUs, GPUs, high-speed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let asyncCount = 0;
+        let syncCount = 0;
+        let autoInterval = null;
+        let speed = 800;
+        const maxCount = 15;
+        const rippleDelay = 80; // ms between each flip-flop toggle in async
+
+        function getBinary(n, bits = 4) {
+            return n.toString(2).padStart(bits, '0').split('').map(Number);
+        }
+
+        function updateAsyncDisplay(binary) {
+            const boxes = document.querySelectorAll('#asyncBinary .bit-box');
+            boxes.forEach((box, i) => {
+                const val = binary[i];
+                box.querySelector('.bit-value').textContent = val;
+            });
+            document.getElementById('asyncDecimal').textContent = asyncCount;
+
+            // Update FF outputs
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`asyncQ${i}`).textContent = `Q${i}: ${binary[3-i]}`;
+            }
+        }
+
+        function updateSyncDisplay(binary) {
+            const boxes = document.querySelectorAll('#syncBinary .bit-box');
+            boxes.forEach((box, i) => {
+                const val = binary[i];
+                box.querySelector('.bit-value').textContent = val;
+            });
+            document.getElementById('syncDecimal').textContent = syncCount;
+
+            // Update FF outputs
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`syncQ${i}`).textContent = `Q${i}: ${binary[3-i]}`;
+            }
+        }
+
+        function animateAsyncRipple(oldBinary, newBinary) {
+            const rippleText = document.getElementById('asyncRipple');
+            const changedBits = [];
+            
+            // Find which bits changed (from LSB to MSB)
+            for (let i = 3; i >= 0; i--) {
+                if (oldBinary[i] !== newBinary[i]) {
+                    changedBits.push(3 - i);
+                }
+            }
+
+            if (changedBits.length === 0) return;
+
+            // Animate the ripple effect
+            let step = 0;
+            rippleText.innerHTML = 'Ripple: ';
+
+            function animateNextBit() {
+                if (step >= changedBits.length) {
+                    setTimeout(() => {
+                        rippleText.innerHTML = `<span style="color: var(--async-primary)">Complete!</span> All ${changedBits.length} bit(s) toggled sequentially`;
+                    }, 200);
+                    return;
+                }
+
+                const bitIndex = changedBits[step];
+                const ffIndex = bitIndex;
+                
+                // Highlight the flip-flop
+                const ff = document.querySelector(`#asyncFFRow .ff-box[data-ff="${ffIndex}"]`);
+                const clk = document.getElementById(`asyncClk${ffIndex}`);
+                const wire = document.getElementById(`asyncWire${ffIndex}`);
+                const bitBox = document.querySelector(`#asyncBinary .bit-box[data-bit="${bitIndex}"]`);
+
+                ff.classList.add('triggered');
+                clk.classList.add('active');
+                if (wire) wire.classList.add('signal');
+                bitBox.classList.add('changing');
+
+                // Update ripple text
+                rippleText.innerHTML += `<span class="ripple-step active">Q${bitIndex}↓</span> → `;
+
+                // Update the display for this bit
+                const boxes = document.querySelectorAll('#asyncBinary .bit-box');
+                boxes[3 - bitIndex].querySelector('.bit-value').textContent = newBinary[3 - bitIndex];
+                document.getElementById(`asyncQ${bitIndex}`).textContent = `Q${bitIndex}: ${newBinary[3 - bitIndex]}`;
+
+                setTimeout(() => {
+                    ff.classList.remove('triggered');
+                    clk.classList.remove('active');
+                    if (wire) wire.classList.remove('signal');
+                    bitBox.classList.remove('changing');
+                    step++;
+                    animateNextBit();
+                }, rippleDelay);
+            }
+
+            // Start with clock to FF0
+            document.getElementById('asyncClk0').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('asyncClk0').classList.remove('active');
+                animateNextBit();
+            }, rippleDelay / 2);
+        }
+
+        function animateSyncChange(oldBinary, newBinary) {
+            const rippleText = document.getElementById('syncRipple');
+            const changedBits = [];
+            
+            for (let i = 0; i < 4; i++) {
+                if (oldBinary[i] !== newBinary[i]) {
+                    changedBits.push(3 - i);
+                }
+            }
+
+            // Activate all clocks simultaneously
+            const clockBus = document.getElementById('syncClockBus');
+            clockBus.classList.add('active');
+
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`syncClk${i}`).classList.add('active');
+            }
+
+            // All changed bits animate together
+            changedBits.forEach(bitIndex => {
+                const ff = document.querySelector(`#syncFFRow .ff-box[data-ff="${bitIndex}"]`);
+                const bitBox = document.querySelector(`#syncBinary .bit-box[data-bit="${bitIndex}"]`);
+                ff.classList.add('triggered');
+                bitBox.classList.add('changing');
+            });
+
+            // Update display immediately
+            updateSyncDisplay(newBinary);
+
+            // Update ripple text
+            if (changedBits.length > 0) {
+                const bitsStr = changedBits.map(b => `Q${b}`).join(', ');
+                rippleText.innerHTML = `<span style="color: var(--sync-primary)">Simultaneous!</span> ${bitsStr} all changed at once`;
+            }
+
+            setTimeout(() => {
+                clockBus.classList.remove('active');
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`syncClk${i}`).classList.remove('active');
+                    document.querySelector(`#syncFFRow .ff-box[data-ff="${i}"]`).classList.remove('triggered');
+                    document.querySelector(`#syncBinary .bit-box[data-bit="${i}"]`).classList.remove('changing');
+                }
+            }, 200);
+        }
+
+        function clockPulse() {
+            const oldAsyncBinary = getBinary(asyncCount);
+            const oldSyncBinary = getBinary(syncCount);
+
+            asyncCount = (asyncCount + 1) % 16;
+            syncCount = (syncCount + 1) % 16;
+
+            const newAsyncBinary = getBinary(asyncCount);
+            const newSyncBinary = getBinary(syncCount);
+
+            // Async: animate the ripple
+            animateAsyncRipple(oldAsyncBinary, newAsyncBinary);
+
+            // Sync: animate simultaneous change
+            animateSyncChange(oldSyncBinary, newSyncBinary);
+
+            // Update decimal displays
+            document.getElementById('asyncDecimal').textContent = asyncCount;
+            document.getElementById('syncDecimal').textContent = syncCount;
+        }
+
+        function toggleAuto() {
+            const btn = document.getElementById('autoBtn');
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                btn.classList.remove('active');
+                btn.innerHTML = '<span>⚡</span> Auto Clock';
+            } else {
+                autoInterval = setInterval(clockPulse, speed);
+                btn.classList.add('active');
+                btn.innerHTML = '<span>⏸</span> Stop Auto';
+            }
+        }
+
+        function reset() {
+            if (autoInterval) toggleAuto();
+            asyncCount = 0;
+            syncCount = 0;
+            updateAsyncDisplay(getBinary(0));
+            updateSyncDisplay(getBinary(0));
+            document.getElementById('asyncRipple').innerHTML = 'Waiting for clock pulse...';
+            document.getElementById('syncRipple').innerHTML = 'Waiting for clock pulse...';
+        }
+
+        // Event listeners
+        document.getElementById('clockBtn').addEventListener('click', clockPulse);
+        document.getElementById('autoBtn').addEventListener('click', toggleAuto);
+        document.getElementById('resetBtn').addEventListener('click', reset);
+
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            speed = 2200 - parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = speed + 'ms';
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = setInterval(clockPulse, speed);
+            }
+        });
+
+        // Initialize
+        updateAsyncDisplay(getBinary(0));
+        updateSyncDisplay(getBinary(0));
+    </script>
+</body>
+</html>

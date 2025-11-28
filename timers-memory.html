@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timers & Memory Addressing</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-deep: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-hover: #252540;
+            --accent-timer: #ff6b6b;
+            --accent-memory: #4ecdc4;
+            --accent-pulse: #ffd93d;
+            --text-bright: #ffffff;
+            --text-dim: #6c6c8a;
+        }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-bright);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at top, rgba(78, 205, 196, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 50px 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--accent-timer), var(--accent-memory));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            font-weight: 300;
+        }
+
+        /* Tab navigation */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .tab-btn {
+            font-family: 'Sora', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 16px 36px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-card);
+            color: var(--text-dim);
+            border: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--text-bright);
+            border-color: currentColor;
+        }
+
+        .tab-btn[data-tab="timer"].active {
+            color: var(--accent-timer);
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+        }
+
+        .tab-btn[data-tab="memory"].active {
+            color: var(--accent-memory);
+            box-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-hover);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== TIMER SECTION ===== */
+        .timer-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .timer-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .timer-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 35px;
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-timer);
+            margin-bottom: 25px;
+        }
+
+        /* Big timer display */
+        .timer-display {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(145deg, rgba(255,107,107,0.1), transparent);
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .timer-value {
+            font-family: 'DM Mono', monospace;
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 500;
+            color: var(--accent-timer);
+            text-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+        }
+
+        .timer-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-top: 10px;
+        }
+
+        /* Tick counter visualization */
+        .tick-section {
+            margin-bottom: 30px;
+        }
+
+        .tick-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .tick-count {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.4rem;
+            color: var(--accent-pulse);
+        }
+
+        .tick-progress-container {
+            height: 30px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tick-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-timer), var(--accent-pulse));
+            border-radius: 15px;
+            transition: width 0.05s linear;
+            position: relative;
+        }
+
+        .tick-progress::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            background: white;
+            border-radius: 0 15px 15px 0;
+            animation: tickGlow 0.1s ease;
+        }
+
+        @keyframes tickGlow {
+            0% { box-shadow: 0 0 20px white; }
+            100% { box-shadow: none; }
+        }
+
+        /* Clock source visualization */
+        .clock-source {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+
+        .clock-freq {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.8rem;
+            color: var(--accent-pulse);
+            margin-bottom: 5px;
+        }
+
+        .clock-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .pulse-indicator {
+            width: 12px;
+            height: 12px;
+            background: var(--accent-pulse);
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+            animation: blink 0.1s ease infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Timer controls */
+        .timer-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .timer-btn {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.9rem;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .timer-btn.start {
+            background: var(--accent-timer);
+            color: white;
+        }
+
+        .timer-btn.start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .timer-btn.reset {
+            background: transparent;
+            border: 1px solid var(--text-dim);
+            color: var(--text-dim);
+        }
+
+        .timer-btn.reset:hover {
+            border-color: var(--accent-timer);
+            color: var(--accent-timer);
+        }
+
+        /* Preset timers */
+        .preset-timers {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .preset-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            padding: 10px 20px;
+            border: 1px solid rgba(255,107,107,0.3);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--accent-timer);
+            color: var(--accent-timer);
+        }
+
+        .preset-btn.active {
+            background: var(--accent-timer);
+            color: white;
+            border-color: var(--accent-timer);
+        }
+
+        /* ===== MEMORY SECTION ===== */
+        .memory-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .memory-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .memory-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 35px;
+            border: 1px solid rgba(78, 205, 196, 0.2);
+        }
+
+        .memory-card .card-title {
+            color: var(--accent-memory);
+        }
+
+        /* Address counter */
+        .address-display {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(145deg, rgba(78,205,196,0.1), transparent);
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        .address-value {
+            font-family: 'DM Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 500;
+            color: var(--accent-memory);
+        }
+
+        .address-hex {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-top: 8px;
+        }
+
+        /* Memory visualization */
+        .memory-grid-visual {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+        }
+
+        .memory-cell {
+            aspect-ratio: 1;
+            background: rgba(78, 205, 196, 0.1);
+            border: 1px solid rgba(78, 205, 196, 0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .memory-cell.current {
+            background: var(--accent-memory);
+            color: var(--bg-deep);
+            border-color: var(--accent-memory);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.6);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .memory-cell.accessed {
+            background: rgba(78, 205, 196, 0.3);
+            border-color: var(--accent-memory);
+        }
+
+        /* DMA visualization */
+        .dma-section {
+            margin-top: 30px;
+        }
+
+        .dma-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dma-status {
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(78, 205, 196, 0.2);
+            color: var(--accent-memory);
+        }
+
+        .data-stream {
+            height: 60px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .data-packet {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--accent-memory), #6ee7de);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--bg-deep);
+            font-weight: 500;
+        }
+
+        /* Memory controls */
+        .memory-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .mem-btn {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.9rem;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .mem-btn.scan {
+            background: var(--accent-memory);
+            color: var(--bg-deep);
+        }
+
+        .mem-btn.scan:hover {
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+        }
+
+        .mem-btn.step {
+            background: transparent;
+            border: 1px solid var(--accent-memory);
+            color: var(--accent-memory);
+        }
+
+        .mem-btn.reset {
+            background: transparent;
+            border: 1px solid var(--text-dim);
+            color: var(--text-dim);
+        }
+
+        /* Info boxes */
+        .info-box {
+            margin-top: 50px;
+            padding: 30px;
+            border-radius: 16px;
+            border-left: 4px solid;
+        }
+
+        .info-box.timer-info {
+            background: rgba(255, 107, 107, 0.05);
+            border-color: var(--accent-timer);
+        }
+
+        .info-box.memory-info {
+            background: rgba(78, 205, 196, 0.05);
+            border-color: var(--accent-memory);
+        }
+
+        .info-box h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .info-box.timer-info h3 { color: var(--accent-timer); }
+        .info-box.memory-info h3 { color: var(--accent-memory); }
+
+        .info-box p {
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        .use-cases {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .use-case {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Timers & Memory Addressing</h1>
+            <p class="subtitle">Every timer and memory scanner is just a counter in disguise</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="timer">⏱️ Timers</button>
+            <button class="tab-btn" data-tab="memory">📦 Memory Addressing</button>
+        </div>
+
+        <!-- TIMER TAB -->
+        <div class="tab-content active" id="timer-tab">
+            <div class="timer-layout">
+                <div class="timer-card">
+                    <div class="card-title">Timer Counter</div>
+                    
+                    <div class="timer-display">
+                        <div class="timer-value" id="timerDisplay">0.000</div>
+                        <div class="timer-label">seconds elapsed</div>
+                    </div>
+
+                    <div class="tick-section">
+                        <div class="tick-header">
+                            <span style="color: var(--text-dim)">Tick Count:</span>
+                            <span class="tick-count" id="tickCount">0 / 1000</span>
+                        </div>
+                        <div class="tick-progress-container">
+                            <div class="tick-progress" id="tickProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="timer-controls">
+                        <button class="timer-btn start" id="timerStartBtn">▶ Start</button>
+                        <button class="timer-btn reset" id="timerResetBtn">↺ Reset</button>
+                    </div>
+
+                    <div class="preset-timers">
+                        <button class="preset-btn active" data-ticks="1000">1 sec</button>
+                        <button class="preset-btn" data-ticks="5000">5 sec</button>
+                        <button class="preset-btn" data-ticks="10000">10 sec</button>
+                    </div>
+                </div>
+
+                <div class="timer-card">
+                    <div class="card-title">Clock Source</div>
+                    
+                    <div class="clock-source">
+                        <div class="clock-freq">1 kHz <span class="pulse-indicator"></span></div>
+                        <div class="clock-label">1,000 ticks per second</div>
+                    </div>
+
+                    <div style="margin-top: 30px; color: var(--text-dim); line-height: 1.8;">
+                        <p><strong style="color: var(--accent-pulse)">How it works:</strong></p>
+                        <p style="margin-top: 10px;">The counter increments on each clock tick. When it reaches the target count (1000 ticks at 1kHz = 1 second), time is up!</p>
+                        
+                        <div style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 0.9rem;">
+                            <div style="color: var(--accent-timer)">counter = 0</div>
+                            <div style="color: var(--text-dim)">while counter < target:</div>
+                            <div style="color: var(--accent-pulse); margin-left: 20px;">wait_for_tick()</div>
+                            <div style="color: var(--accent-memory); margin-left: 20px;">counter++</div>
+                            <div style="color: var(--accent-timer)">// Time elapsed!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box timer-info">
+                <h3>⏱️ Real-World Timer Applications</h3>
+                <p>Timers are everywhere in computing. Your CPU's scheduler uses timers to switch between tasks. Network protocols use timers for timeouts. Even the blinking cursor is powered by a timer counter!</p>
+                <div class="use-cases">
+                    <span class="use-case">Stopwatch</span>
+                    <span class="use-case">Sleep/Wait</span>
+                    <span class="use-case">Hardware Timers</span>
+                    <span class="use-case">Real-Time Clocks</span>
+                    <span class="use-case">OS Schedulers</span>
+                    <span class="use-case">Watchdog Timers</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEMORY TAB -->
+        <div class="tab-content" id="memory-tab">
+            <div class="memory-layout">
+                <div class="memory-card">
+                    <div class="card-title">Address Counter</div>
+                    
+                    <div class="address-display">
+                        <div class="address-value" id="addressDisplay">0000</div>
+                        <div class="address-hex" id="addressHex">0x0000</div>
+                    </div>
+
+                    <div class="memory-controls">
+                        <button class="mem-btn scan" id="scanBtn">⚡ Sequential Scan</button>
+                        <button class="mem-btn step" id="stepBtn">→ Step Address</button>
+                        <button class="mem-btn reset" id="memResetBtn">↺ Reset</button>
+                    </div>
+                </div>
+
+                <div class="memory-card" style="flex: 1;">
+                    <div class="card-title">Memory Space (64 cells)</div>
+                    
+                    <div class="memory-grid-visual" id="memoryGridVisual">
+                        <!-- Generated by JS -->
+                    </div>
+
+                    <div class="dma-section">
+                        <div class="dma-header">
+                            <span style="color: var(--text-dim)">Data Transfer</span>
+                            <span class="dma-status" id="dmaStatus">Idle</span>
+                        </div>
+                        <div class="data-stream" id="dataStream">
+                            <!-- Animated data packets -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box memory-info">
+                <h3>📦 Memory Addressing in Action</h3>
+                <p>Memory is like numbered mailboxes: 0, 1, 2, 3... To read through memory sequentially, you need a counter that generates the next address. This is how DMA engines, graphics cards, and boot ROMs scan through data!</p>
+                <div class="use-cases">
+                    <span class="use-case">DMA Engines</span>
+                    <span class="use-case">Graphics Hardware</span>
+                    <span class="use-case">Sound Cards</span>
+                    <span class="use-case">Video Framebuffers</span>
+                    <span class="use-case">ROM Boot Scan</span>
+                    <span class="use-case">Cache Line Fetch</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+
+        // ===== TIMER LOGIC =====
+        let timerTicks = 0;
+        let timerTarget = 1000;
+        let timerInterval = null;
+
+        function updateTimerDisplay() {
+            const seconds = (timerTicks / 1000).toFixed(3);
+            document.getElementById('timerDisplay').textContent = seconds;
+            document.getElementById('tickCount').textContent = `${timerTicks} / ${timerTarget}`;
+            
+            const progress = Math.min((timerTicks / timerTarget) * 100, 100);
+            document.getElementById('tickProgress').style.width = progress + '%';
+
+            if (timerTicks >= timerTarget) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                document.getElementById('timerStartBtn').textContent = '▶ Start';
+                document.getElementById('timerDisplay').style.color = '#4ecdc4';
+            }
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timerStartBtn');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.textContent = '▶ Start';
+            } else {
+                document.getElementById('timerDisplay').style.color = '';
+                timerInterval = setInterval(() => {
+                    timerTicks++;
+                    updateTimerDisplay();
+                }, 1);
+                btn.textContent = '⏸ Pause';
+            }
+        }
+
+        function resetTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            timerTicks = 0;
+            document.getElementById('timerStartBtn').textContent = '▶ Start';
+            document.getElementById('timerDisplay').style.color = '';
+            updateTimerDisplay();
+        }
+
+        document.getElementById('timerStartBtn').addEventListener('click', toggleTimer);
+        document.getElementById('timerResetBtn').addEventListener('click', resetTimer);
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                timerTarget = parseInt(btn.dataset.ticks);
+                resetTimer();
+            });
+        });
+
+        // ===== MEMORY LOGIC =====
+        let memAddress = 0;
+        let memInterval = null;
+        const memSize = 64;
+
+        function initMemoryGrid() {
+            const grid = document.getElementById('memoryGridVisual');
+            grid.innerHTML = '';
+            for (let i = 0; i < memSize; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'memory-cell';
+                cell.textContent = i.toString(16).toUpperCase().padStart(2, '0');
+                cell.dataset.address = i;
+                grid.appendChild(cell);
+            }
+            updateMemoryDisplay();
+        }
+
+        function updateMemoryDisplay() {
+            document.getElementById('addressDisplay').textContent = memAddress.toString().padStart(4, '0');
+            document.getElementById('addressHex').textContent = '0x' + memAddress.toString(16).toUpperCase().padStart(4, '0');
+
+            document.querySelectorAll('.memory-cell').forEach((cell, i) => {
+                cell.classList.remove('current');
+                if (i === memAddress) {
+                    cell.classList.add('current');
+                    cell.classList.add('accessed');
+                }
+            });
+
+            // Add data packet animation
+            const stream = document.getElementById('dataStream');
+            if (memInterval) {
+                const packet = document.createElement('div');
+                packet.className = 'data-packet';
+                packet.textContent = memAddress.toString(16).toUpperCase();
+                packet.style.left = '0px';
+                stream.appendChild(packet);
+
+                let pos = 0;
+                const animate = setInterval(() => {
+                    pos += 10;
+                    packet.style.left = pos + 'px';
+                    if (pos > stream.offsetWidth) {
+                        packet.remove();
+                        clearInterval(animate);
+                    }
+                }, 20);
+            }
+        }
+
+        function stepMemory() {
+            memAddress = (memAddress + 1) % memSize;
+            updateMemoryDisplay();
+        }
+
+        function toggleScan() {
+            const btn = document.getElementById('scanBtn');
+            const status = document.getElementById('dmaStatus');
+            
+            if (memInterval) {
+                clearInterval(memInterval);
+                memInterval = null;
+                btn.textContent = '⚡ Sequential Scan';
+                status.textContent = 'Idle';
+            } else {
+                memInterval = setInterval(stepMemory, 100);
+                btn.textContent = '⏸ Stop Scan';
+                status.textContent = 'Scanning...';
+            }
+        }
+
+        function resetMemory() {
+            if (memInterval) {
+                clearInterval(memInterval);
+                memInterval = null;
+            }
+            memAddress = 0;
+            document.getElementById('scanBtn').textContent = '⚡ Sequential Scan';
+            document.getElementById('dmaStatus').textContent = 'Idle';
+            document.querySelectorAll('.memory-cell').forEach(c => c.classList.remove('accessed', 'current'));
+            updateMemoryDisplay();
+        }
+
+        document.getElementById('scanBtn').addEventListener('click', toggleScan);
+        document.getElementById('stepBtn').addEventListener('click', stepMemory);
+        document.getElementById('memResetBtn').addEventListener('click', resetMemory);
+
+        // Initialize
+        updateTimerDisplay();
+        initMemoryGrid();
+    </script>
+</body>
+</html>

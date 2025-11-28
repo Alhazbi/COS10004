@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What is a Counter, REALLY?</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0f;
+            --accent-cyan: #00f5ff;
+            --accent-magenta: #ff00aa;
+            --accent-yellow: #ffee00;
+            --text-light: #e0e0e0;
+            --grid-color: rgba(0, 245, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated grid background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridPulse 4s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.6);
+            font-weight: 300;
+        }
+
+        /* Main counter display */
+        .counter-showcase {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .counter-display {
+            position: relative;
+            padding: 60px 100px;
+            background: linear-gradient(145deg, rgba(0,245,255,0.05), rgba(255,0,170,0.05));
+            border: 2px solid rgba(0,245,255,0.3);
+            border-radius: 20px;
+            box-shadow: 
+                0 0 60px rgba(0,245,255,0.2),
+                inset 0 0 60px rgba(0,0,0,0.5);
+        }
+
+        .binary-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 700;
+            letter-spacing: 8px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .bit {
+            display: inline-block;
+            width: 1.2ch;
+            text-align: center;
+            transition: all 0.15s ease;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .bit.active {
+            color: var(--accent-cyan);
+        }
+
+        .bit.inactive {
+            color: rgba(255,255,255,0.2);
+        }
+
+        .bit.changing {
+            animation: bitFlip 0.15s ease;
+        }
+
+        @keyframes bitFlip {
+            0% { transform: scaleY(1); }
+            50% { transform: scaleY(0); }
+            100% { transform: scaleY(1); }
+        }
+
+        .decimal-display {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.4rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .decimal-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-yellow);
+            margin-left: 10px;
+        }
+
+        /* Clock pulse visualization */
+        .clock-section {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .clock-label {
+            font-size: 1rem;
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .clock-wave-container {
+            position: relative;
+            height: 120px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(0,245,255,0.2);
+        }
+
+        .clock-wave {
+            position: absolute;
+            bottom: 50%;
+            left: 0;
+            width: 200%;
+            height: 60px;
+            animation: waveScroll 2s linear infinite;
+        }
+
+        @keyframes waveScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .wave-path {
+            fill: none;
+            stroke: var(--accent-magenta);
+            stroke-width: 3;
+            filter: drop-shadow(0 0 10px var(--accent-magenta));
+        }
+
+        .pulse-marker {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 20px var(--accent-cyan);
+            opacity: 0;
+            animation: pulseFlash 0.5s ease;
+        }
+
+        @keyframes pulseFlash {
+            0% { opacity: 1; transform: scaleX(3); }
+            100% { opacity: 0; transform: scaleX(1); }
+        }
+
+        /* Sequence visualization */
+        .sequence-section {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .sequence-label {
+            font-size: 1rem;
+            color: var(--accent-magenta);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .sequence-track {
+            display: flex;
+            gap: 8px;
+            padding: 30px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            overflow-x: auto;
+            border: 1px solid rgba(255,0,170,0.2);
+        }
+
+        .sequence-item {
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sequence-item.current {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+            color: var(--bg-dark);
+            transform: scale(1.15);
+            box-shadow: 0 0 30px rgba(0,245,255,0.5);
+        }
+
+        .sequence-item.past {
+            opacity: 0.4;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), #00b8ff);
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,245,255,0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-magenta);
+            color: var(--bg-dark);
+        }
+
+        .btn-reset {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.6);
+        }
+
+        .btn-reset:hover {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        /* Speed control */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .speed-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 200px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--accent-cyan);
+        }
+
+        /* Info box */
+        .info-box {
+            max-width: 700px;
+            margin: 60px auto 0;
+            padding: 40px;
+            background: rgba(255,238,0,0.05);
+            border-left: 4px solid var(--accent-yellow);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .info-box h3 {
+            color: var(--accent-yellow);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .info-box p {
+            color: rgba(255,255,255,0.7);
+            line-height: 1.8;
+        }
+
+        /* Flip-flop diagram */
+        .flipflop-diagram {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 60px;
+            flex-wrap: wrap;
+        }
+
+        .flipflop {
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(0,245,255,0.5);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .flipflop.active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(0,245,255,0.4);
+            background: rgba(0,245,255,0.1);
+        }
+
+        .flipflop-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+            position: absolute;
+            top: 8px;
+        }
+
+        .flipflop-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .flipflop-bit {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.4);
+            position: absolute;
+            bottom: 8px;
+        }
+
+        .arrow {
+            width: 30px;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+            position: relative;
+            align-self: center;
+        }
+
+        .arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            border: 5px solid transparent;
+            border-left-color: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px;
+            }
+
+            .counter-display {
+                padding: 40px 30px;
+            }
+
+            .flipflop-diagram {
+                gap: 10px;
+            }
+
+            .flipflop {
+                width: 70px;
+                height: 70px;
+            }
+
+            .flipflop-value {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <div class="container">
+        <header>
+            <h1>What is a Counter?</h1>
+            <p class="subtitle">A machine that advances to the next number every tick</p>
+        </header>
+
+        <div class="counter-showcase">
+            <!-- Main Binary Counter Display -->
+            <div class="counter-display">
+                <div class="binary-display" id="binaryDisplay">
+                    <span class="bit inactive">0</span>
+                    <span class="bit inactive">0</span>
+                    <span class="bit inactive">0</span>
+                    <span class="bit inactive">0</span>
+                    <span class="bit inactive">0</span>
+                    <span class="bit inactive">0</span>
+                    <span class="bit inactive">0</span>
+                    <span class="bit inactive">0</span>
+                </div>
+                <div class="decimal-display">
+                    Decimal: <span class="decimal-value" id="decimalDisplay">0</span>
+                </div>
+            </div>
+
+            <!-- Flip-Flop Visualization -->
+            <div class="flipflop-diagram" id="flipflopDiagram">
+                <div class="flipflop" data-bit="7">
+                    <span class="flipflop-label">FF7</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2⁷</span>
+                </div>
+                <div class="arrow"></div>
+                <div class="flipflop" data-bit="6">
+                    <span class="flipflop-label">FF6</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2⁶</span>
+                </div>
+                <div class="arrow"></div>
+                <div class="flipflop" data-bit="5">
+                    <span class="flipflop-label">FF5</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2⁵</span>
+                </div>
+                <div class="arrow"></div>
+                <div class="flipflop" data-bit="4">
+                    <span class="flipflop-label">FF4</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2⁴</span>
+                </div>
+                <div class="arrow"></div>
+                <div class="flipflop" data-bit="3">
+                    <span class="flipflop-label">FF3</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2³</span>
+                </div>
+                <div class="arrow"></div>
+                <div class="flipflop" data-bit="2">
+                    <span class="flipflop-label">FF2</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2²</span>
+                </div>
+                <div class="arrow"></div>
+                <div class="flipflop" data-bit="1">
+                    <span class="flipflop-label">FF1</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2¹</span>
+                </div>
+                <div class="arrow"></div>
+                <div class="flipflop" data-bit="0">
+                    <span class="flipflop-label">FF0</span>
+                    <span class="flipflop-value">0</span>
+                    <span class="flipflop-bit">2⁰</span>
+                </div>
+            </div>
+
+            <!-- Clock Pulse Visualization -->
+            <div class="clock-section">
+                <div class="clock-label">Clock Signal</div>
+                <div class="clock-wave-container" id="clockContainer">
+                    <svg class="clock-wave" viewBox="0 0 800 60" preserveAspectRatio="none">
+                        <path class="wave-path" d="M0,60 L0,0 L50,0 L50,60 L100,60 L100,0 L150,0 L150,60 L200,60 L200,0 L250,0 L250,60 L300,60 L300,0 L350,0 L350,60 L400,60 L400,0 L450,0 L450,60 L500,60 L500,0 L550,0 L550,60 L600,60 L600,0 L650,0 L650,60 L700,60 L700,0 L750,0 L750,60 L800,60"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Sequence Visualization -->
+            <div class="sequence-section">
+                <div class="sequence-label">Count Sequence</div>
+                <div class="sequence-track" id="sequenceTrack"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn-primary" id="stepBtn">Step +1</button>
+                <button class="btn-secondary" id="autoBtn">Auto Count</button>
+                <button class="btn-reset" id="resetBtn">Reset</button>
+            </div>
+
+            <div class="speed-control">
+                <span class="speed-label">Speed:</span>
+                <input type="range" id="speedSlider" min="100" max="1000" value="500">
+                <span class="speed-label" id="speedValue">500ms</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>🔧 How It Works</h3>
+            <p>Each flip-flop stores one bit. When a clock pulse arrives, the counter increments by 1. The rightmost bit (2⁰) toggles on every pulse. When it changes from 1→0, it triggers the next bit to toggle, creating a ripple effect that produces the binary counting sequence.</p>
+        </div>
+    </div>
+
+    <script>
+        let count = 0;
+        let autoInterval = null;
+        let speed = 500;
+        const maxCount = 255;
+
+        const binaryDisplay = document.getElementById('binaryDisplay');
+        const decimalDisplay = document.getElementById('decimalDisplay');
+        const sequenceTrack = document.getElementById('sequenceTrack');
+        const clockContainer = document.getElementById('clockContainer');
+        const flipflops = document.querySelectorAll('.flipflop');
+
+        // Initialize sequence track
+        function initSequence() {
+            sequenceTrack.innerHTML = '';
+            for (let i = 0; i <= 15; i++) {
+                const item = document.createElement('div');
+                item.className = 'sequence-item' + (i === 0 ? ' current' : '');
+                item.textContent = i;
+                sequenceTrack.appendChild(item);
+            }
+        }
+
+        function updateDisplay(newCount) {
+            const oldCount = count;
+            count = newCount;
+            
+            // Update binary display
+            const binary = count.toString(2).padStart(8, '0');
+            const oldBinary = oldCount.toString(2).padStart(8, '0');
+            const bits = binaryDisplay.querySelectorAll('.bit');
+            
+            bits.forEach((bit, i) => {
+                const newBit = binary[i];
+                const oldBit = oldBinary[i];
+                
+                bit.textContent = newBit;
+                bit.className = 'bit ' + (newBit === '1' ? 'active' : 'inactive');
+                
+                if (newBit !== oldBit) {
+                    bit.classList.add('changing');
+                    setTimeout(() => bit.classList.remove('changing'), 150);
+                }
+            });
+
+            // Update decimal
+            decimalDisplay.textContent = count;
+
+            // Update flip-flops
+            flipflops.forEach(ff => {
+                const bitIndex = parseInt(ff.dataset.bit);
+                const bitValue = (count >> bitIndex) & 1;
+                const oldBitValue = (oldCount >> bitIndex) & 1;
+                
+                ff.querySelector('.flipflop-value').textContent = bitValue;
+                ff.classList.toggle('active', bitValue === 1);
+                
+                if (bitValue !== oldBitValue) {
+                    ff.style.transform = 'scale(1.1)';
+                    setTimeout(() => ff.style.transform = '', 200);
+                }
+            });
+
+            // Update sequence
+            updateSequence();
+
+            // Pulse effect
+            addPulseEffect();
+        }
+
+        function updateSequence() {
+            const items = sequenceTrack.querySelectorAll('.sequence-item');
+            const displayStart = Math.max(0, count - 7);
+            
+            sequenceTrack.innerHTML = '';
+            for (let i = displayStart; i <= displayStart + 15 && i <= maxCount; i++) {
+                const item = document.createElement('div');
+                item.className = 'sequence-item';
+                if (i === count) item.classList.add('current');
+                if (i < count) item.classList.add('past');
+                item.textContent = i;
+                sequenceTrack.appendChild(item);
+            }
+        }
+
+        function addPulseEffect() {
+            const marker = document.createElement('div');
+            marker.className = 'pulse-marker';
+            clockContainer.appendChild(marker);
+            setTimeout(() => marker.remove(), 500);
+        }
+
+        function step() {
+            const newCount = count >= maxCount ? 0 : count + 1;
+            updateDisplay(newCount);
+        }
+
+        function toggleAuto() {
+            const btn = document.getElementById('autoBtn');
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                btn.textContent = 'Auto Count';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            } else {
+                autoInterval = setInterval(step, speed);
+                btn.textContent = 'Stop';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+            }
+        }
+
+        function reset() {
+            if (autoInterval) toggleAuto();
+            updateDisplay(0);
+        }
+
+        // Event listeners
+        document.getElementById('stepBtn').addEventListener('click', step);
+        document.getElementById('autoBtn').addEventListener('click', toggleAuto);
+        document.getElementById('resetBtn').addEventListener('click', reset);
+
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            speed = 1100 - parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = speed + 'ms';
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = setInterval(step, speed);
+            }
+        });
+
+        // Initialize
+        initSequence();
+        updateDisplay(0);
+    </script>
+</body>
+</html>
