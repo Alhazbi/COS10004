@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Illegal States in Ripple Counters</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-dark: #0a0a15;
+            --accent-green: #4caf50;
+            --accent-red: #f44336;
+            --accent-orange: #ff9800;
+            --accent-blue: #2196f3;
+            --accent-yellow: #ffc107;
+            --accent-cyan: #00bcd4;
+            --accent-purple: #9c27b0;
+            --accent-pink: #e91e63;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --illegal-color: #ff5722;
+            --legal-color: #4caf50;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--illegal-color), var(--accent-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .core-idea {
+            background: linear-gradient(135deg, rgba(255, 87, 34, 0.15), rgba(255, 193, 7, 0.1));
+            border: 2px solid var(--illegal-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .core-idea h2 {
+            font-size: 1rem;
+            color: var(--illegal-color);
+            margin-bottom: 10px;
+        }
+
+        .core-idea p {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .core-idea strong {
+            color: var(--accent-yellow);
+        }
+
+        /* Section styling */
+        .section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .emoji {
+            font-size: 1.3rem;
+        }
+
+        /* Main Demo Area */
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .demo-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .demo-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .demo-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        .demo-title.ideal { color: var(--legal-color); border-color: var(--legal-color); }
+        .demo-title.real { color: var(--illegal-color); border-color: var(--illegal-color); }
+
+        /* Flip-flop visualization */
+        .flipflop-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .ff-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ff-box {
+            width: 55px;
+            height: 70px;
+            background: linear-gradient(180deg, #2a2a4a, #1a1a3a);
+            border: 3px solid #444;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .ff-box.changing {
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+            animation: ffPulse 0.2s ease;
+        }
+
+        @keyframes ffPulse {
+            50% { transform: scale(1.1); }
+        }
+
+        .ff-label {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+        }
+
+        .ff-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .ff-value.high { color: var(--accent-green); }
+        .ff-value.low { color: var(--accent-red); }
+
+        .ff-name {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+        }
+
+        .ff-delay {
+            font-size: 0.6rem;
+            color: var(--accent-orange);
+        }
+
+        .arrow-between {
+            font-size: 1.2rem;
+            color: #444;
+        }
+
+        .arrow-between.active {
+            color: var(--accent-yellow);
+        }
+
+        .clock-mini {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(145deg, var(--accent-orange), #e65100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Transition display */
+        .transition-display {
+            text-align: center;
+        }
+
+        .transition-step {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .transition-step.legal {
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid var(--legal-color);
+        }
+
+        .transition-step.illegal {
+            background: rgba(255, 87, 34, 0.15);
+            border: 2px dashed var(--illegal-color);
+        }
+
+        .transition-step.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
+        }
+
+        .step-binary {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        .step-decimal {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            min-width: 40px;
+        }
+
+        .step-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .step-label.legal {
+            background: var(--legal-color);
+            color: white;
+        }
+
+        .step-label.illegal {
+            background: var(--illegal-color);
+            color: white;
+        }
+
+        .step-timing {
+            font-size: 0.7rem;
+            color: var(--accent-orange);
+        }
+
+        /* Ripple animation */
+        .ripple-animation {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .ripple-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .ripple-timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-track {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .timeline-label {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+        }
+
+        .timeline-marker {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-marker.pending {
+            background: #444;
+            border: 2px solid #666;
+        }
+
+        .timeline-marker.triggered {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 15px var(--accent-yellow);
+        }
+
+        .time-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            padding: 0 20px;
+        }
+
+        /* Analogy Section */
+        .analogy-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .analogy-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .analogy-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .analogy-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .analogy-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+        }
+
+        .lock-display, .finger-display {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .lock-wheel {
+            width: 45px;
+            height: 55px;
+            background: linear-gradient(180deg, #555, #333);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-yellow);
+            border: 2px solid #666;
+            transition: all 0.3s ease;
+        }
+
+        .lock-wheel.changing {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.5);
+        }
+
+        .finger-hand {
+            font-size: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .finger-count {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-yellow);
+        }
+
+        .analogy-steps {
+            text-align: left;
+            margin-top: 15px;
+        }
+
+        .analogy-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .analogy-step.intended {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--legal-color);
+        }
+
+        .analogy-step.intermediate {
+            background: rgba(255, 87, 34, 0.15);
+            color: var(--illegal-color);
+        }
+
+        /* Problem Section */
+        .problem-demo {
+            background: rgba(255, 87, 34, 0.1);
+            border: 2px solid var(--illegal-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .problem-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--illegal-color);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .glitch-scenario {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .glitch-scenario {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .detection-box {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .detection-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .detection-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-purple);
+        }
+
+        .glitch-arrow {
+            font-size: 2rem;
+            color: var(--illegal-color);
+        }
+
+        .glitch-result {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .glitch-warning {
+            color: var(--illegal-color);
+            font-weight: 700;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-demo {
+            background: linear-gradient(135deg, var(--illegal-color), var(--accent-orange));
+            color: white;
+        }
+
+        .btn-speed {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-cyan);
+        }
+
+        .btn-speed.active {
+            background: var(--accent-cyan);
+            color: var(--bg-main);
+        }
+
+        .btn-reset {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Transition selector */
+        .transition-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .trans-btn {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .trans-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .trans-btn.active {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+            background: rgba(255, 193, 7, 0.15);
+        }
+
+        /* Summary */
+        .summary {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(156, 39, 176, 0.1));
+            border: 2px solid var(--accent-blue);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .summary h3 {
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+        }
+
+        .summary p {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .summary strong {
+            color: var(--text-primary);
+        }
+
+        .summary .hl-illegal {
+            color: var(--illegal-color);
+            font-weight: 700;
+        }
+
+        .summary .hl-ripple {
+            color: var(--accent-yellow);
+            font-weight: 700;
+        }
+
+        /* Speed indicator */
+        .speed-indicator {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .speed-indicator span {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        /* Status message */
+        .status-message {
+            text-align: center;
+            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 15px 0;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-message.legal {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--legal-color);
+        }
+
+        .status-message.illegal {
+            background: rgba(255, 87, 34, 0.2);
+            color: var(--illegal-color);
+        }
+
+        .status-message.neutral {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚠️ Illegal States in Ripple Counters</h1>
+            <p class="subtitle">Understanding why temporary unwanted values appear when flip-flops don't change simultaneously</p>
+        </header>
+
+        <!-- Core Idea -->
+        <div class="core-idea">
+            <h2>💡 THE CORE IDEA</h2>
+            <p>
+                <strong>Illegal states</strong> are temporary, unwanted binary values that appear in a ripple counter 
+                because its flip-flops do <strong>NOT</strong> change at the same time.
+            </p>
+        </div>
+
+        <!-- Main Demo Section -->
+        <div class="section">
+            <div class="section-title">
+                <span class="emoji">⭐</span>
+                <span>See the Ripple Effect in Action</span>
+            </div>
+
+            <!-- Transition Selector -->
+            <div class="transition-selector">
+                <button class="trans-btn active" data-from="3" data-to="4">011→100 (3→4)</button>
+                <button class="trans-btn" data-from="1" data-to="2">001→010 (1→2)</button>
+                <button class="trans-btn" data-from="7" data-to="0">111→000 (7→0)</button>
+                <button class="trans-btn" data-from="5" data-to="6">101→110 (5→6)</button>
+            </div>
+
+            <!-- Flip-flop Display -->
+            <div class="flipflop-row">
+                <div class="clock-mini" id="clockMini">⏱️</div>
+                <div class="arrow-between" id="arrowClk">→</div>
+                <div class="ff-unit">
+                    <div class="ff-box" id="ffBox0">
+                        <div class="ff-label">FF₀</div>
+                        <div class="ff-value low" id="ffVal0">0</div>
+                    </div>
+                    <div class="ff-name">Q₀ (LSB)</div>
+                    <div class="ff-delay">0ns delay</div>
+                </div>
+                <div class="arrow-between" id="arrow01">→</div>
+                <div class="ff-unit">
+                    <div class="ff-box" id="ffBox1">
+                        <div class="ff-label">FF₁</div>
+                        <div class="ff-value low" id="ffVal1">0</div>
+                    </div>
+                    <div class="ff-name">Q₁</div>
+                    <div class="ff-delay">~10ns delay</div>
+                </div>
+                <div class="arrow-between" id="arrow12">→</div>
+                <div class="ff-unit">
+                    <div class="ff-box" id="ffBox2">
+                        <div class="ff-label">FF₂</div>
+                        <div class="ff-value low" id="ffVal2">0</div>
+                    </div>
+                    <div class="ff-name">Q₂ (MSB)</div>
+                    <div class="ff-delay">~20ns delay</div>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <div class="status-message neutral" id="statusMessage">
+                Click "▶ Run Transition" to see the ripple effect
+            </div>
+
+            <!-- Side by side comparison -->
+            <div class="demo-container">
+                <!-- Ideal -->
+                <div class="demo-box">
+                    <div class="demo-title ideal">✓ IDEAL (Instantaneous)</div>
+                    <div class="transition-display" id="idealTransition">
+                        <div class="transition-step legal">
+                            <span class="step-binary">011</span>
+                            <span class="step-decimal">(3)</span>
+                            <span class="step-label legal">START</span>
+                        </div>
+                        <div style="font-size: 1.5rem; color: var(--legal-color);">↓</div>
+                        <div class="transition-step legal">
+                            <span class="step-binary">100</span>
+                            <span class="step-decimal">(4)</span>
+                            <span class="step-label legal">END</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real -->
+                <div class="demo-box">
+                    <div class="demo-title real">⚠ REAL (With Propagation Delay)</div>
+                    <div class="transition-display" id="realTransition">
+                        <div class="transition-step legal" id="step0">
+                            <span class="step-binary">011</span>
+                            <span class="step-decimal">(3)</span>
+                            <span class="step-label legal">START</span>
+                            <span class="step-timing">t=0ns</span>
+                        </div>
+                        <div class="transition-step illegal" id="step1">
+                            <span class="step-binary">010</span>
+                            <span class="step-decimal">(2)</span>
+                            <span class="step-label illegal">ILLEGAL</span>
+                            <span class="step-timing">t≈5ns</span>
+                        </div>
+                        <div class="transition-step illegal" id="step2">
+                            <span class="step-binary">000</span>
+                            <span class="step-decimal">(0)</span>
+                            <span class="step-label illegal">ILLEGAL</span>
+                            <span class="step-timing">t≈15ns</span>
+                        </div>
+                        <div class="transition-step legal" id="step3">
+                            <span class="step-binary">100</span>
+                            <span class="step-decimal">(4)</span>
+                            <span class="step-label legal">END</span>
+                            <span class="step-timing">t≈25ns</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speed Control -->
+            <div class="speed-indicator">
+                Animation speed: <span id="speedLabel">Slow (educational)</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn-demo" id="runBtn">▶ Run Transition</button>
+                <button class="btn-speed" id="slowBtn">🐢 Slow</button>
+                <button class="btn-speed active" id="medBtn">🚶 Medium</button>
+                <button class="btn-speed" id="fastBtn">🏃 Fast</button>
+                <button class="btn-reset" id="resetBtn">↺ Reset</button>
+            </div>
+        </div>
+
+        <!-- Analogies Section -->
+        <div class="section">
+            <div class="section-title">
+                <span class="emoji">🔄</span>
+                <span>Real-Life Analogies</span>
+            </div>
+
+            <div class="analogy-container">
+                <!-- Combination Lock -->
+                <div class="analogy-box">
+                    <div class="analogy-icon">🔐</div>
+                    <div class="analogy-title">Combination Lock</div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">
+                        Going from <strong>111</strong> to <strong>200</strong>
+                    </p>
+                    <div class="lock-display" id="lockDisplay">
+                        <div class="lock-wheel" id="lock2">1</div>
+                        <div class="lock-wheel" id="lock1">1</div>
+                        <div class="lock-wheel" id="lock0">1</div>
+                    </div>
+                    <div class="analogy-steps">
+                        <div class="analogy-step intended">1 1 1 → Start</div>
+                        <div class="analogy-step intermediate">1 1 0 → Intermediate</div>
+                        <div class="analogy-step intermediate">1 0 0 → Intermediate</div>
+                        <div class="analogy-step intended">2 0 0 → End</div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px;">
+                        Wheels turn one at a time, not all at once!
+                    </p>
+                </div>
+
+                <!-- Finger Counting -->
+                <div class="analogy-box">
+                    <div class="analogy-icon">✋</div>
+                    <div class="analogy-title">Counting on Fingers</div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">
+                        Going from <strong>3</strong> to <strong>4</strong> fingers
+                    </p>
+                    <div class="finger-display">
+                        <div class="finger-hand" id="fingerHand">🖐️</div>
+                        <div class="finger-count" id="fingerCount">3</div>
+                    </div>
+                    <div class="analogy-steps">
+                        <div class="analogy-step intended">3 fingers → Start</div>
+                        <div class="analogy-step intermediate">2 fingers → Folding...</div>
+                        <div class="analogy-step intermediate">1 finger → Folding...</div>
+                        <div class="analogy-step intermediate">0 fingers → All folded</div>
+                        <div class="analogy-step intended">4 fingers → Other hand!</div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px;">
+                        You pass through intermediate states!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Problem Section -->
+        <div class="section">
+            <div class="section-title">
+                <span class="emoji">⚡</span>
+                <span>Why Illegal States Are a Problem</span>
+            </div>
+
+            <div class="problem-demo">
+                <div class="problem-title">🔍 Glitch Scenario: Detecting "101" for Reset</div>
+                <div class="glitch-scenario">
+                    <div class="detection-box">
+                        <div class="detection-label">We want to detect:</div>
+                        <div class="detection-value">101 (5)</div>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 8px;">
+                            To trigger Master Reset
+                        </p>
+                    </div>
+                    <div class="glitch-arrow">⚠️</div>
+                    <div class="glitch-result">
+                        <div class="detection-label">During 111→000 transition:</div>
+                        <div style="font-family: 'Fira Code', monospace; font-size: 0.9rem; margin: 10px 0;">
+                            111 → <span class="glitch-warning">101</span> → 001 → 000
+                        </div>
+                        <p class="glitch-warning" style="font-size: 0.85rem;">
+                            ⚠️ Illegal state 101 triggers false reset!
+                        </p>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+                    The detection logic sees <strong>101</strong> momentarily and triggers a reset we didn't want!
+                </p>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="section">
+            <div class="summary">
+                <h3>📝 Summary</h3>
+                <p>
+                    <span class="hl-illegal">Illegal states</span> are temporary, unintended binary values that appear 
+                    because each flip-flop changes at <span class="hl-ripple">different times</span> (the ripple effect).
+                    <br><br>
+                    The counter <strong>never stops</strong> at these values — they exist only for 
+                    <strong>nanoseconds</strong>. But connected logic circuits <strong>can see them</strong> 
+                    and react incorrectly, causing <span class="hl-illegal">glitches</span>.
+                    <br><br>
+                    This is why <strong>synchronous counters</strong> (where all flip-flops change together) 
+                    are preferred for precise timing applications.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Transition data: from -> to -> intermediate steps
+        const transitions = {
+            '3-4': {
+                from: [1, 1, 0], // Q0, Q1, Q2 = 011
+                to: [0, 0, 1],   // 100
+                steps: [
+                    { bits: [1, 1, 0], legal: true, label: 'START', time: '0ns' },
+                    { bits: [0, 1, 0], legal: false, label: 'ILLEGAL', time: '≈5ns' },
+                    { bits: [0, 0, 0], legal: false, label: 'ILLEGAL', time: '≈15ns' },
+                    { bits: [0, 0, 1], legal: true, label: 'END', time: '≈25ns' }
+                ]
+            },
+            '1-2': {
+                from: [1, 0, 0], // 001
+                to: [0, 1, 0],   // 010
+                steps: [
+                    { bits: [1, 0, 0], legal: true, label: 'START', time: '0ns' },
+                    { bits: [0, 0, 0], legal: false, label: 'ILLEGAL', time: '≈5ns' },
+                    { bits: [0, 1, 0], legal: true, label: 'END', time: '≈15ns' }
+                ]
+            },
+            '7-0': {
+                from: [1, 1, 1], // 111
+                to: [0, 0, 0],   // 000
+                steps: [
+                    { bits: [1, 1, 1], legal: true, label: 'START', time: '0ns' },
+                    { bits: [0, 1, 1], legal: false, label: 'ILLEGAL', time: '≈5ns' },
+                    { bits: [0, 0, 1], legal: false, label: 'ILLEGAL', time: '≈15ns' },
+                    { bits: [0, 0, 0], legal: true, label: 'END', time: '≈25ns' }
+                ]
+            },
+            '5-6': {
+                from: [1, 0, 1], // 101
+                to: [0, 1, 1],   // 110
+                steps: [
+                    { bits: [1, 0, 1], legal: true, label: 'START', time: '0ns' },
+                    { bits: [0, 0, 1], legal: false, label: 'ILLEGAL', time: '≈5ns' },
+                    { bits: [0, 1, 1], legal: true, label: 'END', time: '≈15ns' }
+                ]
+            }
+        };
+
+        let currentTransition = '3-4';
+        let animationSpeed = 600; // ms between steps
+        let isAnimating = false;
+
+        function bitsToDecimal(bits) {
+            return bits[0] + bits[1] * 2 + bits[2] * 4;
+        }
+
+        function bitsToBinary(bits) {
+            return bits[2].toString() + bits[1].toString() + bits[0].toString();
+        }
+
+        function updateFFDisplay(bits) {
+            for (let i = 0; i < 3; i++) {
+                const valEl = document.getElementById('ffVal' + i);
+                valEl.textContent = bits[i];
+                valEl.className = 'ff-value ' + (bits[i] === 1 ? 'high' : 'low');
+            }
+        }
+
+        function updateTransitionDisplay() {
+            const trans = transitions[currentTransition];
+            const idealDiv = document.getElementById('idealTransition');
+            const realDiv = document.getElementById('realTransition');
+
+            // Ideal
+            const fromBin = bitsToBinary(trans.from);
+            const toBin = bitsToBinary(trans.to);
+            const fromDec = bitsToDecimal(trans.from);
+            const toDec = bitsToDecimal(trans.to);
+
+            idealDiv.innerHTML = `
+                <div class="transition-step legal">
+                    <span class="step-binary">${fromBin}</span>
+                    <span class="step-decimal">(${fromDec})</span>
+                    <span class="step-label legal">START</span>
+                </div>
+                <div style="font-size: 1.5rem; color: var(--legal-color);">↓</div>
+                <div class="transition-step legal">
+                    <span class="step-binary">${toBin}</span>
+                    <span class="step-decimal">(${toDec})</span>
+                    <span class="step-label legal">END</span>
+                </div>
+            `;
+
+            // Real
+            let realHTML = '';
+            trans.steps.forEach((step, index) => {
+                const bin = bitsToBinary(step.bits);
+                const dec = bitsToDecimal(step.bits);
+                const legalClass = step.legal ? 'legal' : 'illegal';
+                realHTML += `
+                    <div class="transition-step ${legalClass}" id="step${index}">
+                        <span class="step-binary">${bin}</span>
+                        <span class="step-decimal">(${dec})</span>
+                        <span class="step-label ${legalClass}">${step.label}</span>
+                        <span class="step-timing">t${step.time}</span>
+                    </div>
+                `;
+            });
+            realDiv.innerHTML = realHTML;
+
+            // Reset FF display
+            updateFFDisplay(trans.from);
+        }
+
+        async function runAnimation() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const trans = transitions[currentTransition];
+            const statusEl = document.getElementById('statusMessage');
+
+            // Reset all highlights
+            document.querySelectorAll('.transition-step').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.ff-box').forEach(el => el.classList.remove('changing'));
+
+            for (let i = 0; i < trans.steps.length; i++) {
+                const step = trans.steps[i];
+                const stepEl = document.getElementById('step' + i);
+
+                // Highlight current step
+                document.querySelectorAll('.transition-step').forEach(el => el.classList.remove('active'));
+                if (stepEl) stepEl.classList.add('active');
+
+                // Update flip-flops with animation
+                const prevBits = i > 0 ? trans.steps[i-1].bits : trans.from;
+                for (let j = 0; j < 3; j++) {
+                    if (step.bits[j] !== prevBits[j]) {
+                        document.getElementById('ffBox' + j).classList.add('changing');
+                        if (j > 0) {
+                            document.getElementById('arrow' + (j-1) + j).classList.add('active');
+                        } else {
+                            document.getElementById('arrowClk').classList.add('active');
+                        }
+                    }
+                }
+
+                updateFFDisplay(step.bits);
+
+                // Update status
+                const bin = bitsToBinary(step.bits);
+                const dec = bitsToDecimal(step.bits);
+                if (step.legal) {
+                    statusEl.className = 'status-message legal';
+                    statusEl.innerHTML = `✓ <strong>${bin}</strong> (${dec}) - Valid counting state`;
+                } else {
+                    statusEl.className = 'status-message illegal';
+                    statusEl.innerHTML = `⚠️ <strong>${bin}</strong> (${dec}) - ILLEGAL intermediate state!`;
+                }
+
+                await new Promise(resolve => setTimeout(resolve, animationSpeed));
+
+                // Remove changing highlights
+                document.querySelectorAll('.ff-box').forEach(el => el.classList.remove('changing'));
+                document.querySelectorAll('.arrow-between').forEach(el => el.classList.remove('active'));
+            }
+
+            await new Promise(resolve => setTimeout(resolve, animationSpeed));
+            statusEl.className = 'status-message neutral';
+            statusEl.innerHTML = 'Transition complete! The counter passed through <span style="color: var(--illegal-color);">illegal states</span> to reach the final value.';
+
+            isAnimating = false;
+        }
+
+        function reset() {
+            isAnimating = false;
+            document.querySelectorAll('.transition-step').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.ff-box').forEach(el => el.classList.remove('changing'));
+            document.querySelectorAll('.arrow-between').forEach(el => el.classList.remove('active'));
+            
+            const trans = transitions[currentTransition];
+            updateFFDisplay(trans.from);
+            
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.className = 'status-message neutral';
+            statusEl.innerHTML = 'Click "▶ Run Transition" to see the ripple effect';
+        }
+
+        function setSpeed(speed) {
+            const speedLabel = document.getElementById('speedLabel');
+            document.querySelectorAll('.btn-speed').forEach(btn => btn.classList.remove('active'));
+            
+            if (speed === 'slow') {
+                animationSpeed = 1000;
+                speedLabel.textContent = 'Slow (educational)';
+                document.getElementById('slowBtn').classList.add('active');
+            } else if (speed === 'medium') {
+                animationSpeed = 600;
+                speedLabel.textContent = 'Medium';
+                document.getElementById('medBtn').classList.add('active');
+            } else {
+                animationSpeed = 300;
+                speedLabel.textContent = 'Fast (realistic feel)';
+                document.getElementById('fastBtn').classList.add('active');
+            }
+        }
+
+        // Event listeners
+        document.querySelectorAll('.trans-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (isAnimating) return;
+                document.querySelectorAll('.trans-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentTransition = this.dataset.from + '-' + this.dataset.to;
+                updateTransitionDisplay();
+                reset();
+            });
+        });
+
+        document.getElementById('runBtn').addEventListener('click', runAnimation);
+        document.getElementById('resetBtn').addEventListener('click', reset);
+        document.getElementById('slowBtn').addEventListener('click', () => setSpeed('slow'));
+        document.getElementById('medBtn').addEventListener('click', () => setSpeed('medium'));
+        document.getElementById('fastBtn').addEventListener('click', () => setSpeed('fast'));
+
+        // Lock animation
+        let lockAnimating = false;
+        document.querySelector('.analogy-box:first-child').addEventListener('click', async function() {
+            if (lockAnimating) return;
+            lockAnimating = true;
+            
+            const wheels = ['lock2', 'lock1', 'lock0'];
+            const sequence = [
+                ['1', '1', '1'],
+                ['1', '1', '0'],
+                ['1', '0', '0'],
+                ['2', '0', '0']
+            ];
+            
+            for (let i = 0; i < sequence.length; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const wheel = document.getElementById(wheels[j]);
+                    if (i > 0 && sequence[i][j] !== sequence[i-1][j]) {
+                        wheel.classList.add('changing');
+                    }
+                    wheel.textContent = sequence[i][j];
+                }
+                await new Promise(r => setTimeout(r, 500));
+                wheels.forEach(w => document.getElementById(w).classList.remove('changing'));
+            }
+            
+            await new Promise(r => setTimeout(r, 1000));
+            // Reset
+            sequence[0].forEach((val, i) => document.getElementById(wheels[i]).textContent = val);
+            lockAnimating = false;
+        });
+
+        // Initialize
+        updateTransitionDisplay();
+        setSpeed('medium');
+    </script>
+</body>
+</html>
