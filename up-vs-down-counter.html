@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UP vs DOWN Counter - Edge Triggering</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-up: rgba(76, 175, 80, 0.08);
+            --bg-down: rgba(244, 67, 54, 0.08);
+            --accent-up: #4caf50;
+            --accent-down: #f44336;
+            --accent-orange: #ff9800;
+            --accent-blue: #2196f3;
+            --accent-yellow: #ffc107;
+            --accent-cyan: #00bcd4;
+            --accent-pink: #e91e63;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --clock-color: #ff9800;
+            --q0-color: #4caf50;
+            --q1-color: #2196f3;
+            --rising-color: #4caf50;
+            --falling-color: #ff5722;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, var(--accent-up), var(--accent-down));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 950px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .counter-panel {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 3px solid transparent;
+        }
+
+        .counter-panel.up {
+            border-color: var(--accent-up);
+            background: linear-gradient(180deg, var(--bg-up), var(--bg-card));
+        }
+
+        .counter-panel.down {
+            border-color: var(--accent-down);
+            background: linear-gradient(180deg, var(--bg-down), var(--bg-card));
+        }
+
+        .panel-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .panel-title.up { color: var(--accent-up); }
+        .panel-title.down { color: var(--accent-down); }
+
+        .panel-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .edge-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .edge-badge.falling {
+            background: rgba(255, 87, 34, 0.2);
+            color: var(--falling-color);
+            border: 2px solid var(--falling-color);
+        }
+
+        .edge-badge.rising {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--rising-color);
+            border: 2px solid var(--rising-color);
+        }
+
+        .domino-area {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 25px 15px 20px;
+            margin-bottom: 15px;
+        }
+
+        .domino-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 5px;
+            flex-direction: row-reverse;
+        }
+
+        .clock-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clock-instruction {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .clock-instruction.rise {
+            background: rgba(76, 175, 80, 0.25);
+            color: var(--rising-color);
+            border: 2px solid var(--rising-color);
+        }
+
+        .clock-instruction.fall {
+            background: rgba(255, 87, 34, 0.25);
+            color: var(--falling-color);
+            border: 2px solid var(--falling-color);
+        }
+
+        .clock-box {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(145deg, var(--clock-color), #e65100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 3px 12px rgba(255, 152, 0, 0.4);
+        }
+
+        .clock-box:hover { transform: scale(1.08); }
+        .clock-box.pulse { animation: clockPulse 0.3s ease; }
+
+        @keyframes clockPulse {
+            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255, 152, 0, 0.7); }
+        }
+
+        .clock-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--clock-color);
+        }
+
+        .arrow-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 3px;
+            min-width: 40px;
+            margin-top: 30px;
+        }
+
+        .arrow {
+            font-size: 1.2rem;
+            color: #444;
+        }
+
+        .arrow.active {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px var(--accent-yellow);
+        }
+
+        .trigger-type {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .trigger-type.falling {
+            background: rgba(255, 87, 34, 0.3);
+            color: var(--falling-color);
+        }
+
+        .trigger-type.rising {
+            background: rgba(76, 175, 80, 0.3);
+            color: var(--rising-color);
+        }
+
+        .domino-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .domino-next-instruction {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            text-align: center;
+            min-height: 32px;
+            max-width: 80px;
+            line-height: 1.3;
+        }
+
+        .domino-next-instruction .action {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .domino-next-instruction .action.will-rise {
+            background: rgba(76, 175, 80, 0.25);
+            color: var(--rising-color);
+        }
+
+        .domino-next-instruction .action.will-fall {
+            background: rgba(255, 87, 34, 0.25);
+            color: var(--falling-color);
+        }
+
+        .domino-next-instruction .action.waiting {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .domino-wrapper {
+            height: 75px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .domino {
+            width: 32px;
+            height: 60px;
+            border-radius: 4px;
+            transform-origin: bottom center;
+            transition: transform 0.35s cubic-bezier(0.68, -0.3, 0.265, 1.3);
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .domino-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .domino::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background: #bbb;
+        }
+
+        .domino.standing {
+            transform: rotate(0deg);
+            background: linear-gradient(180deg, #c8e6c9, #a5d6a7);
+        }
+        .domino.standing .domino-value { color: #2e7d32; }
+
+        .domino.fallen {
+            transform: rotate(-78deg);
+            background: linear-gradient(180deg, #ffcdd2, #ef9a9a);
+        }
+        .domino.fallen .domino-value { color: #c62828; }
+
+        .domino.triggered {
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.3), 0 0 20px var(--accent-yellow);
+        }
+
+        .domino-name {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .domino-weight {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+        }
+
+        .count-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .binary-display {
+            font-family: 'Fira Code', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+        }
+
+        .binary-display.up { color: var(--accent-up); }
+        .binary-display.down { color: var(--accent-down); }
+
+        .decimal-display {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .decimal-display span {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent-yellow);
+        }
+
+        .sequence-box {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .sequence-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .sequence-items {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .sequence-item {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            padding: 4px 7px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.08);
+            opacity: 0.5;
+        }
+
+        .sequence-item.current {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+
+        .sequence-item.current.up {
+            background: var(--accent-up);
+            color: white;
+        }
+
+        .sequence-item.current.down {
+            background: var(--accent-down);
+            color: white;
+        }
+
+        .sequence-arrow {
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+        }
+
+        .timing-section {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .timing-title {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .timing-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px 10px;
+        }
+
+        .timing-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .timing-row:last-child { margin-bottom: 0; }
+
+        .timing-label {
+            width: 30px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .timing-label.clock { color: var(--clock-color); }
+        .timing-label.q0 { color: var(--q0-color); }
+        .timing-label.q1 { color: var(--q1-color); }
+
+        .timing-wave-container {
+            flex: 1;
+            height: 45px;
+        }
+
+        .timing-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .timing-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 12px;
+            font-size: 0.7rem;
+            flex-wrap: wrap;
+        }
+
+        .timing-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #555;
+        }
+
+        .legend-marker {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .legend-marker.rising { color: var(--rising-color); }
+        .legend-marker.falling { color: var(--falling-color); }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-pulse.up { background: var(--accent-up); color: white; }
+        .btn-pulse.down { background: var(--accent-down); color: white; }
+        .btn-pulse:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+        .btn-auto {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-yellow);
+        }
+
+        .btn-auto.active {
+            background: var(--accent-yellow);
+            color: var(--bg-main);
+        }
+
+        .btn-reset {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+        }
+
+        .btn-reset:hover { color: var(--accent-pink); }
+
+        .explanation {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .explanation h3 {
+            font-size: 1rem;
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .explanation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 700px) {
+            .explanation-grid { grid-template-columns: 1fr; }
+        }
+
+        .explanation-item {
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .explanation-item.up {
+            background: var(--bg-up);
+            border-left: 4px solid var(--accent-up);
+        }
+
+        .explanation-item.down {
+            background: var(--bg-down);
+            border-left: 4px solid var(--accent-down);
+        }
+
+        .explanation-item h4 { font-size: 0.9rem; margin-bottom: 8px; }
+        .explanation-item.up h4 { color: var(--accent-up); }
+        .explanation-item.down h4 { color: var(--accent-down); }
+
+        .explanation-item p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .explanation-item strong { color: var(--text-primary); }
+        .hl-falling { color: var(--falling-color); font-weight: 700; }
+        .hl-rising { color: var(--rising-color); font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⬆️ UP Counter vs DOWN Counter ⬇️</h1>
+            <p class="subtitle">Different clock edge triggering = different counting direction!</p>
+        </header>
+
+        <div class="comparison-container">
+            <!-- UP Counter - FALLING EDGE TRIGGERED -->
+            <div class="counter-panel up">
+                <div class="panel-header">
+                    <div class="panel-title up">⬆️ UP Counter</div>
+                    <div class="panel-subtitle">Counts: 0 → 1 → 2 → 3 → 0...</div>
+                    <div class="edge-badge falling">Falling-Edge Triggered ▼</div>
+                </div>
+
+                <div class="domino-area">
+                    <div class="domino-row">
+                        <div class="clock-unit">
+                            <div class="clock-instruction fall" id="upClockInstruction">▼ FALL</div>
+                            <div class="clock-box" id="upClockBox">⏱️</div>
+                            <div class="clock-label">CLOCK</div>
+                        </div>
+                        <div class="arrow-unit">
+                            <div class="arrow" id="upArrowClk">←</div>
+                            <div class="trigger-type falling">▼ CLK↓</div>
+                        </div>
+                        <div class="domino-unit">
+                            <div class="domino-next-instruction" id="upQ0Instruction">
+                                <span class="action waiting">—</span>
+                            </div>
+                            <div class="domino-wrapper">
+                                <div class="domino fallen" id="upDomino0">
+                                    <div class="domino-value">0</div>
+                                </div>
+                            </div>
+                            <div class="domino-name">Q₀</div>
+                            <div class="domino-weight">2⁰=1</div>
+                        </div>
+                        <div class="arrow-unit">
+                            <div class="arrow" id="upArrow0">←</div>
+                            <div class="trigger-type falling">▼ Q₀↓</div>
+                        </div>
+                        <div class="domino-unit">
+                            <div class="domino-next-instruction">
+                                <span class="action waiting">MSB</span>
+                            </div>
+                            <div class="domino-wrapper">
+                                <div class="domino fallen" id="upDomino1">
+                                    <div class="domino-value">0</div>
+                                </div>
+                            </div>
+                            <div class="domino-name">Q₁</div>
+                            <div class="domino-weight">2¹=2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="count-display">
+                    <div class="binary-display up" id="upBinary">00</div>
+                    <div class="decimal-display">= <span id="upDecimal">0</span></div>
+                </div>
+
+                <div class="sequence-box">
+                    <div class="sequence-label">Sequence (UP counting)</div>
+                    <div class="sequence-items" id="upSequence">
+                        <div class="sequence-item current up" data-val="0">00</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="1">01</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="2">10</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="3">11</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="0">00</div>
+                    </div>
+                </div>
+
+                <div class="timing-section">
+                    <div class="timing-title">📊 Timing Diagram — Q₀ toggles on CLK ▼ falling edge</div>
+                    <div class="timing-container">
+                        <div class="timing-row">
+                            <div class="timing-label clock">CLK</div>
+                            <div class="timing-wave-container">
+                                <canvas class="timing-canvas" id="upCanvasClock"></canvas>
+                            </div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label q0">Q₀</div>
+                            <div class="timing-wave-container">
+                                <canvas class="timing-canvas" id="upCanvasQ0"></canvas>
+                            </div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label q1">Q₁</div>
+                            <div class="timing-wave-container">
+                                <canvas class="timing-canvas" id="upCanvasQ1"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timing-legend">
+                        <div class="timing-legend-item">
+                            <span class="legend-marker rising">▲</span>
+                            <span>Rising (0→1)</span>
+                        </div>
+                        <div class="timing-legend-item">
+                            <span class="legend-marker falling">▼</span>
+                            <span>Falling (1→0)</span>
+                        </div>
+                        <div class="timing-legend-item">
+                            <span class="legend-marker falling">●</span>
+                            <span>Trigger</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-pulse up" id="upPulseBtn">⚡ Clock Pulse</button>
+                    <button class="btn-auto" id="upAutoBtn">🔄 Auto</button>
+                    <button class="btn-reset" id="upResetBtn">↺ Reset</button>
+                </div>
+            </div>
+
+            <!-- DOWN Counter - RISING EDGE TRIGGERED -->
+            <div class="counter-panel down">
+                <div class="panel-header">
+                    <div class="panel-title down">⬇️ DOWN Counter</div>
+                    <div class="panel-subtitle">Counts: 0 → 3 → 2 → 1 → 0...</div>
+                    <div class="edge-badge rising">Rising-Edge Triggered ▲</div>
+                </div>
+
+                <div class="domino-area">
+                    <div class="domino-row">
+                        <div class="clock-unit">
+                            <div class="clock-instruction rise" id="downClockInstruction">▲ RISE</div>
+                            <div class="clock-box" id="downClockBox">⏱️</div>
+                            <div class="clock-label">CLOCK</div>
+                        </div>
+                        <div class="arrow-unit">
+                            <div class="arrow" id="downArrowClk">←</div>
+                            <div class="trigger-type rising">▲ CLK↑</div>
+                        </div>
+                        <div class="domino-unit">
+                            <div class="domino-next-instruction" id="downQ0Instruction">
+                                <span class="action waiting">—</span>
+                            </div>
+                            <div class="domino-wrapper">
+                                <div class="domino fallen" id="downDomino0">
+                                    <div class="domino-value">0</div>
+                                </div>
+                            </div>
+                            <div class="domino-name">Q₀</div>
+                            <div class="domino-weight">2⁰=1</div>
+                        </div>
+                        <div class="arrow-unit">
+                            <div class="arrow" id="downArrow0">←</div>
+                            <div class="trigger-type rising">▲ Q₀↑</div>
+                        </div>
+                        <div class="domino-unit">
+                            <div class="domino-next-instruction">
+                                <span class="action waiting">MSB</span>
+                            </div>
+                            <div class="domino-wrapper">
+                                <div class="domino fallen" id="downDomino1">
+                                    <div class="domino-value">0</div>
+                                </div>
+                            </div>
+                            <div class="domino-name">Q₁</div>
+                            <div class="domino-weight">2¹=2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="count-display">
+                    <div class="binary-display down" id="downBinary">00</div>
+                    <div class="decimal-display">= <span id="downDecimal">0</span></div>
+                </div>
+
+                <div class="sequence-box">
+                    <div class="sequence-label">Sequence (DOWN counting)</div>
+                    <div class="sequence-items" id="downSequence">
+                        <div class="sequence-item current down" data-val="0">00</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="3">11</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="2">10</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="1">01</div>
+                        <div class="sequence-arrow">→</div>
+                        <div class="sequence-item" data-val="0">00</div>
+                    </div>
+                </div>
+
+                <div class="timing-section">
+                    <div class="timing-title">📊 Timing Diagram — Q₀ toggles on CLK ▲ rising edge</div>
+                    <div class="timing-container">
+                        <div class="timing-row">
+                            <div class="timing-label clock">CLK</div>
+                            <div class="timing-wave-container">
+                                <canvas class="timing-canvas" id="downCanvasClock"></canvas>
+                            </div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label q0">Q₀</div>
+                            <div class="timing-wave-container">
+                                <canvas class="timing-canvas" id="downCanvasQ0"></canvas>
+                            </div>
+                        </div>
+                        <div class="timing-row">
+                            <div class="timing-label q1">Q₁</div>
+                            <div class="timing-wave-container">
+                                <canvas class="timing-canvas" id="downCanvasQ1"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timing-legend">
+                        <div class="timing-legend-item">
+                            <span class="legend-marker rising">▲</span>
+                            <span>Rising (0→1)</span>
+                        </div>
+                        <div class="timing-legend-item">
+                            <span class="legend-marker falling">▼</span>
+                            <span>Falling (1→0)</span>
+                        </div>
+                        <div class="timing-legend-item">
+                            <span class="legend-marker rising">●</span>
+                            <span>Trigger</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-pulse down" id="downPulseBtn">⚡ Clock Pulse</button>
+                    <button class="btn-auto" id="downAutoBtn">🔄 Auto</button>
+                    <button class="btn-reset" id="downResetBtn">↺ Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h3>💡 The Key Difference: Clock Edge Triggering</h3>
+            <div class="explanation-grid">
+                <div class="explanation-item up">
+                    <h4>⬆️ UP = Falling Edge ▼ Triggered</h4>
+                    <p>
+                        All flip-flops trigger on <span class="hl-falling">FALLING edges ▼</span>.<br>
+                        • Q₀ toggles when CLK falls<br>
+                        • Q₁ toggles when Q₀ falls<br>
+                        Sequence: <strong>00 → 01 → 10 → 11 → 00</strong>
+                    </p>
+                </div>
+                <div class="explanation-item down">
+                    <h4>⬇️ DOWN = Rising Edge ▲ Triggered</h4>
+                    <p>
+                        All flip-flops trigger on <span class="hl-rising">RISING edges ▲</span>.<br>
+                        • Q₀ toggles when CLK rises<br>
+                        • Q₁ toggles when Q₀ rises<br>
+                        Sequence: <strong>00 → 11 → 10 → 01 → 00</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let upBits = [0, 0];
+        let downBits = [0, 0];
+        let upAutoInterval = null;
+        let downAutoInterval = null;
+        
+        const maxPulses = 8;
+        
+        // History arrays
+        let upHistory = [{clk: 0, q0: 0, q1: 0}];
+        let downHistory = [{clk: 0, q0: 0, q1: 0}];
+        
+        // Trigger times
+        let upTriggerTimes = [];
+        let downTriggerTimes = [];
+
+        const colors = {
+            clock: '#ff9800',
+            q0: '#4caf50',
+            q1: '#2196f3',
+            rising: '#4caf50',
+            falling: '#ff5722'
+        };
+
+        function setupCanvases() {
+            document.querySelectorAll('.timing-canvas').forEach(canvas => {
+                const container = canvas.parentElement;
+                canvas.width = container.offsetWidth * 2;
+                canvas.height = 45 * 2;
+                canvas.style.width = container.offsetWidth + 'px';
+                canvas.style.height = '45px';
+            });
+            drawUpWaveforms();
+            drawDownWaveforms();
+        }
+
+        function drawWaveform(canvasId, history, signalKey, color, triggerTimes, triggerEdgeType) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 16;
+            
+            const maxTimeUnits = maxPulses * 2 + 1;
+            const unitWidth = (width - padding * 2) / maxTimeUnits;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Grid
+            ctx.strokeStyle = '#e8e8e8';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= maxTimeUnits; i++) {
+                ctx.beginPath();
+                ctx.setLineDash([2, 4]);
+                ctx.moveTo(padding + i * unitWidth, 0);
+                ctx.lineTo(padding + i * unitWidth, height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            if (history.length < 1) return;
+
+            const highY = padding + 10;
+            const lowY = height - padding - 10;
+
+            // Draw waveform
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+
+            for (let i = 0; i < history.length && i < maxTimeUnits; i++) {
+                const x = padding + i * unitWidth;
+                const val = history[i][signalKey];
+                const y = val === 1 ? highY : lowY;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    const prevVal = history[i-1][signalKey];
+                    const prevY = prevVal === 1 ? highY : lowY;
+                    ctx.lineTo(x, prevY);
+                    if (prevY !== y) {
+                        ctx.lineTo(x, y);
+                    }
+                }
+            }
+            
+            // Extend line
+            if (history.length > 0 && history.length < maxTimeUnits) {
+                const lastX = padding + history.length * unitWidth;
+                const lastVal = history[history.length - 1][signalKey];
+                const lastY = lastVal === 1 ? highY : lowY;
+                ctx.lineTo(lastX, lastY);
+            }
+            
+            ctx.stroke();
+
+            // Draw edge markers
+            for (let i = 1; i < history.length && i < maxTimeUnits; i++) {
+                const beforeVal = history[i-1][signalKey];
+                const afterVal = history[i][signalKey];
+                
+                if (beforeVal !== afterVal) {
+                    const x = padding + i * unitWidth;
+                    const isRising = beforeVal === 0 && afterVal === 1;
+                    const isFalling = beforeVal === 1 && afterVal === 0;
+                    const isTrigger = triggerTimes && triggerTimes.includes(i);
+                    
+                    if (isRising || isFalling) {
+                        const edgeMidY = (highY + lowY) / 2;
+                        const markerColor = isRising ? colors.rising : colors.falling;
+                        const marker = isRising ? '▲' : '▼';
+                        
+                        if (isTrigger) {
+                            ctx.fillStyle = 'white';
+                            ctx.strokeStyle = markerColor;
+                            ctx.lineWidth = 3;
+                            ctx.beginPath();
+                            ctx.arc(x, edgeMidY, 14, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.stroke();
+                        }
+                        
+                        ctx.fillStyle = markerColor;
+                        ctx.font = isTrigger ? 'bold 18px sans-serif' : 'bold 14px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(marker, x, edgeMidY);
+                    }
+                }
+            }
+        }
+
+        function drawUpWaveforms() {
+            drawWaveform('upCanvasClock', upHistory, 'clk', colors.clock, [], null);
+            drawWaveform('upCanvasQ0', upHistory, 'q0', colors.q0, upTriggerTimes, 'falling');
+            drawWaveform('upCanvasQ1', upHistory, 'q1', colors.q1, [], null);
+        }
+
+        function drawDownWaveforms() {
+            drawWaveform('downCanvasClock', downHistory, 'clk', colors.clock, [], null);
+            drawWaveform('downCanvasQ0', downHistory, 'q0', colors.q0, downTriggerTimes, 'rising');
+            drawWaveform('downCanvasQ1', downHistory, 'q1', colors.q1, [], null);
+        }
+
+        function updateDomino(prefix, index, value) {
+            const domino = document.getElementById(`${prefix}Domino${index}`);
+            const valueEl = domino.querySelector('.domino-value');
+            domino.classList.remove('standing', 'fallen');
+            domino.classList.add(value === 1 ? 'standing' : 'fallen');
+            valueEl.textContent = value;
+        }
+
+        function updateUpInstructions() {
+            const clockInstr = document.getElementById('upClockInstruction');
+            // UP counter always shows "▼ FALL" - it triggers on falling edge
+            clockInstr.textContent = '▼ FALL';
+            clockInstr.classList.remove('rise');
+            clockInstr.classList.add('fall');
+
+            const q0Instr = document.getElementById('upQ0Instruction');
+            if (upBits[0] === 1) {
+                // Q0 is HIGH, next CLK fall will make Q0 fall, triggering Q1
+                const nextQ1Action = upBits[1] === 0 ? 'rise' : 'fall';
+                const arrow = upBits[1] === 0 ? '▲' : '▼';
+                q0Instr.innerHTML = `Next: I FALL ▼<br><span class="action will-${nextQ1Action}">→ ${arrow}Q₁</span>`;
+            } else {
+                // Q0 is LOW, next CLK fall will make Q0 rise, no trigger
+                q0Instr.innerHTML = `Next: I rise ▲<br><span class="action waiting">No trigger</span>`;
+            }
+        }
+
+        function updateDownInstructions() {
+            const clockInstr = document.getElementById('downClockInstruction');
+            // DOWN counter always shows "▲ RISE" - it triggers on rising edge
+            clockInstr.textContent = '▲ RISE';
+            clockInstr.classList.remove('fall');
+            clockInstr.classList.add('rise');
+
+            const q0Instr = document.getElementById('downQ0Instruction');
+            if (downBits[0] === 0) {
+                // Q0 is LOW, next CLK rise will make Q0 rise, triggering Q1
+                const nextQ1Action = downBits[1] === 0 ? 'rise' : 'fall';
+                const arrow = downBits[1] === 0 ? '▲' : '▼';
+                q0Instr.innerHTML = `Next: I RISE ▲<br><span class="action will-${nextQ1Action}">→ ${arrow}Q₁</span>`;
+            } else {
+                // Q0 is HIGH, next CLK rise will make Q0 fall, no trigger
+                q0Instr.innerHTML = `Next: I fall ▼<br><span class="action waiting">No trigger</span>`;
+            }
+        }
+
+        function updateUpDisplay() {
+            const val = upBits[1] * 2 + upBits[0];
+            document.getElementById('upBinary').textContent = upBits[1].toString() + upBits[0].toString();
+            document.getElementById('upDecimal').textContent = val;
+
+            document.querySelectorAll('#upSequence .sequence-item').forEach(item => {
+                item.classList.remove('current', 'up');
+                if (parseInt(item.dataset.val) === val) {
+                    item.classList.add('current', 'up');
+                }
+            });
+
+            updateUpInstructions();
+            drawUpWaveforms();
+        }
+
+        function updateDownDisplay() {
+            const val = downBits[1] * 2 + downBits[0];
+            document.getElementById('downBinary').textContent = downBits[1].toString() + downBits[0].toString();
+            document.getElementById('downDecimal').textContent = val;
+
+            document.querySelectorAll('#downSequence .sequence-item').forEach(item => {
+                item.classList.remove('current', 'down');
+                if (parseInt(item.dataset.val) === val) {
+                    item.classList.add('current', 'down');
+                }
+            });
+
+            updateDownInstructions();
+            drawDownWaveforms();
+        }
+
+        function trimHistory(history, triggerTimes, maxLen) {
+            while (history.length >= maxLen) {
+                history.shift();
+                for (let i = triggerTimes.length - 1; i >= 0; i--) {
+                    triggerTimes[i]--;
+                    if (triggerTimes[i] < 1) {
+                        triggerTimes.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        // ============ UP COUNTER PULSE ============
+        // FALLING EDGE TRIGGERED: Q0 toggles on CLK falling, Q1 toggles on Q0 falling
+        function upPulse() {
+            const maxLen = maxPulses * 2 + 1;
+            trimHistory(upHistory, upTriggerTimes, maxLen - 1);
+
+            const oldQ0 = upBits[0];
+            const oldQ1 = upBits[1];
+
+            // Animate
+            document.getElementById('upClockBox').classList.add('pulse');
+            document.getElementById('upArrowClk').classList.add('active');
+            document.getElementById('upDomino0').classList.add('triggered');
+
+            setTimeout(() => {
+                document.getElementById('upClockBox').classList.remove('pulse');
+                document.getElementById('upArrowClk').classList.remove('active');
+                document.getElementById('upDomino0').classList.remove('triggered');
+                document.getElementById('upArrow0').classList.remove('active');
+                document.getElementById('upDomino1').classList.remove('triggered');
+            }, 350);
+
+            // Clock goes HIGH - nothing changes yet (falling edge triggered)
+            upHistory.push({clk: 1, q0: oldQ0, q1: oldQ1});
+
+            // Clock goes LOW (FALLING EDGE) - Q0 toggles, Q1 may toggle
+            const newQ0 = 1 - oldQ0;
+            let newQ1 = oldQ1;
+            let triggered = false;
+            
+            // Q1 toggles on Q0 FALLING (1→0)
+            if (oldQ0 === 1 && newQ0 === 0) {
+                newQ1 = 1 - oldQ1;
+                triggered = true;
+            }
+            
+            upHistory.push({clk: 0, q0: newQ0, q1: newQ1});
+            
+            if (triggered) {
+                upTriggerTimes.push(upHistory.length - 1);
+                document.getElementById('upArrow0').classList.add('active');
+                document.getElementById('upDomino1').classList.add('triggered');
+            }
+
+            upBits[0] = newQ0;
+            upBits[1] = newQ1;
+
+            updateDomino('up', 0, upBits[0]);
+            updateDomino('up', 1, upBits[1]);
+            updateUpDisplay();
+        }
+
+        // ============ DOWN COUNTER PULSE ============
+        // RISING EDGE TRIGGERED: Q0 toggles on CLK rising, Q1 toggles on Q0 rising
+        function downPulse() {
+            const maxLen = maxPulses * 2 + 1;
+            trimHistory(downHistory, downTriggerTimes, maxLen - 1);
+
+            const oldQ0 = downBits[0];
+            const oldQ1 = downBits[1];
+
+            // Animate
+            document.getElementById('downClockBox').classList.add('pulse');
+            document.getElementById('downArrowClk').classList.add('active');
+            document.getElementById('downDomino0').classList.add('triggered');
+
+            setTimeout(() => {
+                document.getElementById('downClockBox').classList.remove('pulse');
+                document.getElementById('downArrowClk').classList.remove('active');
+                document.getElementById('downDomino0').classList.remove('triggered');
+                document.getElementById('downArrow0').classList.remove('active');
+                document.getElementById('downDomino1').classList.remove('triggered');
+            }, 350);
+
+            // Clock goes HIGH (RISING EDGE) - Q0 toggles, Q1 may toggle
+            const newQ0 = 1 - oldQ0;
+            let newQ1 = oldQ1;
+            let triggered = false;
+            
+            // Q1 toggles on Q0 RISING (0→1)
+            if (oldQ0 === 0 && newQ0 === 1) {
+                newQ1 = 1 - oldQ1;
+                triggered = true;
+            }
+            
+            // Record state with CLK HIGH and new Q values
+            downHistory.push({clk: 1, q0: newQ0, q1: newQ1});
+            
+            if (triggered) {
+                downTriggerTimes.push(downHistory.length - 1);
+                document.getElementById('downArrow0').classList.add('active');
+                document.getElementById('downDomino1').classList.add('triggered');
+            }
+
+            // Clock goes LOW - nothing changes (rising edge triggered)
+            downHistory.push({clk: 0, q0: newQ0, q1: newQ1});
+
+            downBits[0] = newQ0;
+            downBits[1] = newQ1;
+
+            updateDomino('down', 0, downBits[0]);
+            updateDomino('down', 1, downBits[1]);
+            updateDownDisplay();
+        }
+
+        function upReset() {
+            if (upAutoInterval) {
+                clearInterval(upAutoInterval);
+                upAutoInterval = null;
+                document.getElementById('upAutoBtn').classList.remove('active');
+                document.getElementById('upAutoBtn').textContent = '🔄 Auto';
+            }
+            upBits = [0, 0];
+            upHistory = [{clk: 0, q0: 0, q1: 0}];
+            upTriggerTimes = [];
+            updateDomino('up', 0, 0);
+            updateDomino('up', 1, 0);
+            updateUpDisplay();
+        }
+
+        function downReset() {
+            if (downAutoInterval) {
+                clearInterval(downAutoInterval);
+                downAutoInterval = null;
+                document.getElementById('downAutoBtn').classList.remove('active');
+                document.getElementById('downAutoBtn').textContent = '🔄 Auto';
+            }
+            downBits = [0, 0];
+            downHistory = [{clk: 0, q0: 0, q1: 0}];
+            downTriggerTimes = [];
+            updateDomino('down', 0, 0);
+            updateDomino('down', 1, 0);
+            updateDownDisplay();
+        }
+
+        // Event listeners
+        document.getElementById('upPulseBtn').addEventListener('click', upPulse);
+        document.getElementById('upClockBox').addEventListener('click', upPulse);
+        document.getElementById('upAutoBtn').addEventListener('click', function() {
+            if (upAutoInterval) {
+                clearInterval(upAutoInterval);
+                upAutoInterval = null;
+                this.classList.remove('active');
+                this.textContent = '🔄 Auto';
+            } else {
+                upAutoInterval = setInterval(upPulse, 800);
+                this.classList.add('active');
+                this.textContent = '⏸ Stop';
+            }
+        });
+        document.getElementById('upResetBtn').addEventListener('click', upReset);
+
+        document.getElementById('downPulseBtn').addEventListener('click', downPulse);
+        document.getElementById('downClockBox').addEventListener('click', downPulse);
+        document.getElementById('downAutoBtn').addEventListener('click', function() {
+            if (downAutoInterval) {
+                clearInterval(downAutoInterval);
+                downAutoInterval = null;
+                this.classList.remove('active');
+                this.textContent = '🔄 Auto';
+            } else {
+                downAutoInterval = setInterval(downPulse, 800);
+                this.classList.add('active');
+                this.textContent = '⏸ Stop';
+            }
+        });
+        document.getElementById('downResetBtn').addEventListener('click', downReset);
+
+        window.addEventListener('resize', setupCanvases);
+
+        // Initialize
+        setupCanvases();
+        updateUpDisplay();
+        updateDownDisplay();
+    </script>
+</body>
+</html>
