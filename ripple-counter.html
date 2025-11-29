@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ripple Counter Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0f14;
+            --bg-panel: #111820;
+            --bg-card: #1a232d;
+            --accent-green: #00ff88;
+            --accent-cyan: #00d4ff;
+            --accent-yellow: #ffcc00;
+            --text-primary: #e8f0f8;
+            --text-secondary: #7a8b9a;
+            --grid-line: rgba(0, 255, 136, 0.1);
+            --signal-glow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.1) 2px,
+                rgba(0, 0, 0, 0.1) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            letter-spacing: 0.3em;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1100px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+        }
+
+        .panel-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title::before {
+            content: '//';
+            opacity: 0.5;
+        }
+
+        /* Waveform Display */
+        .waveform-container {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .waveform-grid {
+            position: absolute;
+            top: 0;
+            left: 100px;
+            right: 20px;
+            bottom: 0;
+            background-image: 
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 60px 100%;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .signal-row {
+            display: flex;
+            align-items: center;
+            height: 70px;
+            position: relative;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .signal-row:last-child {
+            border-bottom: none;
+        }
+
+        .signal-label {
+            width: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--text-primary);
+            flex-shrink: 0;
+            padding-right: 1rem;
+        }
+
+        .signal-label .bit-name {
+            color: var(--accent-cyan);
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .signal-canvas {
+            flex: 1;
+            height: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Counter Display */
+        .counter-display {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .decimal-display {
+            text-align: center;
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .decimal-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            text-shadow: var(--signal-glow), 0 0 30px rgba(0, 255, 136, 0.3);
+            line-height: 1;
+        }
+
+        .decimal-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            letter-spacing: 0.2em;
+        }
+
+        .binary-display {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .bit-box {
+            width: 70px;
+            text-align: center;
+            padding: 1rem 0.5rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transition: all 0.15s ease;
+        }
+
+        .bit-box.active {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .bit-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color 0.15s ease;
+        }
+
+        .bit-box.active .bit-value {
+            color: var(--accent-green);
+            text-shadow: var(--signal-glow);
+        }
+
+        .bit-weight {
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            margin-top: 0.3rem;
+        }
+
+        .bit-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-green), #00cc6a);
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border-radius: 6px;
+        }
+
+        .speed-control label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .speed-slider {
+            width: 100px;
+            -webkit-appearance: none;
+            height: 4px;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Block Diagram */
+        .block-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .ff-block {
+            width: 60px;
+            height: 70px;
+            background: var(--bg-panel);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .ff-block.triggered {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .ff-block .ff-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .ff-block .ff-output {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .arrow {
+            color: var(--accent-green);
+            font-size: 1.5rem;
+            opacity: 0.7;
+        }
+
+        .arrow.pulse {
+            animation: arrowPulse 0.3s ease;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); color: var(--accent-yellow); }
+        }
+
+        .clock-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .clock-input span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent-yellow);
+        }
+
+        .clock-pulse {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            opacity: 0.3;
+            transition: all 0.1s ease;
+        }
+
+        .clock-pulse.active {
+            opacity: 1;
+            box-shadow: 0 0 15px var(--accent-yellow);
+        }
+
+        /* Explanation */
+        .explanation {
+            margin-top: 2rem;
+        }
+
+        .explanation-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .explain-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1.25rem;
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .explain-card h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-green);
+            margin-bottom: 0.75rem;
+        }
+
+        .explain-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        /* Ripple Animation Indicator */
+        .ripple-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 8px;
+        }
+
+        .ripple-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            opacity: 0.2;
+            transition: all 0.15s ease;
+        }
+
+        .ripple-dot.active {
+            opacity: 1;
+            box-shadow: 0 0 10px var(--accent-green);
+            transform: scale(1.3);
+        }
+
+        .ripple-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        /* SVG Waveforms */
+        svg.waveform {
+            width: 100%;
+            height: 50px;
+            display: block;
+        }
+
+        .wave-path {
+            fill: none;
+            stroke: var(--accent-green);
+            stroke-width: 2.5;
+            stroke-linecap: square;
+            stroke-linejoin: miter;
+            filter: drop-shadow(0 0 4px rgba(0, 255, 136, 0.6));
+        }
+
+        .wave-path.clock {
+            stroke: var(--accent-yellow);
+            filter: drop-shadow(0 0 4px rgba(255, 204, 0, 0.6));
+        }
+
+        .current-marker {
+            stroke: var(--accent-cyan);
+            stroke-width: 2;
+            stroke-dasharray: 4;
+            opacity: 0.7;
+        }
+
+        /* Falling edge vertical lines */
+        .falling-edge-lines {
+            position: absolute;
+            top: 1.5rem;
+            left: calc(100px + 1.5rem);
+            right: 1.5rem;
+            bottom: 1.5rem;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .falling-edge-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            border-left: 2px dashed rgba(255, 120, 120, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ripple Counter</h1>
+            <p class="subtitle">4-Bit Asynchronous Binary Counter</p>
+        </header>
+
+        <div class="main-grid">
+            <div class="left-column">
+                <div class="panel">
+                    <div class="panel-title">Timing Diagram</div>
+                    <div class="waveform-container">
+                        <div class="waveform-grid"></div>
+                        <div class="falling-edge-lines" id="fallingEdgeLines"></div>
+                        
+                        <div class="signal-row">
+                            <div class="signal-label">
+                                CLK
+                                <span class="bit-name">Clock</span>
+                            </div>
+                            <div class="signal-canvas">
+                                <svg class="waveform" id="clock-wave"></svg>
+                            </div>
+                        </div>
+
+                        <div class="signal-row">
+                            <div class="signal-label">
+                                Q₀
+                                <span class="bit-name">One's (2⁰)</span>
+                            </div>
+                            <div class="signal-canvas">
+                                <svg class="waveform" id="q0-wave"></svg>
+                            </div>
+                        </div>
+
+                        <div class="signal-row">
+                            <div class="signal-label">
+                                Q₁
+                                <span class="bit-name">Two's (2¹)</span>
+                            </div>
+                            <div class="signal-canvas">
+                                <svg class="waveform" id="q1-wave"></svg>
+                            </div>
+                        </div>
+
+                        <div class="signal-row">
+                            <div class="signal-label">
+                                Q₂
+                                <span class="bit-name">Four's (2²)</span>
+                            </div>
+                            <div class="signal-canvas">
+                                <svg class="waveform" id="q2-wave"></svg>
+                            </div>
+                        </div>
+
+                        <div class="signal-row">
+                            <div class="signal-label">
+                                Q₃
+                                <span class="bit-name">Eight's (2³)</span>
+                            </div>
+                            <div class="signal-canvas">
+                                <svg class="waveform" id="q3-wave"></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <button class="btn btn-primary" id="playPauseBtn">▶ Start</button>
+                        <button class="btn btn-secondary" id="stepBtn">Step</button>
+                        <button class="btn btn-secondary" id="resetBtn">Reset</button>
+                        <div class="speed-control">
+                            <label>Speed:</label>
+                            <input type="range" class="speed-slider" id="speedSlider" min="1" max="10" value="5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 2rem;">
+                    <div class="panel-title">Flip-Flop Chain</div>
+                    <div class="block-diagram">
+                        <div class="clock-input">
+                            <span>CLK</span>
+                            <div class="clock-pulse" id="clockPulse"></div>
+                        </div>
+                        <span class="arrow" id="arrow0">→</span>
+                        <div class="ff-block" id="ff0">
+                            <span class="ff-label">FF₀</span>
+                            <span class="ff-output" id="ff0-out">0</span>
+                        </div>
+                        <span class="arrow" id="arrow1">→</span>
+                        <div class="ff-block" id="ff1">
+                            <span class="ff-label">FF₁</span>
+                            <span class="ff-output" id="ff1-out">0</span>
+                        </div>
+                        <span class="arrow" id="arrow2">→</span>
+                        <div class="ff-block" id="ff2">
+                            <span class="ff-label">FF₂</span>
+                            <span class="ff-output" id="ff2-out">0</span>
+                        </div>
+                        <span class="arrow" id="arrow3">→</span>
+                        <div class="ff-block" id="ff3">
+                            <span class="ff-label">FF₃</span>
+                            <span class="ff-output" id="ff3-out">0</span>
+                        </div>
+                    </div>
+                    <div class="ripple-indicator">
+                        <div>
+                            <div class="ripple-dot" id="ripple0"></div>
+                            <div class="ripple-label">Q₀</div>
+                        </div>
+                        <div>
+                            <div class="ripple-dot" id="ripple1"></div>
+                            <div class="ripple-label">Q₁</div>
+                        </div>
+                        <div>
+                            <div class="ripple-dot" id="ripple2"></div>
+                            <div class="ripple-label">Q₂</div>
+                        </div>
+                        <div>
+                            <div class="ripple-dot" id="ripple3"></div>
+                            <div class="ripple-label">Q₃</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="panel">
+                    <div class="panel-title">Counter Value</div>
+                    <div class="counter-display">
+                        <div class="decimal-display">
+                            <div class="decimal-value" id="decimalValue">0</div>
+                            <div class="decimal-label">Decimal</div>
+                        </div>
+
+                        <div class="binary-display">
+                            <div class="bit-box" id="bit3">
+                                <div class="bit-value" id="bit3-val">0</div>
+                                <div class="bit-weight">8's</div>
+                                <div class="bit-label">Q₃</div>
+                            </div>
+                            <div class="bit-box" id="bit2">
+                                <div class="bit-value" id="bit2-val">0</div>
+                                <div class="bit-weight">4's</div>
+                                <div class="bit-label">Q₂</div>
+                            </div>
+                            <div class="bit-box" id="bit1">
+                                <div class="bit-value" id="bit1-val">0</div>
+                                <div class="bit-weight">2's</div>
+                                <div class="bit-label">Q₁</div>
+                            </div>
+                            <div class="bit-box" id="bit0">
+                                <div class="bit-value" id="bit0-val">0</div>
+                                <div class="bit-weight">1's</div>
+                                <div class="bit-label">Q₀</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel explanation">
+                    <div class="panel-title">How It Works</div>
+                    <div class="explanation-content">
+                        <div class="explain-card">
+                            <h3>The Ripple Effect</h3>
+                            <p>Each flip-flop toggles on the <span class="highlight">falling edge</span> of its input. The output of each stage becomes the clock for the next, creating a "ripple" through the chain.</p>
+                        </div>
+                        <div class="explain-card">
+                            <h3>Binary Counting</h3>
+                            <p>Q₀ toggles every clock cycle, Q₁ every 2 cycles, Q₂ every 4, and Q₃ every 8. This creates a <span class="highlight">4-bit binary count</span> from 0 to 15.</p>
+                        </div>
+                        <div class="explain-card">
+                            <h3>Propagation Delay</h3>
+                            <p>Since each stage triggers the next, there's a small <span class="highlight">cumulative delay</span>. This is why it's called "asynchronous" — not all bits change simultaneously.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let counter = 0;
+        let isRunning = false;
+        let clockHigh = false;
+        let intervalId = null;
+        let speed = 5;
+        let waveformHistory = {
+            clock: [],
+            q0: [],
+            q1: [],
+            q2: [],
+            q3: []
+        };
+        const maxHistoryLength = 32;
+
+        // DOM Elements
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const stepBtn = document.getElementById('stepBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const speedSlider = document.getElementById('speedSlider');
+        const decimalValue = document.getElementById('decimalValue');
+
+        // Initialize waveform history
+        function initWaveforms() {
+            for (let i = 0; i < maxHistoryLength; i++) {
+                waveformHistory.clock.push(0);
+                waveformHistory.q0.push(0);
+                waveformHistory.q1.push(0);
+                waveformHistory.q2.push(0);
+                waveformHistory.q3.push(0);
+            }
+        }
+
+        // Generate SVG path for waveform
+        function generateWavePath(data) {
+            const viewWidth = 1000;
+            const viewHeight = 50;
+            const padding = 8;
+            const usableHeight = viewHeight - padding * 2;
+            const stepWidth = viewWidth / data.length;
+
+            let path = `M 0 ${padding + (data[0] ? 0 : usableHeight)}`;
+
+            for (let i = 1; i < data.length; i++) {
+                const x = i * stepWidth;
+                const prevY = padding + (data[i - 1] ? 0 : usableHeight);
+                const y = padding + (data[i] ? 0 : usableHeight);
+
+                if (data[i] !== data[i - 1]) {
+                    // Vertical transition first, then horizontal
+                    path += ` L ${x} ${prevY} L ${x} ${y}`;
+                } else {
+                    path += ` L ${x} ${y}`;
+                }
+            }
+            
+            // Extend to the end
+            const lastY = padding + (data[data.length - 1] ? 0 : usableHeight);
+            path += ` L ${viewWidth} ${lastY}`;
+
+            return path;
+        }
+
+        // Update falling edge marker lines
+        function updateFallingEdgeLines() {
+            const container = document.getElementById('fallingEdgeLines');
+            const clockData = waveformHistory.clock;
+            
+            let linesHTML = '';
+            
+            for (let i = 1; i < clockData.length; i++) {
+                // Detect falling edge: previous was 1, current is 0
+                if (clockData[i - 1] === 1 && clockData[i] === 0) {
+                    const percentPos = (i / clockData.length) * 100;
+                    linesHTML += `<div class="falling-edge-line" style="left: ${percentPos}%"></div>`;
+                }
+            }
+            
+            container.innerHTML = linesHTML;
+        }
+
+        // Update waveform displays
+        function updateWaveforms() {
+            const svgs = {
+                clock: document.getElementById('clock-wave'),
+                q0: document.getElementById('q0-wave'),
+                q1: document.getElementById('q1-wave'),
+                q2: document.getElementById('q2-wave'),
+                q3: document.getElementById('q3-wave')
+            };
+
+            Object.keys(svgs).forEach(key => {
+                const svg = svgs[key];
+                const data = waveformHistory[key];
+                const path = generateWavePath(data);
+                const isClockSignal = key === 'clock';
+
+                svg.setAttribute('viewBox', '0 0 1000 50');
+                svg.setAttribute('preserveAspectRatio', 'none');
+                svg.innerHTML = `
+                    <path class="wave-path ${isClockSignal ? 'clock' : ''}" d="${path}"/>
+                `;
+            });
+            
+            // Update the falling edge lines
+            updateFallingEdgeLines();
+        }
+
+        // Update counter display
+        function updateDisplay() {
+            const bits = [
+                (counter >> 0) & 1,
+                (counter >> 1) & 1,
+                (counter >> 2) & 1,
+                (counter >> 3) & 1
+            ];
+
+            decimalValue.textContent = counter;
+
+            bits.forEach((bit, i) => {
+                const bitBox = document.getElementById(`bit${i}`);
+                const bitVal = document.getElementById(`bit${i}-val`);
+                const ffOut = document.getElementById(`ff${i}-out`);
+
+                bitVal.textContent = bit;
+                ffOut.textContent = bit;
+                bitBox.classList.toggle('active', bit === 1);
+            });
+        }
+
+        // Animate ripple effect
+        function animateRipple(changedBits) {
+            changedBits.forEach((changed, i) => {
+                if (changed) {
+                    const delay = i * 80;
+                    setTimeout(() => {
+                        const rippleDot = document.getElementById(`ripple${i}`);
+                        const ffBlock = document.getElementById(`ff${i}`);
+                        const arrow = document.getElementById(`arrow${i}`);
+
+                        rippleDot.classList.add('active');
+                        ffBlock.classList.add('triggered');
+                        if (arrow) arrow.classList.add('pulse');
+
+                        setTimeout(() => {
+                            rippleDot.classList.remove('active');
+                            ffBlock.classList.remove('triggered');
+                            if (arrow) arrow.classList.remove('pulse');
+                        }, 200);
+                    }, delay);
+                }
+            });
+        }
+
+        // Clock tick - handles half cycles
+        function clockTick() {
+            const prevBits = [
+                (counter >> 0) & 1,
+                (counter >> 1) & 1,
+                (counter >> 2) & 1,
+                (counter >> 3) & 1
+            ];
+
+            clockHigh = !clockHigh;
+
+            // Update clock pulse indicator
+            document.getElementById('clockPulse').classList.toggle('active', clockHigh);
+
+            // On falling edge, increment counter
+            if (!clockHigh) {
+                counter = (counter + 1) % 16;
+
+                const newBits = [
+                    (counter >> 0) & 1,
+                    (counter >> 1) & 1,
+                    (counter >> 2) & 1,
+                    (counter >> 3) & 1
+                ];
+
+                const changedBits = newBits.map((bit, i) => bit !== prevBits[i]);
+                animateRipple(changedBits);
+            }
+
+            // Update waveform history
+            waveformHistory.clock.shift();
+            waveformHistory.clock.push(clockHigh ? 1 : 0);
+
+            waveformHistory.q0.shift();
+            waveformHistory.q0.push((counter >> 0) & 1);
+
+            waveformHistory.q1.shift();
+            waveformHistory.q1.push((counter >> 1) & 1);
+
+            waveformHistory.q2.shift();
+            waveformHistory.q2.push((counter >> 2) & 1);
+
+            waveformHistory.q3.shift();
+            waveformHistory.q3.push((counter >> 3) & 1);
+
+            updateWaveforms();
+            updateDisplay();
+        }
+
+        // Control functions
+        function start() {
+            if (!isRunning) {
+                isRunning = true;
+                playPauseBtn.textContent = '⏸ Pause';
+                const interval = 600 - (speed * 50);
+                intervalId = setInterval(clockTick, interval);
+            }
+        }
+
+        function pause() {
+            if (isRunning) {
+                isRunning = false;
+                playPauseBtn.textContent = '▶ Start';
+                clearInterval(intervalId);
+            }
+        }
+
+        function togglePlayPause() {
+            if (isRunning) {
+                pause();
+            } else {
+                start();
+            }
+        }
+
+        function step() {
+            pause();
+            clockTick();
+        }
+
+        function reset() {
+            pause();
+            counter = 0;
+            clockHigh = false;
+            document.getElementById('clockPulse').classList.remove('active');
+
+            // Reset waveform history
+            Object.keys(waveformHistory).forEach(key => {
+                waveformHistory[key] = new Array(maxHistoryLength).fill(0);
+            });
+
+            updateWaveforms();
+            updateDisplay();
+
+            // Clear all visual states
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`ripple${i}`).classList.remove('active');
+                document.getElementById(`ff${i}`).classList.remove('triggered');
+            }
+        }
+
+        // Event listeners
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        stepBtn.addEventListener('click', step);
+        resetBtn.addEventListener('click', reset);
+
+        speedSlider.addEventListener('input', (e) => {
+            speed = parseInt(e.target.value);
+            if (isRunning) {
+                clearInterval(intervalId);
+                const interval = 600 - (speed * 50);
+                intervalId = setInterval(clockTick, interval);
+            }
+        });
+
+        // Initialize
+        initWaveforms();
+        updateWaveforms();
+        updateDisplay();
+    </script>
+</body>
+</html>
