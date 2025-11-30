@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asynchronous Counter - Hand Watching Analogy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-orange: #ff9800;
+            --accent-green: #4caf50;
+            --accent-blue: #2196f3;
+            --accent-purple: #9c27b0;
+            --accent-yellow: #ffc107;
+            --accent-red: #f44336;
+            --accent-cyan: #00bcd4;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Explanation banner */
+        .explanation-banner {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 193, 7, 0.1));
+            border: 2px solid var(--accent-orange);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .explanation-banner h2 {
+            font-size: 1rem;
+            color: var(--accent-orange);
+            margin-bottom: 10px;
+        }
+
+        .explanation-banner p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .explanation-banner strong {
+            color: var(--text-primary);
+        }
+
+        .rule-box {
+            display: inline-block;
+            background: rgba(255, 152, 0, 0.2);
+            border: 2px solid var(--accent-orange);
+            border-radius: 10px;
+            padding: 10px 20px;
+            margin-top: 15px;
+            font-size: 1.1rem;
+            color: var(--accent-yellow);
+            font-weight: 700;
+        }
+
+        /* Main section */
+        .section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        /* Stage area */
+        .stage {
+            background: linear-gradient(180deg, #2a3f5f 0%, #1a2a4a 100%);
+            border-radius: 16px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .stage-floor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(180deg, #3d5a80 0%, #2a4060 100%);
+            border-radius: 0 0 16px 16px;
+        }
+
+        /* Clock/Bell */
+        .clock-tower {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .bell {
+            font-size: 4rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .bell:hover {
+            transform: scale(1.1);
+        }
+
+        .bell.ringing {
+            animation: bellRing 0.4s ease;
+        }
+
+        @keyframes bellRing {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+
+        .clock-label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .clock-state {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .clock-state.high { color: var(--accent-green); }
+        .clock-state.low { color: var(--accent-red); }
+
+        /* People container */
+        .people-container {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-left: 100px;
+            padding-top: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .people-container {
+                gap: 30px;
+                margin-left: 50px;
+            }
+        }
+
+        /* Person */
+        .person {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .person-body {
+            position: relative;
+            width: 120px;
+            height: 200px;
+        }
+
+        /* Head */
+        .head {
+            width: 60px;
+            height: 60px;
+            background: #ffcc99;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1);
+            z-index: 5;
+        }
+
+        .face {
+            font-size: 1.8rem;
+        }
+
+        /* Body/Torso */
+        .torso {
+            width: 50px;
+            height: 70px;
+            border-radius: 25px 25px 15px 15px;
+            position: absolute;
+            top: 55px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+        }
+
+        .person:nth-child(1) .torso { background: linear-gradient(180deg, #4caf50, #388e3c); }
+        .person:nth-child(2) .torso { background: linear-gradient(180deg, #2196f3, #1976d2); }
+        .person:nth-child(3) .torso { background: linear-gradient(180deg, #9c27b0, #7b1fa2); }
+
+        /* Arms */
+        .arm {
+            width: 15px;
+            height: 60px;
+            border-radius: 10px;
+            position: absolute;
+            top: 60px;
+            z-index: 2;
+            transition: transform 0.4s cubic-bezier(0.68, -0.3, 0.265, 1.3);
+            transform-origin: top center;
+        }
+
+        .arm-left {
+            left: 15px;
+            transform: rotate(30deg);
+        }
+
+        .arm-right {
+            right: 15px;
+            transform: rotate(-30deg);
+        }
+
+        .person:nth-child(1) .arm { background: linear-gradient(180deg, #4caf50, #388e3c); }
+        .person:nth-child(2) .arm { background: linear-gradient(180deg, #2196f3, #1976d2); }
+        .person:nth-child(3) .arm { background: linear-gradient(180deg, #9c27b0, #7b1fa2); }
+
+        /* Right arm is the signaling arm */
+        .arm-right.up {
+            transform: rotate(-150deg);
+        }
+
+        .arm-right.down {
+            transform: rotate(-30deg);
+        }
+
+        /* Hand on arm */
+        .hand {
+            width: 20px;
+            height: 20px;
+            background: #ffcc99;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Legs */
+        .legs {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .leg {
+            width: 18px;
+            height: 60px;
+            background: #2a2a4a;
+            border-radius: 10px;
+        }
+
+        /* Person info */
+        .person-info {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .person-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .person:nth-child(1) .person-name { color: var(--accent-green); }
+        .person:nth-child(2) .person-name { color: var(--accent-blue); }
+        .person:nth-child(3) .person-name { color: var(--accent-purple); }
+
+        .person-bit {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .person-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .person-value.high { color: var(--accent-green); }
+        .person-value.low { color: var(--accent-red); }
+
+        /* Watching indicators */
+        .watching-badge {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0.8;
+        }
+
+        .watching-badge .eye {
+            margin-right: 5px;
+        }
+
+        /* Thought bubble */
+        .thought-bubble {
+            position: absolute;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            z-index: 20;
+        }
+
+        .thought-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: white;
+        }
+
+        .thought-bubble.visible {
+            opacity: 1;
+            animation: bubblePop 0.3s ease;
+        }
+
+        @keyframes bubblePop {
+            0% { transform: translateX(-50%) scale(0); }
+            50% { transform: translateX(-50%) scale(1.1); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+
+        .thought-bubble.action {
+            background: var(--accent-yellow);
+            color: #333;
+        }
+
+        .thought-bubble.action::after {
+            border-top-color: var(--accent-yellow);
+        }
+
+        /* Connection arrows */
+        .connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Count display */
+        .count-display {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .binary-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 15px;
+            color: var(--accent-yellow);
+        }
+
+        .decimal-value {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .decimal-value span {
+            font-family: 'Fira Code', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        /* Status log */
+        .status-log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            min-height: 100px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .status-log-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .log-entry {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            margin: 3px 0;
+            border-radius: 5px;
+            animation: logSlide 0.3s ease;
+        }
+
+        @keyframes logSlide {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .log-entry.clock { background: rgba(255, 152, 0, 0.2); color: var(--accent-orange); }
+        .log-entry.p0 { background: rgba(76, 175, 80, 0.2); color: var(--accent-green); }
+        .log-entry.p1 { background: rgba(33, 150, 243, 0.2); color: var(--accent-blue); }
+        .log-entry.p2 { background: rgba(156, 39, 176, 0.2); color: var(--accent-purple); }
+
+        /* Sequence */
+        .sequence-section {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .sequence-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .sequence-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .sequence-item {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .sequence-item.current {
+            opacity: 1;
+            background: var(--accent-yellow);
+            color: var(--bg-main);
+            transform: scale(1.15);
+        }
+
+        .sequence-arrow {
+            color: var(--text-secondary);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ring {
+            background: linear-gradient(135deg, var(--accent-orange), #e65100);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .btn-auto {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-yellow);
+        }
+
+        .btn-auto.active {
+            background: var(--accent-yellow);
+            color: var(--bg-main);
+        }
+
+        .btn-reset {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+        }
+
+        .btn-speed {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            border: 2px solid var(--accent-cyan);
+            padding: 8px 16px;
+            font-size: 0.8rem;
+        }
+
+        .btn-speed.active {
+            background: var(--accent-cyan);
+            color: var(--bg-main);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Speed controls */
+        .speed-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .speed-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-right: 10px;
+            align-self: center;
+        }
+
+        /* Rules reminder */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .rules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .rule-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .rule-card.p0 { border-top: 4px solid var(--accent-green); }
+        .rule-card.p1 { border-top: 4px solid var(--accent-blue); }
+        .rule-card.p2 { border-top: 4px solid var(--accent-purple); }
+
+        .rule-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .rule-card.p0 .rule-card-title { color: var(--accent-green); }
+        .rule-card.p1 .rule-card-title { color: var(--accent-blue); }
+        .rule-card.p2 .rule-card-title { color: var(--accent-purple); }
+
+        .rule-card-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .rule-card-text strong {
+            color: var(--accent-orange);
+        }
+
+        .watch-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👋 Asynchronous Counter - Hand Watching Game</h1>
+            <p class="subtitle">Three people watching each other's hands - see the ripple effect!</p>
+        </header>
+
+        <!-- Explanation -->
+        <div class="explanation-banner">
+            <h2>🎯 THE GAME RULES</h2>
+            <p>
+                Three people stand in a row. Each person <strong>watches</strong> someone and follows a simple rule:
+            </p>
+            <div class="rule-box">
+                "When I see the hand I'm watching go <strong>DOWN</strong>, I toggle MY hand!"
+            </div>
+        </div>
+
+        <!-- Main Stage -->
+        <div class="section">
+            <div class="stage">
+                <div class="stage-floor"></div>
+                
+                <!-- Clock/Bell -->
+                <div class="clock-tower">
+                    <div class="bell" id="bell">🔔</div>
+                    <div class="clock-label">CLOCK</div>
+                    <div class="clock-state high" id="clockState">HIGH</div>
+                </div>
+
+                <!-- People -->
+                <div class="people-container">
+                    <!-- Person 0 (Q₀) - Watches Clock -->
+                    <div class="person" id="person0">
+                        <div class="watching-badge">
+                            <span class="eye">👁️</span> Watches CLOCK
+                        </div>
+                        <div class="thought-bubble" id="thought0"></div>
+                        <div class="person-body">
+                            <div class="head"><div class="face">😊</div></div>
+                            <div class="torso"></div>
+                            <div class="arm arm-left"><div class="hand"></div></div>
+                            <div class="arm arm-right down" id="arm0"><div class="hand"></div></div>
+                            <div class="legs">
+                                <div class="leg"></div>
+                                <div class="leg"></div>
+                            </div>
+                        </div>
+                        <div class="person-info">
+                            <div class="person-name">Person 0</div>
+                            <div class="person-bit">Q₀ (LSB)</div>
+                            <div class="person-value low" id="value0">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Person 1 (Q₁) - Watches Person 0 -->
+                    <div class="person" id="person1">
+                        <div class="watching-badge">
+                            <span class="eye">👁️</span> Watches Person 0
+                        </div>
+                        <div class="thought-bubble" id="thought1"></div>
+                        <div class="person-body">
+                            <div class="head"><div class="face">😊</div></div>
+                            <div class="torso"></div>
+                            <div class="arm arm-left"><div class="hand"></div></div>
+                            <div class="arm arm-right down" id="arm1"><div class="hand"></div></div>
+                            <div class="legs">
+                                <div class="leg"></div>
+                                <div class="leg"></div>
+                            </div>
+                        </div>
+                        <div class="person-info">
+                            <div class="person-name">Person 1</div>
+                            <div class="person-bit">Q₁</div>
+                            <div class="person-value low" id="value1">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Person 2 (Q₂) - Watches Person 1 -->
+                    <div class="person" id="person2">
+                        <div class="watching-badge">
+                            <span class="eye">👁️</span> Watches Person 1
+                        </div>
+                        <div class="thought-bubble" id="thought2"></div>
+                        <div class="person-body">
+                            <div class="head"><div class="face">😊</div></div>
+                            <div class="torso"></div>
+                            <div class="arm arm-left"><div class="hand"></div></div>
+                            <div class="arm arm-right down" id="arm2"><div class="hand"></div></div>
+                            <div class="legs">
+                                <div class="leg"></div>
+                                <div class="leg"></div>
+                            </div>
+                        </div>
+                        <div class="person-info">
+                            <div class="person-name">Person 2</div>
+                            <div class="person-bit">Q₂ (MSB)</div>
+                            <div class="person-value low" id="value2">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Count Display -->
+            <div class="count-display">
+                <div class="binary-value" id="binaryDisplay">000</div>
+                <div class="decimal-value">= <span id="decimalDisplay">0</span></div>
+            </div>
+
+            <!-- Status Log -->
+            <div class="status-log" id="statusLog">
+                <div class="status-log-title">📝 Event Log (watch the ripple!)</div>
+            </div>
+
+            <!-- Sequence -->
+            <div class="sequence-section">
+                <div class="sequence-title">Counting Sequence</div>
+                <div class="sequence-row" id="sequenceRow">
+                    <div class="sequence-item current" data-val="0">000</div>
+                    <span class="sequence-arrow">→</span>
+                    <div class="sequence-item" data-val="1">001</div>
+                    <span class="sequence-arrow">→</span>
+                    <div class="sequence-item" data-val="2">010</div>
+                    <span class="sequence-arrow">→</span>
+                    <div class="sequence-item" data-val="3">011</div>
+                    <span class="sequence-arrow">→</span>
+                    <div class="sequence-item" data-val="4">100</div>
+                    <span class="sequence-arrow">→</span>
+                    <div class="sequence-item" data-val="5">101</div>
+                    <span class="sequence-arrow">→</span>
+                    <div class="sequence-item" data-val="6">110</div>
+                    <span class="sequence-arrow">→</span>
+                    <div class="sequence-item" data-val="7">111</div>
+                    <span class="sequence-arrow">↩</span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="btn-ring" id="ringBtn">🔔 Ring Bell (Clock Pulse)</button>
+                <button class="btn-auto" id="autoBtn">🔄 Auto</button>
+                <button class="btn-reset" id="resetBtn">↺ Reset</button>
+            </div>
+
+            <div class="speed-controls">
+                <span class="speed-label">Ripple Speed:</span>
+                <button class="btn-speed" id="slowBtn">🐢 Slow</button>
+                <button class="btn-speed active" id="medBtn">🚶 Medium</button>
+                <button class="btn-speed" id="fastBtn">🏃 Fast</button>
+            </div>
+        </div>
+
+        <!-- Rules Reminder -->
+        <div class="section">
+            <div class="rules-grid">
+                <div class="rule-card p0">
+                    <div class="watch-icon">🔔➡️👋</div>
+                    <div class="rule-card-title">Person 0 (Q₀)</div>
+                    <div class="rule-card-text">
+                        Watches the <strong>CLOCK</strong><br>
+                        When clock goes DOWN → Toggle hand
+                    </div>
+                </div>
+                <div class="rule-card p1">
+                    <div class="watch-icon">👋➡️👋</div>
+                    <div class="rule-card-title">Person 1 (Q₁)</div>
+                    <div class="rule-card-text">
+                        Watches <strong>Person 0</strong><br>
+                        When P0's hand goes DOWN → Toggle hand
+                    </div>
+                </div>
+                <div class="rule-card p2">
+                    <div class="watch-icon">👋➡️👋</div>
+                    <div class="rule-card-title">Person 2 (Q₂)</div>
+                    <div class="rule-card-text">
+                        Watches <strong>Person 1</strong><br>
+                        When P1's hand goes DOWN → Toggle hand
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let bits = [0, 0, 0]; // Q0, Q1, Q2
+        let clockState = 1; // 1 = HIGH, 0 = LOW
+        let autoInterval = null;
+        let rippleDelay = 600; // ms between ripple steps
+        let isAnimating = false;
+
+        function updateDisplay() {
+            // Update arm positions and values
+            for (let i = 0; i < 3; i++) {
+                const arm = document.getElementById('arm' + i);
+                const value = document.getElementById('value' + i);
+                
+                arm.classList.remove('up', 'down');
+                arm.classList.add(bits[i] === 1 ? 'up' : 'down');
+                
+                value.textContent = bits[i];
+                value.classList.remove('high', 'low');
+                value.classList.add(bits[i] === 1 ? 'high' : 'low');
+            }
+            
+            // Update binary/decimal
+            const binary = bits[2].toString() + bits[1].toString() + bits[0].toString();
+            document.getElementById('binaryDisplay').textContent = binary;
+            document.getElementById('decimalDisplay').textContent = bits[0] + bits[1] * 2 + bits[2] * 4;
+            
+            // Update sequence highlight
+            const currentVal = bits[0] + bits[1] * 2 + bits[2] * 4;
+            document.querySelectorAll('#sequenceRow .sequence-item').forEach(item => {
+                item.classList.toggle('current', parseInt(item.dataset.val) === currentVal);
+            });
+        }
+
+        function showThought(personId, text, isAction = false) {
+            const thought = document.getElementById('thought' + personId);
+            thought.textContent = text;
+            thought.classList.remove('visible', 'action');
+            thought.classList.add('visible');
+            if (isAction) thought.classList.add('action');
+            
+            setTimeout(() => {
+                thought.classList.remove('visible');
+            }, rippleDelay * 0.9);
+        }
+
+        function addLog(text, type) {
+            const log = document.getElementById('statusLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            entry.textContent = text;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+            
+            // Keep only last 10 entries
+            while (log.children.length > 11) {
+                log.removeChild(log.children[1]);
+            }
+        }
+
+        function updateClockDisplay() {
+            const stateEl = document.getElementById('clockState');
+            stateEl.textContent = clockState === 1 ? 'HIGH' : 'LOW';
+            stateEl.classList.remove('high', 'low');
+            stateEl.classList.add(clockState === 1 ? 'high' : 'low');
+        }
+
+        async function ringBell() {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            const bell = document.getElementById('bell');
+            bell.classList.add('ringing');
+            
+            // Clock goes HIGH first
+            clockState = 1;
+            updateClockDisplay();
+            addLog('🔔 Bell rings! Clock → HIGH', 'clock');
+            
+            await new Promise(r => setTimeout(r, rippleDelay / 2));
+            
+            // Clock goes LOW - this triggers the ripple!
+            clockState = 0;
+            updateClockDisplay();
+            addLog('🔔 Clock → LOW (falling edge)', 'clock');
+            
+            bell.classList.remove('ringing');
+            
+            // Start the ripple effect
+            await rippleEffect();
+            
+            // Clock back to HIGH (ready for next pulse)
+            await new Promise(r => setTimeout(r, rippleDelay / 2));
+            clockState = 1;
+            updateClockDisplay();
+            
+            isAnimating = false;
+        }
+
+        async function rippleEffect() {
+            // Person 0 sees clock go DOWN
+            const oldBit0 = bits[0];
+            showThought(0, '🔔 went DOWN!');
+            addLog('👁️ Person 0: "I saw the clock go DOWN!"', 'p0');
+            
+            await new Promise(r => setTimeout(r, rippleDelay));
+            
+            // Person 0 toggles
+            bits[0] = 1 - bits[0];
+            showThought(0, bits[0] === 1 ? '✋ Hand UP!' : '👇 Hand DOWN!', true);
+            addLog(`✋ Person 0: Toggles hand → ${bits[0]}`, 'p0');
+            updateDisplay();
+            
+            // Check if Person 0's hand went DOWN (1→0)
+            if (oldBit0 === 1 && bits[0] === 0) {
+                await new Promise(r => setTimeout(r, rippleDelay));
+                
+                // Person 1 sees Person 0's hand go DOWN
+                const oldBit1 = bits[1];
+                showThought(1, 'P0 went DOWN!');
+                addLog('👁️ Person 1: "I saw Person 0\'s hand go DOWN!"', 'p1');
+                
+                await new Promise(r => setTimeout(r, rippleDelay));
+                
+                // Person 1 toggles
+                bits[1] = 1 - bits[1];
+                showThought(1, bits[1] === 1 ? '✋ Hand UP!' : '👇 Hand DOWN!', true);
+                addLog(`✋ Person 1: Toggles hand → ${bits[1]}`, 'p1');
+                updateDisplay();
+                
+                // Check if Person 1's hand went DOWN (1→0)
+                if (oldBit1 === 1 && bits[1] === 0) {
+                    await new Promise(r => setTimeout(r, rippleDelay));
+                    
+                    // Person 2 sees Person 1's hand go DOWN
+                    showThought(2, 'P1 went DOWN!');
+                    addLog('👁️ Person 2: "I saw Person 1\'s hand go DOWN!"', 'p2');
+                    
+                    await new Promise(r => setTimeout(r, rippleDelay));
+                    
+                    // Person 2 toggles
+                    bits[2] = 1 - bits[2];
+                    showThought(2, bits[2] === 1 ? '✋ Hand UP!' : '👇 Hand DOWN!', true);
+                    addLog(`✋ Person 2: Toggles hand → ${bits[2]}`, 'p2');
+                    updateDisplay();
+                }
+            }
+            
+            await new Promise(r => setTimeout(r, rippleDelay / 2));
+        }
+
+        function reset() {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                document.getElementById('autoBtn').classList.remove('active');
+                document.getElementById('autoBtn').textContent = '🔄 Auto';
+            }
+            
+            isAnimating = false;
+            bits = [0, 0, 0];
+            clockState = 1;
+            updateClockDisplay();
+            updateDisplay();
+            
+            // Clear log
+            const log = document.getElementById('statusLog');
+            log.innerHTML = '<div class="status-log-title">📝 Event Log (watch the ripple!)</div>';
+        }
+
+        function setSpeed(speed) {
+            document.querySelectorAll('.btn-speed').forEach(btn => btn.classList.remove('active'));
+            
+            if (speed === 'slow') {
+                rippleDelay = 1000;
+                document.getElementById('slowBtn').classList.add('active');
+            } else if (speed === 'medium') {
+                rippleDelay = 600;
+                document.getElementById('medBtn').classList.add('active');
+            } else {
+                rippleDelay = 300;
+                document.getElementById('fastBtn').classList.add('active');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('ringBtn').addEventListener('click', ringBell);
+        document.getElementById('bell').addEventListener('click', ringBell);
+        
+        document.getElementById('autoBtn').addEventListener('click', function() {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+                this.classList.remove('active');
+                this.textContent = '🔄 Auto';
+            } else {
+                autoInterval = setInterval(() => {
+                    if (!isAnimating) ringBell();
+                }, rippleDelay * 5);
+                this.classList.add('active');
+                this.textContent = '⏸ Stop';
+            }
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', reset);
+        
+        document.getElementById('slowBtn').addEventListener('click', () => setSpeed('slow'));
+        document.getElementById('medBtn').addEventListener('click', () => setSpeed('medium'));
+        document.getElementById('fastBtn').addEventListener('click', () => setSpeed('fast'));
+
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>
