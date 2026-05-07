@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cybersecurity Workshop · Barzan University College</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Open+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --buc-red: #D4362D; --buc-gold: #9D815D; --buc-black: #171717;
+  --buc-white: #FFFFFF; --buc-light-red: #F2D5D3; --buc-dark-red: #8B1A14;
+  --buc-light-gold: #D4C4AD; --buc-dark-gold: #6B5638;
+  --buc-light-gray: #F5F4F2; --buc-medium-gray: #8C8C8C; --buc-off-white: #FAFAF8;
+  --shadow-sm: 0 2px 6px rgba(23,23,23,.06);
+  --shadow-md: 0 6px 18px rgba(23,23,23,.10);
+  --radius: 14px; --radius-sm: 8px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--buc-off-white); color: var(--buc-black); font-family: 'Open Sans','Calibri','Helvetica Neue',Arial,sans-serif; line-height: 1.55; min-height: 100vh; }
+a { color: var(--buc-red); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { font-family: 'Montserrat','Calibri',Arial,sans-serif; color: var(--buc-red); margin-top: 0; letter-spacing: -0.01em; }
+h1 { font-size: 2.0rem; font-weight: 800; }
+h2 { font-size: 1.4rem; font-weight: 700; }
+h3 { font-size: 1.1rem; font-weight: 700; color: var(--buc-black); }
+
+.topbar { display: flex; align-items: center; gap: 16px; padding: 14px 28px; background: var(--buc-white); border-bottom: 2px solid var(--buc-light-gold); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
+.topbar .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
+.topbar img.logo { height: 38px; }
+.topbar .brand-name { font-family: 'Montserrat',sans-serif; font-weight: 800; color: var(--buc-red); font-size: 1.05rem; display: block; }
+.topbar .brand-sub { display: block; color: var(--buc-medium-gray); font-size: 0.78rem; font-weight: 500; }
+.topbar::before { content: ""; position: absolute; top:0; left:0; right:0; height: 4px; background: linear-gradient(90deg, var(--buc-red) 0%, var(--buc-red) 30%, var(--buc-gold) 30%, var(--buc-gold) 60%, var(--buc-red) 60%); }
+
+main.container { max-width: 1100px; margin: 0 auto; padding: 28px 28px 80px; }
+main.wide { max-width: 1280px; }
+
+.page-header { background: var(--buc-white); border: 1px solid var(--buc-light-gold); border-left: 6px solid var(--buc-red); border-radius: var(--radius); padding: 22px 28px; margin-bottom: 22px; box-shadow: var(--shadow-sm); }
+.page-header h1 { margin-bottom: 4px; }
+.page-header p { margin: 0; color: var(--buc-dark-gold); }
+.kicker { text-transform: uppercase; font-weight: 700; letter-spacing: .14em; font-size: .75rem; color: var(--buc-gold); margin-bottom: 6px; }
+
+.card { background: var(--buc-white); border-radius: var(--radius); border: 1px solid var(--buc-light-gold); padding: 22px; box-shadow: var(--shadow-sm); margin-bottom: 22px; }
+.card h2, .card h3 { margin-top: 0; }
+.row { display: flex; gap: 18px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 280px; }
+
+input[type="text"], input[type="number"], textarea, select { width: 100%; font-size: 1rem; padding: 10px 12px; background: var(--buc-white); color: var(--buc-black); border: 1.5px solid var(--buc-light-gold); border-radius: var(--radius-sm); font-family: inherit; transition: border-color .12s ease, box-shadow .12s ease; }
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus { outline: none; border-color: var(--buc-red); box-shadow: 0 0 0 3px rgba(212,54,45,.14); }
+textarea { min-height: 96px; resize: vertical; font-family: 'JetBrains Mono','Menlo',monospace; }
+label { display: block; font-weight: 600; font-size: .92rem; margin-bottom: 6px; color: var(--buc-dark-gold); }
+.field { margin-bottom: 14px; }
+
+button, .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--buc-red); color: var(--buc-white); border: none; padding: 10px 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: .95rem; cursor: pointer; font-family: inherit; transition: background .12s ease, transform .08s ease; }
+button:hover, .btn:hover { background: var(--buc-dark-red); }
+button:active { transform: translateY(1px); }
+button.ghost { background: transparent; color: var(--buc-red); border: 1.5px solid var(--buc-red); }
+button.ghost:hover { background: var(--buc-red); color: var(--buc-white); }
+
+.code { background: var(--buc-light-gray); color: var(--buc-black); border: 1px solid var(--buc-light-gold); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'JetBrains Mono','Menlo',monospace; word-break: break-all; font-size: .95rem; white-space: pre-wrap; }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+
+footer.workshop-foot { margin-top: 60px; padding: 20px 28px; text-align: center; color: var(--buc-medium-gray); border-top: 1px solid var(--buc-light-gold); font-size: .85rem; background: var(--buc-white); }
+
+.mono { font-family: 'JetBrains Mono','Menlo',monospace; }
+.muted { color: var(--buc-medium-gray); }
+.center { text-align: center; }
+.hr-gold { border: none; height: 2px; background: var(--buc-gold); margin: 22px 0; }
+.score { display: inline-block; padding: 4px 12px; background: var(--buc-red); color: var(--buc-white); border-radius: 999px; font-weight: 700; font-size: .9rem; }
+@media (max-width: 720px) { .topbar { padding: 12px 16px; } main.container { padding: 18px 16px 60px; } h1 { font-size: 1.6rem; } }
+
+.section-nav { background: var(--buc-white); border: 1px solid var(--buc-light-gold); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; position: sticky; top: 78px; z-index: 50; box-shadow: var(--shadow-sm); }
+.section-nav a { padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--buc-light-gold); text-decoration: none; color: var(--buc-black); font-weight: 600; font-size: .9rem; transition: border-color .12s, background .12s, color .12s; }
+.section-nav a:hover { border-color: var(--buc-red); color: var(--buc-red); background: #fff7f6; text-decoration: none; }
+
+.ws-section { margin-top: 44px; padding-top: 28px; border-top: 2px solid var(--buc-light-gold); scroll-margin-top: 150px; }
+.ws-section:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.ws-section .section-head { margin-bottom: 18px; }
+.ws-section .section-head h2 { margin: 4px 0 8px; font-size: 1.65rem; }
+.ws-section .section-head p { margin: 0; color: var(--buc-medium-gray); }
+
+.cia-triad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.cia-bucket { border-radius: 14px; border: 2.5px dashed var(--buc-light-gold); background: var(--buc-light-gray); padding: 14px; min-height: 220px; transition: background .12s, border-color .12s; }
+.cia-bucket.hover { border-color: var(--buc-red); background: #fff7f6; }
+.cia-bucket h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--buc-red); }
+.cia-bucket .desc { font-size: .85rem; color: var(--buc-medium-gray); margin-bottom: 10px; }
+.cia-pool { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; border: 1px solid var(--buc-light-gold); border-radius: 12px; background: var(--buc-white); min-height: 80px; }
+.cia-item { cursor: grab; padding: 8px 14px; border-radius: 999px; background: var(--buc-white); border: 1.5px solid var(--buc-light-gold); font-size: .92rem; font-weight: 600; transition: transform .08s, border-color .12s, box-shadow .12s; user-select: none; }
+.cia-item:hover { border-color: var(--buc-red); box-shadow: var(--shadow-sm); }
+.cia-item.dragging { opacity: .4; }
+.cia-item.right { border-color: #1e6d2c; background: #ddf3df; color: #1e6d2c; }
+.cia-item.wrong { border-color: var(--buc-red); background: #fcebe9; color: var(--buc-dark-red); }
+.cia-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+@media (max-width: 760px) { .cia-triad { grid-template-columns: 1fr; } }
+
+.scoreboard { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.scoreboard .progress { flex: 1; min-width: 180px; height: 12px; background: var(--buc-light-gray); border: 1px solid var(--buc-light-gold); border-radius: 999px; overflow: hidden; }
+.scoreboard .progress > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--buc-red), var(--buc-gold)); transition: width .25s ease; }
+.puzzle { transition: opacity .2s, filter .2s; }
+.puzzle.locked { opacity: .55; filter: grayscale(.4); pointer-events: none; }
+.puzzle.solved { border-left: 6px solid #1e6d2c; }
+.puzzle .badge { display: inline-block; padding: 3px 10px; background: var(--buc-light-gold); color: var(--buc-dark-gold); border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+.puzzle.solved .badge { background: #dff5e0; color: #1e6d2c; }
+.puzzle h3 { color: var(--buc-red); font-size: 1.2rem; margin: 0 0 6px; }
+
+.ct { font-family: 'JetBrains Mono',monospace; background: var(--buc-light-gray); border: 1px solid var(--buc-light-gold); padding: 12px 14px; border-radius: 8px; font-size: 1.05rem; letter-spacing: .04em; word-break: break-word; }
+.pt { font-family: 'JetBrains Mono',monospace; background: #f1faf2; border: 1px solid #b9e0bf; color: #155f24; padding: 12px 14px; border-radius: 8px; font-size: 1.05rem; letter-spacing: .04em; word-break: break-word; min-height: 22px; }
+.pt .unknown { color: #8b8b8b; }
+.answer-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.answer-row label { margin: 0; }
+.answer-row input[type="text"] { max-width: 240px; font-family: 'JetBrains Mono',monospace; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+.feedback { margin-top: 10px; font-weight: 600; min-height: 22px; }
+.feedback.ok { color: #1e6d2c; }
+.feedback.bad { color: var(--buc-dark-red); }
+.feedback.muted { color: var(--buc-medium-gray); }
+.endcard { text-align: center; padding: 32px 24px; background: linear-gradient(135deg, #fff, #fdf3f2); border: 2px solid var(--buc-red); }
+.endcard h3 { color: var(--buc-red); margin-bottom: 8px; font-size: 1.35rem; }
+.endcard.hidden { display: none; }
+
+.shift-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin: 12px 0 6px; }
+.shift-row input[type="range"] { width: 100%; accent-color: var(--buc-red); }
+.shift-row .keychip { font-family: 'JetBrains Mono',monospace; background: var(--buc-white); border: 1.5px solid var(--buc-light-gold); border-radius: 8px; padding: 6px 12px; font-weight: 700; min-width: 110px; text-align: center; }
+
+.map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; margin: 6px 0 4px; }
+.map-cell { background: var(--buc-light-gray); border: 1px solid var(--buc-light-gold); border-radius: 8px; padding: 6px 4px 4px; text-align: center; font-family: 'JetBrains Mono',monospace; }
+.map-cell.locked { background: #fdf3f2; border-color: var(--buc-red); }
+.map-cell .src { color: var(--buc-red); font-weight: 800; font-size: 1rem; line-height: 1.1; }
+.map-cell .arr { font-size: .75rem; color: var(--buc-medium-gray); }
+.map-cell input, .map-cell .lock-val { width: 100%; text-align: center; padding: 3px; font-family: 'JetBrains Mono',monospace; font-weight: 700; text-transform: uppercase; font-size: 1rem; border: 1.5px solid var(--buc-light-gold); border-radius: 6px; }
+.map-cell .lock-val { background: var(--buc-white); color: var(--buc-dark-red); border-color: var(--buc-red); padding: 4px 0; }
+.map-cell input:focus { border-color: var(--buc-red); outline: none; }
+.freq-bars { display: grid; grid-template-columns: repeat(26, 1fr); gap: 3px; align-items: end; padding: 8px 4px 22px; border-bottom: 2px solid var(--buc-light-gold); position: relative; }
+.freq-bars .bar { position: relative; background: var(--buc-light-red); border: 1px solid var(--buc-red); border-bottom: none; border-radius: 4px 4px 0 0; min-height: 2px; }
+.freq-bars .bar .lbl { position: absolute; bottom: -18px; left: 0; right: 0; text-align: center; font-family: 'JetBrains Mono',monospace; font-size: .72rem; font-weight: 700; color: var(--buc-black); }
+.clue { background: #fdf6e7; border-left: 4px solid var(--buc-gold); border-radius: 8px; padding: 10px 14px; margin: 12px 0; font-size: .94rem; }
+
+.pwd-input { font-size: 1.4rem; font-family: 'JetBrains Mono',monospace; padding: 14px 16px; }
+.meter { height: 14px; background: var(--buc-light-gray); border: 1px solid var(--buc-light-gold); border-radius: 999px; overflow: hidden; margin: 12px 0 6px; }
+.meter > div { height: 100%; width: 0; transition: width .25s, background .25s; border-radius: 999px; }
+.grade { display: inline-block; padding: 4px 14px; border-radius: 999px; font-weight: 700; letter-spacing: .04em; font-size: .9rem; }
+.grade.s0 { background: #fae3e1; color: #8B1A14; }
+.grade.s1 { background: #fce5c4; color: #8a5b00; }
+.grade.s2 { background: #fff3c4; color: #806400; }
+.grade.s3 { background: #ddf3df; color: #1e6d2c; }
+.grade.s4 { background: #c4f1c8; color: #155f24; }
+.pwd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 14px; }
+.pwd-stats .stat { background: var(--buc-light-gray); border-radius: 12px; padding: 12px 14px; border: 1px solid var(--buc-light-gold); }
+.pwd-stats .stat .l { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--buc-medium-gray); }
+.pwd-stats .stat .v { font-size: 1.25rem; font-weight: 700; color: var(--buc-black); margin-top: 4px; font-family: 'JetBrains Mono',monospace; }
+.reasons li { margin: 4px 0; }
+.reasons li.bad::before { content: "\2717  "; color: var(--buc-red); font-weight: 800; }
+.reasons li.ok::before  { content: "\2713  "; color: #1e6d2c; font-weight: 800; }
+.examples { display: flex; gap: 8px; flex-wrap: wrap; }
+.examples .sample { cursor: pointer; font-family: 'JetBrains Mono',monospace; background: var(--buc-light-gray); border: 1px solid var(--buc-light-gold); border-radius: 8px; padding: 6px 12px; font-size: .9rem; }
+.examples .sample:hover { border-color: var(--buc-red); }
+
+.stream { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; font-family: 'JetBrains Mono',monospace; }
+.cell { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 6px; border-radius: 6px; min-width: 36px; }
+.cell .top { font-size: .9rem; color: var(--buc-medium-gray); }
+.cell .key { font-size: .9rem; color: var(--buc-gold); font-weight: 700; }
+.cell .out { font-size: 1.1rem; color: var(--buc-red); font-weight: 800; }
+.cell.space { background: transparent; min-width: 12px; }
+.cell.cipher { background: #fcebe9; }
+.cell.plain { background: #ddf3df; }
+.table-mini { font-family: 'JetBrains Mono',monospace; font-size: .82rem; }
+.table-mini td { padding: 2px 6px; }
+.table-mini .h { color: var(--buc-red); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="#top" class="brand">
+    <img class="logo" alt="Barzan University College" src="data:image/jpeg;base64,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">
+    <div>
+      <span class="brand-name">Cybersecurity Workshop</span>
+      <span class="brand-sub">Barzan University College  ·  Hands-on</span>
+    </div>
+  </a>
+</div>
+
+<main class="container wide" id="top">
+
+  <section class="page-header">
+    <div class="kicker">Workshop · One-page edition</div>
+    <h1>Cybersecurity Workshop</h1>
+    <p>Five hands-on stations on a single page: the CIA triad, two cipher-puzzle sets, password complexity (with brute-force time estimates), and the Vigenère cipher. Everything runs in your browser — nothing is sent to a server.</p>
+  </section>
+
+  <nav class="section-nav">
+    <a href="#cia">1 · CIA Triad</a>
+    <a href="#caesar">2 · Caesar Puzzles</a>
+    <a href="#sub">3 · Substitution Puzzles</a>
+    <a href="#pwd">4 · Password Complexity</a>
+    <a href="#vig">5 · Vigenère</a>
+  </nav>
+
+  <!-- ======================== 1. CIA TRIAD ======================== -->
+  <section id="cia" class="ws-section">
+    <div class="section-head">
+      <div class="kicker">Foundations · Section 1</div>
+      <h2>The CIA Triad — Drag &amp; Drop</h2>
+      <p>Every security control protects one or more of these three goals: <strong>C</strong>onfidentiality (secrets stay secret), <strong>I</strong>ntegrity (data is not tampered with), and <strong>A</strong>vailability (systems work when you need them). Sort each scenario into the goal it protects.</p>
+    </div>
+
+    <div class="card">
+      <h3>Scenarios</h3>
+      <div class="cia-pool" id="cia-pool"></div>
+      <p class="muted center" style="margin-top:10px">Drag each one into the correct bucket below.</p>
+    </div>
+
+    <div class="card">
+      <div class="cia-triad">
+        <div class="cia-bucket" data-key="C">
+          <h3>Confidentiality</h3>
+          <div class="desc">Keep information secret from unauthorised eyes.</div>
+        </div>
+        <div class="cia-bucket" data-key="I">
+          <h3>Integrity</h3>
+          <div class="desc">Make sure data is not changed by an attacker.</div>
+        </div>
+        <div class="cia-bucket" data-key="A">
+          <h3>Availability</h3>
+          <div class="desc">Keep services running when users need them.</div>
+        </div>
+      </div>
+      <div class="cia-controls">
+        <span class="score" id="cia-score">0 / 0</span>
+        <button id="cia-check">Check answers</button>
+        <button class="ghost" id="cia-reset">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== 2. CAESAR PUZZLES ======================== -->
+  <section id="caesar" class="ws-section">
+    <div class="section-head">
+      <div class="kicker">Cryptography · Section 2</div>
+      <h2>Caesar Cipher Puzzles</h2>
+      <p>Five puzzles, getting harder. Slide the shift dial, watch the message update, type the keyword. Hint and reveal are there if you get stuck — but try first.</p>
+    </div>
+
+    <div class="card scoreboard">
+      <div>
+        <div class="kicker" style="margin:0">Progress</div>
+        <strong style="font-size:1.15rem"><span id="caesar-solved">0</span> / <span id="caesar-total">5</span> puzzles solved</strong>
+      </div>
+      <div class="progress"><div id="caesar-bar"></div></div>
+      <span class="score" id="caesar-pill">0 ★</span>
+    </div>
+
+    <div id="caesar-puzzles"></div>
+
+    <div class="card endcard hidden" id="caesar-end">
+      <h3>All five cracked. Well done, cadet.</h3>
+      <p class="muted" style="margin:0">You decrypted, brute-forced, and used a crib like a real cryptanalyst. Ready for substitution ciphers? Scroll on.</p>
+    </div>
+  </section>
+
+  <!-- ======================== 3. SUBSTITUTION PUZZLES ======================== -->
+  <section id="sub" class="ws-section">
+    <div class="section-head">
+      <div class="kicker">Cryptography · Section 3</div>
+      <h2>Substitution Cipher Puzzles</h2>
+      <p>A substitution cipher hides every letter behind a different letter — 26! possible keys, about 4×10²⁶. But the language gives it away. Solve three puzzles: a warm-up with most of the key already given, a crib attack, and a frequency analysis from scratch.</p>
+    </div>
+
+    <div class="card scoreboard">
+      <div>
+        <div class="kicker" style="margin:0">Progress</div>
+        <strong style="font-size:1.15rem"><span id="sub-solved">0</span> / <span id="sub-total">3</span> puzzles solved</strong>
+      </div>
+      <div class="progress"><div id="sub-bar"></div></div>
+      <span class="score" id="sub-pill">0 ★</span>
+    </div>
+
+    <div id="sub-puzzles"></div>
+
+    <div class="card endcard hidden" id="sub-end">
+      <h3>Three for three. You're a real cryptanalyst now.</h3>
+      <p class="muted" style="margin:0">Next up: how attackers crack passwords with the same brute-force ideas.</p>
+    </div>
+  </section>
+
+  <!-- ======================== 4. PASSWORD COMPLEXITY ======================== -->
+  <section id="pwd" class="ws-section">
+    <div class="section-head">
+      <div class="kicker">Authentication · Section 4</div>
+      <h2>Password Complexity &amp; Brute-Force Time</h2>
+      <p>Type a password — the tool measures the keyspace and estimates how long an attacker would need at one billion (consumer GPU) or one trillion (state-level) guesses per second. Your input never leaves the browser.</p>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label for="pwd-field">Type a password</label>
+        <input id="pwd-field" class="pwd-input" type="text" placeholder="try: hamad1981  vs  Qatar!2026-Cyb*Lab" autocomplete="off">
+      </div>
+      <div class="meter"><div id="pwd-meter"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <span class="grade s0" id="pwd-grade">none</span>
+        <span class="muted">Length: <strong id="pwd-length">0</strong> · Charset: <strong id="pwd-charset">0</strong></span>
+      </div>
+      <div class="pwd-stats">
+        <div class="stat"><div class="l">Entropy (bits)</div><div class="v" id="pwd-entropy">0</div></div>
+        <div class="stat"><div class="l">Combinations</div><div class="v" id="pwd-combos">1</div></div>
+        <div class="stat"><div class="l">Crack @ 1B/s</div><div class="v" id="pwd-crack">instant</div></div>
+        <div class="stat"><div class="l">Crack @ 1T/s</div><div class="v" id="pwd-crackFast">instant</div></div>
+      </div>
+      <hr class="hr-gold">
+      <h3 style="margin:0 0 8px">Why this score?</h3>
+      <ul id="pwd-reasons" class="reasons" style="margin:0;padding-left:18px;"></ul>
+    </div>
+
+    <div class="card">
+      <h3>Try these</h3>
+      <div class="examples" id="pwd-examples"></div>
+    </div>
+
+    <div class="card">
+      <h3>Tips for strong passwords</h3>
+      <ul style="margin:0;padding-left:18px;line-height:1.9">
+        <li>Use 16+ characters. Length matters more than tricks.</li>
+        <li>Mix lowercase, uppercase, digits and symbols.</li>
+        <li>Avoid words from your life: name, birthday, city, mobile number.</li>
+        <li>Use a different password for every account.</li>
+        <li>Use a password manager and let it generate random ones for you.</li>
+        <li>Check breaches at <span class="mono">haveibeenpwned.com</span>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ======================== 5. VIGENÈRE ======================== -->
+  <section id="vig" class="ws-section">
+    <div class="section-head">
+      <div class="kicker">Cryptography · Section 5</div>
+      <h2>Vigenère Cipher — Caesar's Bigger Brother</h2>
+      <p>Caesar uses one shift for the whole message. Vigenère uses a <strong>keyword</strong>: each letter of the keyword shifts the next letter of plaintext. Same letter in the message → potentially different ciphertext letters, breaking simple frequency analysis.</p>
+    </div>
+
+    <div class="row">
+      <div class="col card">
+        <h3>Encrypt</h3>
+        <div class="field">
+          <label for="vig-key1">Keyword</label>
+          <input id="vig-key1" value="QATAR" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="vig-ptxt">Plain text</label>
+          <textarea id="vig-ptxt">Attack at dawn</textarea>
+        </div>
+        <label>Per-letter view</label>
+        <div class="stream" id="vig-encStream"></div>
+        <label>Cipher text</label>
+        <div class="code" id="vig-encOut"></div>
+      </div>
+      <div class="col card">
+        <h3>Decrypt</h3>
+        <div class="field">
+          <label for="vig-key2">Keyword</label>
+          <input id="vig-key2" value="QATAR" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="vig-ctxt">Cipher text</label>
+          <textarea id="vig-ctxt">Qttucr ar djwl</textarea>
+        </div>
+        <label>Per-letter view</label>
+        <div class="stream" id="vig-decStream"></div>
+        <label>Plain text</label>
+        <div class="code" id="vig-decOut"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>How it works</h3>
+      <ol style="margin:0;padding-left:20px;line-height:1.9">
+        <li>Repeat your keyword under the plaintext: <span class="mono">ATTACKATDAWN / QATARQATARQA</span>.</li>
+        <li>For each pair of letters, shift the plaintext letter by the position of the key letter: A=0, B=1, … Z=25.</li>
+        <li>Wrap around at Z back to A. Spaces and punctuation are kept untouched.</li>
+        <li>Decryption is the same trick in reverse: shift the cipher letter <em>back</em> by the key letter's position.</li>
+      </ol>
+      <p class="muted" style="margin-top:10px">It looked unbreakable for 300 years — until <strong>Friedrich Kasiski</strong> figured out you could find the key length by spotting repeated patterns (Kasiski examination). Once you know the key length, the cipher reduces to several Caesar ciphers stacked side-by-side.</p>
+    </div>
+
+    <div class="card">
+      <h3>Try these</h3>
+      <table class="table-mini">
+        <tr><td class="h">key</td><td>QATAR</td><td class="h">plain</td><td>Attack at dawn</td><td class="h">cipher</td><td>Qttucr ar djwl</td></tr>
+        <tr><td class="h">key</td><td>BARZAN</td><td class="h">plain</td><td>workshop</td><td class="h">cipher</td><td>Xosjsuqq</td></tr>
+        <tr><td class="h">key</td><td>HBKU</td><td class="h">plain</td><td>Cybersecurity is fun</td><td class="h">cipher</td><td>Jzllyttuyssj az gob</td></tr>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="workshop-foot">
+  Barzan University College  ·  Cybersecurity Workshop  ·  Built for hands-on learning
+</footer>
+
+<script>
+/* ============== 1. CIA TRIAD ============== */
+(function () {
+  const ITEMS = [
+    { t: "Encrypting an email so nobody but the receiver can read it",       g: "C" },
+    { t: "Showing your fingerprint to unlock your phone",                    g: "C" },
+    { t: "Closing the curtains in your room",                                g: "C" },
+    { t: "Putting documents in a locked drawer",                             g: "C" },
+    { t: "Hashing a downloaded file and checking its checksum",              g: "I" },
+    { t: "Adding a digital signature to a contract",                         g: "I" },
+    { t: "Detecting that a record in the database was modified",             g: "I" },
+    { t: "Using a Git commit hash to confirm code wasn't tampered with",     g: "I" },
+    { t: "A backup generator kicking in when power fails",                   g: "A" },
+    { t: "A website using multiple servers behind a load balancer",          g: "A" },
+    { t: "Anti-DDoS protection blocking a flood of requests",                g: "A" },
+    { t: "Restoring data from a backup after ransomware",                    g: "A" },
+    { t: "Sending bank statements only over HTTPS",                          g: "C" },
+    { t: "Keeping accidents from over-writing a shared spreadsheet",         g: "I" }
+  ];
+  const pool = document.getElementById("cia-pool");
+  const buckets = document.querySelectorAll("#cia .cia-bucket");
+
+  function build() {
+    pool.innerHTML = "";
+    buckets.forEach(b => b.querySelectorAll(".cia-item").forEach(e => e.remove()));
+    ITEMS.slice().sort(() => Math.random() - .5).forEach((it, i) => {
+      const el = document.createElement("div");
+      el.className = "cia-item";
+      el.draggable = true;
+      el.dataset.g = it.g;
+      el.textContent = it.t;
+      el.id = "cia-item" + i;
+      el.addEventListener("dragstart", e => {
+        el.classList.add("dragging");
+        e.dataTransfer.setData("text/plain", el.id);
+        e.dataTransfer.effectAllowed = "move";
+      });
+      el.addEventListener("dragend", () => el.classList.remove("dragging"));
+      addTouchSupport(el);
+      pool.appendChild(el);
+    });
+    score();
+  }
+  buckets.forEach(b => {
+    b.addEventListener("dragover", e => { e.preventDefault(); b.classList.add("hover"); });
+    b.addEventListener("dragleave", () => b.classList.remove("hover"));
+    b.addEventListener("drop", e => {
+      e.preventDefault();
+      b.classList.remove("hover");
+      const id = e.dataTransfer.getData("text/plain");
+      const item = document.getElementById(id);
+      if (!item) return;
+      b.appendChild(item);
+      item.classList.remove("right", "wrong");
+      score();
+    });
+  });
+  function score() {
+    let placed = 0, correct = 0;
+    buckets.forEach(b => {
+      const key = b.dataset.key;
+      b.querySelectorAll(".cia-item").forEach(it => {
+        placed++;
+        if (it.dataset.g === key) correct++;
+      });
+    });
+    document.getElementById("cia-score").textContent = correct + " / " + placed + " placed correctly";
+  }
+  document.getElementById("cia-check").onclick = () => {
+    buckets.forEach(b => {
+      const key = b.dataset.key;
+      b.querySelectorAll(".cia-item").forEach(it => {
+        it.classList.remove("right", "wrong");
+        it.classList.add(it.dataset.g === key ? "right" : "wrong");
+      });
+    });
+    score();
+  };
+  document.getElementById("cia-reset").onclick = build;
+  function addTouchSupport(el) {
+    let dragging = false, ghost = null;
+    el.addEventListener("touchstart", e => {
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      dragging = true;
+      ghost = el.cloneNode(true);
+      ghost.style.position = "fixed"; ghost.style.zIndex = 1000;
+      ghost.style.pointerEvents = "none"; ghost.style.opacity = ".85";
+      ghost.style.transform = "scale(1.05)";
+      document.body.appendChild(ghost);
+      moveGhost(e.touches[0]);
+      el.classList.add("dragging");
+    }, { passive: false });
+    el.addEventListener("touchmove", e => {
+      if (!dragging) return;
+      e.preventDefault();
+      moveGhost(e.touches[0]);
+    }, { passive: false });
+    el.addEventListener("touchend", e => {
+      if (!dragging) return;
+      const t = e.changedTouches[0];
+      const target = document.elementFromPoint(t.clientX, t.clientY);
+      const bucket = target ? target.closest(".cia-bucket") : null;
+      if (bucket) bucket.appendChild(el);
+      el.classList.remove("dragging");
+      if (ghost) { ghost.remove(); ghost = null; }
+      dragging = false;
+      score();
+    });
+    function moveGhost(t) {
+      const r = el.getBoundingClientRect();
+      ghost.style.left = (t.clientX - r.width / 2) + "px";
+      ghost.style.top = (t.clientY - r.height / 2) + "px";
+      ghost.style.width = r.width + "px";
+    }
+  }
+  build();
+})();
+
+/* ============== 2. CAESAR PUZZLES ============== */
+(function () {
+  const PUZZLES = [
+    { title: "Warm-up · the shift is given",
+      intro: "Caesar's classic. Each plaintext letter slides 3 positions forward. Set the shift to 3 and read the message. Then type the FIRST word.",
+      cipher: "EUDYR! BRX FUDFNHG WKH FRGH",
+      startShift: 0, targetWord: "BRAVO",
+      targetHint: "First word of the message",
+      smallHint: "The shift is 3.",
+      bigHint: "Plaintext: BRAVO! YOU CRACKED THE CODE" },
+    { title: "Find the shift on your own",
+      intro: "No shift given. Drag the slider until the text reads as English, then type a notable word from the message.",
+      cipher: "ESPY ESP HZCWO TD JZFCD",
+      startShift: 0, targetWord: "WORLD",
+      targetHint: "5 letters · the noun in the middle",
+      smallHint: "Try shifts in the 10–15 range.",
+      bigHint: "Shift is 11. Plaintext: THEN THE WORLD IS YOURS" },
+    { title: "ROT13 — the famous one",
+      intro: "ROT13 is its own inverse: encrypt twice and you're back where you started. It hides spoilers on old internet forums. Find the shift, then type what you're attending today.",
+      cipher: "JRYPBZR GB GUR JBEXFUBC PNQRGF",
+      startShift: 0, targetWord: "WORKSHOP",
+      targetHint: "What you're attending today",
+      smallHint: "ROT13. Shift is 13.",
+      bigHint: "Plaintext: WELCOME TO THE WORKSHOP CADETS" },
+    { title: "Crib attack",
+      intro: "Sometimes you don't have to try every shift. Intelligence tells you the message starts with “THE FLAG IS …”. Use that to deduce the shift, then type the school name at the end.",
+      cipher: "KYV WCRX ZJ SRIQRE",
+      startShift: 0, targetWord: "BARZAN",
+      targetHint: "Six letters · the school name",
+      smallHint: "T → K. So shift = K − T = 10 + 26 − 19 = 17.",
+      bigHint: "Plaintext: THE FLAG IS BARZAN" },
+    { title: "The meeting place",
+      intro: "Tonight's rendezvous was leaked. Decrypt the full message and type the LAST word — the venue.",
+      cipher: "CXWRPQCB VNNCRWP YXRWC RB CQN URKAJAH",
+      startShift: 0, targetWord: "LIBRARY",
+      targetHint: "A quiet place full of books",
+      smallHint: "Try shift 9.",
+      bigHint: "Plaintext: TONIGHTS MEETING POINT IS THE LIBRARY" }
+  ];
+  const TOTAL = PUZZLES.length;
+  let solvedCount = 0;
+  const solvedFlags = PUZZLES.map(() => false);
+
+  function caesar(text, k) {
+    k = ((k % 26) + 26) % 26;
+    return text.replace(/[a-zA-Z]/g, ch => {
+      const code = ch.charCodeAt(0);
+      const base = code < 97 ? 65 : 97;
+      return String.fromCharCode(((code - base - k + 26) % 26) + base);
+    });
+  }
+  function clean(s) { return (s || "").trim().toUpperCase().replace(/[^A-Z]/g, ""); }
+  function escHtml(s) {
+    return s.replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  }
+
+  const wrap = document.getElementById("caesar-puzzles");
+  const solvedEl = document.getElementById("caesar-solved");
+  const totalEl = document.getElementById("caesar-total");
+  const bar = document.getElementById("caesar-bar");
+  const pill = document.getElementById("caesar-pill");
+  const endcard = document.getElementById("caesar-end");
+  totalEl.textContent = TOTAL;
+
+  PUZZLES.forEach((p, i) => {
+    const card = document.createElement("div");
+    card.className = "card puzzle" + (i === 0 ? "" : " locked");
+    card.innerHTML =
+      '<span class="badge">Puzzle ' + (i + 1) + ' of ' + TOTAL + '</span>' +
+      '<h3>' + escHtml(p.title) + '</h3>' +
+      '<p class="muted" style="margin-top:0">' + escHtml(p.intro) + '</p>' +
+      '<div class="kicker" style="margin-bottom:4px">Ciphertext</div>' +
+      '<div class="ct">' + escHtml(p.cipher) + '</div>' +
+      '<div class="shift-row">' +
+        '<input type="range" min="0" max="25" value="' + p.startShift + '" data-r="' + i + '">' +
+        '<div class="keychip">Shift: <strong data-k="' + i + '">' + p.startShift + '</strong></div>' +
+      '</div>' +
+      '<div class="kicker" style="margin-bottom:4px">Decoded preview</div>' +
+      '<div class="pt" data-pt="' + i + '"></div>' +
+      '<div class="answer-row">' +
+        '<label>Your answer:</label>' +
+        '<input type="text" data-a="' + i + '" placeholder="' + escHtml(p.targetHint) + '" maxlength="24">' +
+        '<button data-check="' + i + '">Check</button>' +
+        '<button class="ghost" data-hint="' + i + '">Hint</button>' +
+        '<button class="ghost" data-reveal="' + i + '" style="border-color:var(--buc-medium-gray);color:var(--buc-medium-gray)">Reveal</button>' +
+      '</div>' +
+      '<div class="feedback muted" data-fb="' + i + '">Decode the ciphertext, then type the keyword above.</div>';
+    wrap.appendChild(card);
+  });
+
+  function decodePreview(i) {
+    const k = parseInt(document.querySelector('input[data-r="' + i + '"]').value, 10);
+    document.querySelector('strong[data-k="' + i + '"]').textContent = k;
+    document.querySelector('div[data-pt="' + i + '"]').textContent = caesar(PUZZLES[i].cipher, k);
+  }
+  function setFeedback(i, msg, kind) {
+    const el = document.querySelector('div[data-fb="' + i + '"]');
+    el.textContent = msg;
+    el.className = "feedback " + (kind || "muted");
+  }
+  function unlockNext(i) {
+    const next = wrap.children[i + 1];
+    if (next) next.classList.remove("locked");
+  }
+  function refreshScore() {
+    solvedEl.textContent = solvedCount;
+    bar.style.width = (solvedCount / TOTAL * 100) + "%";
+    pill.textContent = solvedCount + " ★";
+    if (solvedCount === TOTAL) endcard.classList.remove("hidden");
+  }
+  function check(i) {
+    const guess = clean(document.querySelector('input[data-a="' + i + '"]').value);
+    if (!guess) { setFeedback(i, "Type the keyword first.", "bad"); return; }
+    if (guess === PUZZLES[i].targetWord) {
+      if (!solvedFlags[i]) { solvedFlags[i] = true; solvedCount++; refreshScore(); }
+      setFeedback(i, "Correct! ★ moving on.", "ok");
+      wrap.children[i].classList.add("solved");
+      unlockNext(i);
+    } else {
+      setFeedback(i, "Not quite. Tweak the shift and try again.", "bad");
+    }
+  }
+  function hint(i) { setFeedback(i, "Hint: " + PUZZLES[i].smallHint, "muted"); }
+  function reveal(i) { setFeedback(i, "Solution → " + PUZZLES[i].bigHint + "  ·  Keyword: " + PUZZLES[i].targetWord, "muted"); }
+
+  wrap.addEventListener("input", e => {
+    const r = e.target.getAttribute("data-r");
+    if (r !== null) decodePreview(parseInt(r, 10));
+  });
+  wrap.addEventListener("click", e => {
+    const c = e.target.getAttribute("data-check");
+    const h = e.target.getAttribute("data-hint");
+    const v = e.target.getAttribute("data-reveal");
+    if (c !== null) check(parseInt(c, 10));
+    else if (h !== null) hint(parseInt(h, 10));
+    else if (v !== null) reveal(parseInt(v, 10));
+  });
+  wrap.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    const a = e.target.getAttribute("data-a");
+    if (a !== null) check(parseInt(a, 10));
+  });
+  PUZZLES.forEach((_, i) => decodePreview(i));
+  refreshScore();
+})();
+
+/* ============== 3. SUBSTITUTION PUZZLES ============== */
+(function () {
+  const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const PUZZLES = [
+    { title: "Warm-up · most of the key is yours",
+      intro: "We've already cracked five of the eight letters. Fill in the three empty cells, watch the preview turn into English, then type the LAST word.",
+      cipher: "QWWR QW ZR RFW JZVL",
+      mapping: { Q:"M", W:"E", R:"T", Z:"A", F:"H", J:"P", V:"R", L:"K" },
+      prefilled: ["Q","W","J","V","L"],
+      clue: null, showFreq: false,
+      targetWord: "PARK",
+      targetHint: "The last word of the message",
+      smallHint: "Look at QWWR — three letters mapped, one missing. What letter follows MEE_?",
+      bigHint: "R→T, Z→A, F→H. Plaintext: MEET ME AT THE PARK" },
+    { title: "Crib attack · find THE",
+      intro: "No mapping given. But “THE” is the most common 3-letter word in English, and the cipher word GSV appears twice. Use the crib to crack T, H and E first; the rest cascades.",
+      cipher: "GSV UOZT RH SRWWVM FMWVI GSV HGZTV",
+      mapping: { G:"T", S:"H", V:"E", U:"F", O:"L", Z:"A", T:"G", R:"I", H:"S", W:"D", M:"N", F:"U", I:"R" },
+      prefilled: ["Z","W","T"],
+      clue: "“THE” appears twice in plaintext. Find the cipher word that appears twice — that's it. Hint cells already give you Z→A, W→D, T→G.",
+      showFreq: false,
+      targetWord: "STAGE",
+      targetHint: "Where the prize is hidden",
+      smallHint: "GSV → THE means G→T, S→H, V→E. The last cipher word HGZTV ends in V (=E)…",
+      bigHint: "Plaintext: THE FLAG IS HIDDEN UNDER THE STAGE" },
+    { title: "Frequency analysis · from scratch",
+      intro: "No mapping given, no crib — just the frequencies. The most common letter in English is E, then T, A, O, I, N, S, H, R. Use the bars below to seed your guesses, then refine.",
+      cipher: "WQKMQF XFOCTKLOZN IGLZL ZIT YOKLZ VGKALIGH GF ENWTKLTEXKOZN ZIOL VTTA",
+      mapping: {
+        W:"B", Q:"A", K:"R", M:"Z", F:"N",
+        X:"U", O:"I", C:"V", T:"E", L:"S", Z:"T", N:"Y",
+        I:"H", G:"O", Y:"F",
+        V:"W", A:"K", H:"P", E:"C"
+      },
+      prefilled: [],
+      clue: "L is the most common cipher letter (7×) — a strong bet for E or S. The cipher word ZIT looks suspicious… could it spell THE? Then the first word starts with W…",
+      showFreq: true,
+      targetWord: "BARZAN",
+      targetHint: "The first word — the school name",
+      smallHint: "ZIT → THE gives Z→T, I→H, T→E. Then “ZIOL” = T-H-?-S → THIS, so O→I, L→S. The first word is W-?-K-M-?-F = B-A-R-Z-A-N.",
+      bigHint: "Plaintext: BARZAN UNIVERSITY HOSTS THE FIRST WORKSHOP ON CYBERSECURITY THIS WEEK" }
+  ];
+  const TOTAL = PUZZLES.length;
+  let solvedCount = 0;
+  const solvedFlags = PUZZLES.map(() => false);
+
+  function escHtml(s) {
+    return s.replace(/[&<>"']/g, ch => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[ch]));
+  }
+  function clean(s) { return (s || "").trim().toUpperCase().replace(/[^A-Z]/g, ""); }
+  function uniqueCipherLetters(cipher) {
+    const set = new Set();
+    for (const ch of cipher.toUpperCase()) if (ch >= "A" && ch <= "Z") set.add(ch);
+    return [...set].sort();
+  }
+  function freqCount(cipher) {
+    const c = Object.fromEntries(ALPHA.map(L => [L, 0]));
+    for (const ch of cipher.toUpperCase()) if (ch >= "A" && ch <= "Z") c[ch]++;
+    return c;
+  }
+
+  const wrap = document.getElementById("sub-puzzles");
+  const solvedEl = document.getElementById("sub-solved");
+  const totalEl = document.getElementById("sub-total");
+  const bar = document.getElementById("sub-bar");
+  const pill = document.getElementById("sub-pill");
+  const endcard = document.getElementById("sub-end");
+  totalEl.textContent = TOTAL;
+
+  PUZZLES.forEach((p, i) => {
+    const cipherLetters = uniqueCipherLetters(p.cipher);
+    const cellsHtml = cipherLetters.map(L => {
+      const isLocked = p.prefilled.includes(L);
+      if (isLocked) {
+        return '<div class="map-cell locked"><div class="src">' + L + '</div><div class="arr">↓</div><div class="lock-val">' + p.mapping[L] + '</div></div>';
+      }
+      return '<div class="map-cell"><div class="src">' + L + '</div><div class="arr">↓</div><input type="text" maxlength="1" data-p="' + i + '" data-c="' + L + '" placeholder="?"></div>';
+    }).join("");
+
+    let freqHtml = "";
+    if (p.showFreq) {
+      const counts = freqCount(p.cipher);
+      const max = Math.max(...Object.values(counts), 1);
+      freqHtml = '<div class="kicker" style="margin-top:14px;margin-bottom:4px">Letter frequency in this ciphertext</div>' +
+        '<div class="freq-bars">' +
+        ALPHA.map(L => {
+          const h = (counts[L] / max) * 80;
+          return '<div class="bar" style="height:' + Math.max(h, 2) + 'px" title="' + L + ': ' + counts[L] + '"><span class="lbl">' + L + '</span></div>';
+        }).join("") +
+        '</div>' +
+        '<p class="muted" style="margin:6px 0 0;font-size:.88rem">English most-frequent: E · T · A · O · I · N · S · H · R</p>';
+    }
+
+    const card = document.createElement("div");
+    card.className = "card puzzle" + (i === 0 ? "" : " locked");
+    card.innerHTML =
+      '<span class="badge">Puzzle ' + (i + 1) + ' of ' + TOTAL + '</span>' +
+      '<h3>' + escHtml(p.title) + '</h3>' +
+      '<p class="muted" style="margin-top:0">' + escHtml(p.intro) + '</p>' +
+      '<div class="kicker" style="margin-bottom:4px">Ciphertext</div>' +
+      '<div class="ct">' + escHtml(p.cipher) + '</div>' +
+      freqHtml +
+      (p.clue ? '<div class="clue">' + escHtml(p.clue) + '</div>' : "") +
+      '<div class="kicker" style="margin-top:10px;margin-bottom:4px">Your key (cipher → plain)</div>' +
+      '<div class="map-grid">' + cellsHtml + '</div>' +
+      '<div class="kicker" style="margin-top:10px;margin-bottom:4px">Decoded preview</div>' +
+      '<div class="pt" data-pt="' + i + '"></div>' +
+      '<div class="answer-row">' +
+        '<label>Keyword:</label>' +
+        '<input type="text" data-a="' + i + '" placeholder="' + escHtml(p.targetHint) + '" maxlength="24">' +
+        '<button data-check="' + i + '">Check</button>' +
+        '<button class="ghost" data-hint="' + i + '">Hint</button>' +
+        '<button class="ghost" data-reveal="' + i + '" style="border-color:var(--buc-medium-gray);color:var(--buc-medium-gray)">Reveal</button>' +
+      '</div>' +
+      '<div class="feedback muted" data-fb="' + i + '">Fill in the empty cells, then type the keyword above.</div>';
+    wrap.appendChild(card);
+  });
+
+  function readKey(i) {
+    const p = PUZZLES[i];
+    const key = {};
+    p.prefilled.forEach(L => { key[L] = p.mapping[L]; });
+    document.querySelectorAll('input[data-p="' + i + '"]').forEach(inp => {
+      const v = inp.value.trim().toUpperCase();
+      if (/^[A-Z]$/.test(v)) key[inp.getAttribute("data-c")] = v;
+    });
+    return key;
+  }
+  function decodePreview(i) {
+    const p = PUZZLES[i];
+    const key = readKey(i);
+    const out = p.cipher.split("").map(ch => {
+      const u = ch.toUpperCase();
+      if (u >= "A" && u <= "Z") {
+        if (key[u]) return key[u];
+        return '<span class="unknown">·</span>';
+      }
+      return escHtml(ch);
+    }).join("");
+    document.querySelector('div[data-pt="' + i + '"]').innerHTML = out;
+  }
+  function setFeedback(i, msg, kind) {
+    const el = document.querySelector('div[data-fb="' + i + '"]');
+    el.textContent = msg;
+    el.className = "feedback " + (kind || "muted");
+  }
+  function unlockNext(i) {
+    const next = wrap.children[i + 1];
+    if (next) next.classList.remove("locked");
+  }
+  function refreshScore() {
+    solvedEl.textContent = solvedCount;
+    bar.style.width = (solvedCount / TOTAL * 100) + "%";
+    pill.textContent = solvedCount + " ★";
+    if (solvedCount === TOTAL) endcard.classList.remove("hidden");
+  }
+  function check(i) {
+    const guess = clean(document.querySelector('input[data-a="' + i + '"]').value);
+    if (!guess) { setFeedback(i, "Type the keyword first.", "bad"); return; }
+    if (guess === PUZZLES[i].targetWord) {
+      if (!solvedFlags[i]) { solvedFlags[i] = true; solvedCount++; refreshScore(); }
+      setFeedback(i, "Correct! ★ moving on.", "ok");
+      wrap.children[i].classList.add("solved");
+      unlockNext(i);
+    } else {
+      setFeedback(i, "Not quite. Refine your mapping and try again.", "bad");
+    }
+  }
+  function hint(i) { setFeedback(i, "Hint: " + PUZZLES[i].smallHint, "muted"); }
+  function reveal(i) { setFeedback(i, "Solution → " + PUZZLES[i].bigHint + "  ·  Keyword: " + PUZZLES[i].targetWord, "muted"); }
+
+  wrap.addEventListener("input", e => {
+    const i = e.target.getAttribute("data-p");
+    if (i !== null) {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+      decodePreview(parseInt(i, 10));
+    }
+  });
+  wrap.addEventListener("click", e => {
+    const c = e.target.getAttribute("data-check");
+    const h = e.target.getAttribute("data-hint");
+    const v = e.target.getAttribute("data-reveal");
+    if (c !== null) check(parseInt(c, 10));
+    else if (h !== null) hint(parseInt(h, 10));
+    else if (v !== null) reveal(parseInt(v, 10));
+  });
+  wrap.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    const a = e.target.getAttribute("data-a");
+    if (a !== null) check(parseInt(a, 10));
+  });
+  PUZZLES.forEach((_, i) => decodePreview(i));
+  refreshScore();
+})();
+
+/* ============== 4. PASSWORD COMPLEXITY ============== */
+(function () {
+  const COMMON_BAD = new Set([
+    "password","123456","12345678","123456789","12345","1234","qwerty","abc123",
+    "password1","password!","letmein","admin","welcome","monkey","football","iloveyou",
+    "qatar123","qatar2022","qatar2026","hamad","sara","aisha","ahmed","omar","fatima",
+    "qwerty123","qwertyqatar","aaaa1111","abcd1234","asdf1234","zxcv1234"
+  ]);
+  const KEYBOARD_PATTERNS = ["qwerty","asdfgh","zxcvbn","qazwsx","12345","123456","98765"];
+
+  function detectCharsets(pwd) {
+    const sets = {
+      lower: /[a-z]/.test(pwd),
+      upper: /[A-Z]/.test(pwd),
+      digit: /\d/.test(pwd),
+      symbol: /[^A-Za-z0-9]/.test(pwd),
+    };
+    const sizes = { lower:26, upper:26, digit:10, symbol:33 };
+    const charset = Object.keys(sets).reduce((acc, k) => acc + (sets[k] ? sizes[k] : 0), 0);
+    return { sets, charset };
+  }
+  function entropyBits(pwd, charset) {
+    if (!pwd || charset === 0) return 0;
+    return pwd.length * Math.log2(charset);
+  }
+  function combos(bits) { return Math.pow(2, bits); }
+  function timeStr(seconds) {
+    if (seconds < 1) return "instant";
+    const units = [["years",60*60*24*365],["days",60*60*24],["hours",60*60],["minutes",60],["seconds",1]];
+    for (const [name, s] of units) {
+      if (seconds >= s) {
+        const n = seconds / s;
+        if (n < 1e12) return formatNum(n) + " " + name;
+      }
+    }
+    return formatNum(seconds) + " sec";
+  }
+  function formatNum(n) {
+    if (n < 1000) return n.toFixed(1).replace(/\.0$/,"");
+    const units = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp"];
+    let i = 0;
+    while (n >= 1000 && i < units.length-1) { n /= 1000; i++; }
+    return n.toFixed(1).replace(/\.0$/,"") + units[i];
+  }
+
+  function score(pwd) {
+    const reasons = [];
+    const lower = pwd.toLowerCase();
+    const { sets, charset } = detectCharsets(pwd);
+    const bits = entropyBits(pwd, charset);
+    const c = combos(bits);
+    const seconds1B = c / 1e9;
+    const seconds1T = c / 1e12;
+
+    if (pwd.length === 0) reasons.push({ type:"bad", text:"No password yet." });
+    else {
+      if (pwd.length >= 12) reasons.push({ type:"ok", text:"Good length (" + pwd.length + " chars)." });
+      else if (pwd.length >= 8) reasons.push({ type:"ok", text:"Acceptable length (" + pwd.length + " chars), 12+ is much safer." });
+      else reasons.push({ type:"bad", text:"Too short (" + pwd.length + " chars). Aim for 12+." });
+
+      const usedSets = Object.entries(sets).filter(([,v])=>v).map(([k])=>k);
+      if (usedSets.length >= 3) reasons.push({ type:"ok", text:"Mixes " + usedSets.length + " character classes (" + usedSets.join(", ") + ")." });
+      else reasons.push({ type:"bad", text:"Only uses " + (usedSets.length || "no") + " class(es). Mix lower, upper, digits and symbols." });
+
+      if (COMMON_BAD.has(lower)) reasons.push({ type:"bad", text:"This password appears on common-password leak lists. Never use it." });
+      if (KEYBOARD_PATTERNS.some(p => lower.includes(p))) reasons.push({ type:"bad", text:"Contains a keyboard pattern (qwerty / 12345 / etc.)." });
+      if (/^\d+$/.test(pwd)) reasons.push({ type:"bad", text:"Digits only — easy to brute-force." });
+      if (/(.)\1{2,}/.test(pwd)) reasons.push({ type:"bad", text:"Has 3+ repeated characters in a row." });
+      if (/(qatar|hamad|doha|sayyaf|sara|aisha|ahmed|omar|reem|noor|aziz|khalid|mohd)/i.test(pwd))
+        reasons.push({ type:"bad", text:"Contains a name or place that's easy to guess." });
+      if (/(19|20)\d{2}/.test(pwd)) reasons.push({ type:"bad", text:"Contains a 4-digit year — guessed in seconds." });
+
+      if (bits >= 80) reasons.push({ type:"ok", text:"Excellent entropy. Good against offline GPU attacks." });
+      else if (bits >= 60) reasons.push({ type:"ok", text:"Strong entropy for online attacks; OK for offline." });
+      else if (bits >= 40) reasons.push({ type:"bad", text:"Borderline entropy. Strengthen length and charset." });
+      else if (pwd.length) reasons.push({ type:"bad", text:"Low entropy — easy to crack offline." });
+    }
+
+    let grade = 0;
+    if (bits >= 28) grade = 1;
+    if (bits >= 50) grade = 2;
+    if (bits >= 70) grade = 3;
+    if (bits >= 90) grade = 4;
+    if (COMMON_BAD.has(lower) || (/^[a-z]+$/.test(lower) && lower.length<8)) grade = Math.min(grade, 0);
+
+    return { reasons, charset, bits, c, seconds1B, seconds1T, grade };
+  }
+
+  const colours = ["#D4362D","#E07A1A","#E8B500","#5DAA2A","#1E6D2C"];
+  const labels = ["very weak","weak","moderate","strong","very strong"];
+  const pwd = document.getElementById("pwd-field");
+  const meter = document.getElementById("pwd-meter");
+  const badge = document.getElementById("pwd-grade");
+
+  function refresh() {
+    const v = pwd.value;
+    const r = score(v);
+    document.getElementById("pwd-length").textContent = v.length;
+    document.getElementById("pwd-charset").textContent = r.charset;
+    document.getElementById("pwd-entropy").textContent = r.bits.toFixed(1);
+    document.getElementById("pwd-combos").textContent = r.bits ? formatNum(r.c) : "1";
+    document.getElementById("pwd-crack").textContent = r.bits ? timeStr(r.seconds1B) : "instant";
+    document.getElementById("pwd-crackFast").textContent = r.bits ? timeStr(r.seconds1T) : "instant";
+
+    const w = ((r.grade+1)/5)*100;
+    meter.style.width = (v ? w : 0) + "%";
+    meter.style.background = colours[r.grade];
+    badge.className = "grade s" + r.grade;
+    badge.textContent = v ? labels[r.grade] : "none";
+
+    const ul = document.getElementById("pwd-reasons");
+    ul.innerHTML = "";
+    r.reasons.forEach(rsn => {
+      const li = document.createElement("li");
+      li.className = rsn.type;
+      li.textContent = rsn.text;
+      ul.appendChild(li);
+    });
+  }
+  pwd.addEventListener("input", refresh);
+  refresh();
+
+  const samples = [
+    "12345","password","qwerty","hamad1981","qatar2022","Sara2003!",
+    "iloveyou","abcd1234","P@ssw0rd!","S$2k4!Mz#tQv","correct horse battery staple",
+    "Qatar!2026-Cyb*Lab"
+  ];
+  const ex = document.getElementById("pwd-examples");
+  samples.forEach(s => {
+    const b = document.createElement("span");
+    b.className = "sample";
+    b.textContent = s;
+    b.onclick = () => { pwd.value = s; refresh(); pwd.focus(); };
+    ex.appendChild(b);
+  });
+})();
+
+/* ============== 5. VIGENÈRE ============== */
+(function () {
+  function vigenere(text, key, decrypt) {
+    key = key.replace(/[^a-zA-Z]/g, "").toUpperCase();
+    if (!key) return { out: text, pairs: [] };
+    const pairs = [];
+    let ki = 0;
+    let out = "";
+    for (const ch of text) {
+      if (/[a-zA-Z]/.test(ch)) {
+        const A = ch < "a" ? 65 : 97;
+        const code = ch.charCodeAt(0) - A;
+        const shift = key.charCodeAt(ki % key.length) - 65;
+        const final = decrypt ? ((code - shift) % 26 + 26) % 26 : (code + shift) % 26;
+        const newCh = String.fromCharCode(final + A);
+        pairs.push({ src: ch, key: key[ki % key.length], out: newCh });
+        ki++;
+        out += newCh;
+      } else {
+        pairs.push({ src: ch, key: " ", out: ch, space: true });
+        out += ch;
+      }
+    }
+    return { out: out, pairs: pairs };
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  function renderStream(el, pairs, decryptMode) {
+    el.innerHTML = "";
+    for (const p of pairs) {
+      const cell = document.createElement("div");
+      cell.className = "cell " + (p.space ? "space" : (decryptMode ? "plain" : "cipher"));
+      if (p.space) {
+        cell.innerHTML = '<div class="top">&nbsp;</div><div class="key">&nbsp;</div><div class="out">' + escapeHtml(p.src) + '</div>';
+      } else {
+        cell.innerHTML = '<div class="top">' + escapeHtml(p.src) + '</div><div class="key">' + escapeHtml(p.key) + '</div><div class="out">' + escapeHtml(p.out) + '</div>';
+      }
+      el.appendChild(cell);
+    }
+  }
+  function refreshEnc() {
+    const k = document.getElementById("vig-key1").value;
+    const t = document.getElementById("vig-ptxt").value;
+    const r = vigenere(t, k, false);
+    document.getElementById("vig-encOut").textContent = r.out;
+    renderStream(document.getElementById("vig-encStream"), r.pairs, false);
+  }
+  function refreshDec() {
+    const k = document.getElementById("vig-key2").value;
+    const t = document.getElementById("vig-ctxt").value;
+    const r = vigenere(t, k, true);
+    document.getElementById("vig-decOut").textContent = r.out;
+    renderStream(document.getElementById("vig-decStream"), r.pairs, true);
+  }
+  document.getElementById("vig-key1").addEventListener("input", refreshEnc);
+  document.getElementById("vig-ptxt").addEventListener("input", refreshEnc);
+  document.getElementById("vig-key2").addEventListener("input", refreshDec);
+  document.getElementById("vig-ctxt").addEventListener("input", refreshDec);
+  refreshEnc();
+  refreshDec();
+})();
+</script>
+</body>
+</html>
